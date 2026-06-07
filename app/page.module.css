@@ -1,0 +1,124 @@
+/* Page-specific styles for the landing page.
+   Ported from the inline <style> block in prototypes/index.html.
+   Shared tokens/components live in app/globals.css. */
+
+.landing {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-16);
+  max-width: 1200px;
+  margin: 0 auto;
+  flex: 1;
+}
+
+.landingHero {
+  padding-top: var(--s-12);
+  max-width: 38em;
+}
+
+.landingOrnament {
+  margin-bottom: var(--s-8);
+  color: var(--rose);
+}
+
+.landingTitle {
+  margin-bottom: var(--s-8);
+}
+
+.landingTitle em {
+  color: var(--rose);
+  font-style: italic;
+}
+
+.landingLede {
+  margin-bottom: var(--s-12);
+}
+
+.landingCta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-8);
+  flex-wrap: wrap;
+}
+
+.landingCtaMeta {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-muted);
+  font-size: var(--t-sm);
+  max-width: 22em;
+}
+
+/* Table of contents grid */
+.toc {
+  margin-top: var(--s-24);
+  padding-top: var(--s-12);
+  border-top: 1px solid var(--border-hairline);
+}
+
+.tocHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--s-10);
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+
+.tocTitle {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+  font-style: italic;
+  font-size: var(--t-2xl);
+  color: var(--ink);
+}
+
+.tocGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--s-2) var(--s-12);
+}
+
+.tocEntry {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: var(--s-3) 0;
+  border-bottom: 1px dotted var(--border);
+}
+
+.tocNum {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  flex-shrink: 0;
+  width: 1.5em;
+}
+
+.tocEntryTitle {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 36, "SOFT" 50;
+  font-weight: 400;
+  font-size: var(--t-base);
+  color: var(--ink);
+  flex: 1;
+}
+
+.tocEntryTitle em {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.tocEntryDots {
+  flex: 1;
+  border-bottom: 1px dotted var(--border-hairline);
+  transform: translateY(-4px);
+  margin: 0 var(--s-3);
+}
+
+.tocEntryPage {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--ink-muted);
+}

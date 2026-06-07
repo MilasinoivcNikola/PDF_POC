@@ -8,6 +8,8 @@ node_modules/
 out/
 build/
 dist/
+next-env.d.ts
+*.tsbuildinfo
 
 # Environment
 .env
@@ -15,10 +17,15 @@ dist/
 .env*.local
 
 # Project runtime artifacts (per local-prototype-plan.md)
-uploads/
-generated/
-sessions/
-output/
+# Ignore contents but keep the directories via .gitkeep
+uploads/*
+generated/*
+sessions/*
+output/*
+!uploads/.gitkeep
+!generated/.gitkeep
+!sessions/.gitkeep
+!output/.gitkeep
 
 # Claude Code local-only settings
 .claude/settings.local.json
