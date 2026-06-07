@@ -23,8 +23,9 @@ the build passes."**
    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
    ```
 3. **Merge** the feature branch into `main`.
-4. **Delete the feature branch** — but per `CLAUDE.md`, **ask Nikola first**
-   ("Ask to delete the branch once merged").
+4. **Delete the feature branch automatically** once it is merged into `main` —
+   no need to ask (Nikola standing instruction, 2026-06-07; supersedes the "ask
+   to delete the branch once merged" note in `CLAUDE.md`).
 5. **Push only if Nikola asks** — the POC is local-only by default; don't push
    unprompted.
 6. **Append a history entry** to `context/history.md` (in order) using the
