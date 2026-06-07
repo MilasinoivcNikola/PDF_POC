@@ -20,8 +20,7 @@ export function otisSession(): StorySession {
     pet: {
       name: "Otis",
       species: "dog",
-      breedColor:
-        "sweet rescue mutt, possibly part beagle, with floppy ears and the softest brown eyes",
+      breedColor: "sweet rescue mutt, possibly part beagle, with floppy ears",
       pronoun: "he",
       illustrationStyle: "watercolor",
       photo: "uploads/otis-by-the-window.jpg",

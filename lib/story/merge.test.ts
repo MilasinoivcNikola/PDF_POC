@@ -56,6 +56,31 @@ describe("no placeholder survives a complete merge", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Page 2 — opening reads naturally for any breedColor
+// ---------------------------------------------------------------------------
+
+describe("Page 2 opening composes cleanly with the customer's breedColor", () => {
+  function page2Body(breedColor: string): string {
+    const story = _resolveStory(sessionWith({ pet: { breedColor } }));
+    return pageById(story, "page-2").body.join("\n");
+  }
+
+  it("does not double 'eyes' when the description already mentions eyes", () => {
+    // Regression: the old Page 2 hard-coded "…, with eyes that always knew",
+    // which collided with any breedColor ending in "eyes" ("brown eyes, with eyes").
+    const body = page2Body("black tabby with bright green eyes");
+    expect(body).not.toMatch(/eyes,?\s+with eyes/);
+    expect(body).toContain("And he always knew, somehow, when you needed a friend.");
+  });
+
+  it("reads naturally for a compact breedColor that doesn't mention eyes", () => {
+    const body = page2Body("golden retriever with one floppy ear");
+    expect(body).toContain("Otis was a golden retriever with one floppy ear.");
+    expect(body).toContain("And he always knew, somehow, when you needed a friend.");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Pronoun consistency across every page
 // ---------------------------------------------------------------------------
 

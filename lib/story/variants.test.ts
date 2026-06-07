@@ -101,8 +101,11 @@ describe("beliefFrame selects the Page 9 body", () => {
     const body = page9Body("rainbow-bridge");
     expect(body).toContain("Some people say there is a place called the Rainbow Bridge.");
     expect(body).toContain(
-      "Where Otis can chasing tennis balls in the backyard for as long as he wants.",
+      "Where Otis is free to spend his days chasing tennis balls in the backyard.",
     );
+    // Regression: favoriteActivity is stored as a gerund ("chasing …"), so the
+    // Page 9 frame must not jam it after "can" (the old "can chasing" bug).
+    expect(body).not.toContain("can chasing");
   });
 
   it("heaven: verbatim peaceful-place body", () => {

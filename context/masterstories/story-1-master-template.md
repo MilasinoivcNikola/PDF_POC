@@ -92,7 +92,9 @@ who loved [PRONOUN_OBJECT] so very much.
 
 Once, in a home full of love, there lived a [SPECIES] named [PET_NAME].
 
-[PET_NAME] was a [BREED_COLOR], with eyes that always knew when you needed a friend.
+[PET_NAME] was a [BREED_COLOR].
+
+And [PRONOUN_SUBJECT] always knew, somehow, when you needed a friend.
 
 *Illustration brief:* [PET_NAME] at the front door of a cozy home, looking up as if greeting the reader. Warm interior lighting visible through window. Body language: alert, happy, tail position friendly.
 
@@ -180,7 +182,7 @@ Some people say there is a place called the Rainbow Bridge.
 
 A sunny meadow where pets run free, where bodies don't get tired anymore.
 
-Where [PET_NAME] can [FAVORITE_ACTIVITY] for as long as [PRONOUN_SUBJECT] wants.
+Where [PET_NAME] is free to spend [PRONOUN_POSSESSIVE] days [FAVORITE_ACTIVITY].
 
 *Variant ([BELIEF_FRAME] = heaven):*
 

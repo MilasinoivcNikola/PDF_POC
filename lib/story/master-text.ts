@@ -119,7 +119,8 @@ export function masterStory(): MasterStory {
       pageNumber: 2,
       body: [
         "Once, in a home full of love, there lived a {species} named {petName}.",
-        "{petName} was a {breedColor}, with eyes that always knew when you needed a friend.",
+        "{petName} was a {breedColor}.",
+        "And {pronounSubject} always knew, somehow, when you needed a friend.",
       ],
       illustrationBrief:
         "{petName} at the front door of a cozy home, looking up as if greeting the reader. Warm interior lighting visible through window. Body language: alert, happy, tail position friendly.",
@@ -198,7 +199,7 @@ export function masterStory(): MasterStory {
       body: [
         "Some people say there is a place called the Rainbow Bridge.",
         "A sunny meadow where pets run free, where bodies don't get tired anymore.",
-        "Where {petName} can {favoriteActivity} for as long as {pronounSubject} wants.",
+        "Where {petName} is free to spend {pronounPossessive} days {favoriteActivity}.",
       ],
       illustrationBrief:
         "Peaceful meadow at golden hour, {petName} running freely, soft clouds, gentle light. Not too fantastical — keep it earthy, like a real sunlit field.",
