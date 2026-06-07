@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Otis's story — preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,30..100;1,9..144,300..600,30..100&family=Lora:ital,wght@0,400..600;1,400..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .preview-header {
+      max-width: 900px;
+      margin: 0 auto var(--s-16);
+      text-align: center;
+      padding: var(--s-8) 0;
+    }
+
+    .preview-header h1 {
+      font-size: clamp(2.5rem, 6vw, var(--t-4xl));
+      font-weight: 300;
+      letter-spacing: -0.025em;
+      margin-bottom: var(--s-3);
+    }
+
+    .preview-header h1 em {
+      color: var(--rose);
+      font-style: italic;
+    }
+
+    .preview-header p {
+      font-family: var(--font-body);
+      font-style: italic;
+      color: var(--ink-soft);
+      font-size: var(--t-lg);
+      max-width: 32em;
+      margin: 0 auto var(--s-8);
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: var(--s-4);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Spreads: two facing pages side by side */
+    .spread {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s-2);
+      max-width: 1180px;
+      margin: 0 auto var(--s-24);
+      position: relative;
+    }
+
+    .spread::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 5%;
+      bottom: 5%;
+      width: 1px;
+      background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(60, 45, 30, 0.15) 20%,
+        rgba(60, 45, 30, 0.20) 80%,
+        transparent 100%
+      );
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    @media (max-width: 900px) {
+      .spread {
+        grid-template-columns: 1fr;
+        gap: var(--s-8);
+      }
+      .spread::before {
+        display: none;
+      }
+    }
+
+    .spread__label {
+      grid-column: 1 / -1;
+      text-align: center;
+      margin-bottom: var(--s-2);
+      font-family: var(--font-mono);
+      font-size: var(--t-xs);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+
+    .spread__label::before,
+    .spread__label::after {
+      content: "·";
+      margin: 0 var(--s-3);
+      color: var(--gold);
+    }
+
+    /* Book page styling refinements for preview */
+    .book-page {
+      max-width: 100%;
+      width: 100%;
+      padding: clamp(var(--s-6), 4vw, var(--s-12)) clamp(var(--s-5), 3vw, var(--s-10));
+    }
+
+    /* Cover treatment */
+    .book-page--cover {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(184, 133, 122, 0.15) 0%, transparent 70%),
+        linear-gradient(170deg, #F2E4D8 0%, #E8D7C2 100%);
+      text-align: center;
+    }
+
+    .cover__ornament {
+      margin: 0 auto var(--s-8);
+      color: var(--rose);
+    }
+
+    .cover__title {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-variation-settings: "opsz" 144, "SOFT" 100;
+      font-weight: 300;
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      margin-bottom: var(--s-4);
+    }
+
+    .cover__pet-name {
+      font-family: var(--font-display);
+      font-variation-settings: "opsz" 144, "SOFT" 30;
+      font-weight: 300;
+      font-size: clamp(3rem, 8vw, 4.5rem);
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: var(--ink);
+      margin-bottom: var(--s-12);
+    }
+
+    .cover__art {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: var(--s-4) auto;
+      width: 70%;
+      max-width: 280px;
+      aspect-ratio: 1;
+      background:
+        radial-gradient(ellipse at 40% 35%, rgba(184, 133, 122, 0.4) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 65%, rgba(126, 141, 107, 0.3) 0%, transparent 50%);
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .cover__art svg {
+      width: 70%;
+      height: 70%;
+      opacity: 0.8;
+    }
+
+    .cover__attribution {
+      font-family: var(--font-body);
+      font-style: italic;
+      font-size: var(--t-sm);
+      color: var(--ink-soft);
+      margin-top: var(--s-8);
+    }
+
+    .cover__attribution strong {
+      font-weight: 400;
+      color: var(--ink);
+    }
+
+    /* Page 3 - The Bond */
+    .page-bond {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-bond__art {
+      flex: 1;
+      min-height: 240px;
+      background:
+        radial-gradient(ellipse at 35% 50%, rgba(184, 133, 122, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 65% 45%, rgba(168, 129, 71, 0.25) 0%, transparent 60%),
+        linear-gradient(160deg, var(--cream-deep), var(--rose-faint));
+      margin-bottom: var(--s-8);
+      position: relative;
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .page-bond__art svg {
+      position: absolute;
+      inset: 15%;
+      opacity: 0.55;
+    }
+
+    .page-bond__text {
+      font-family: var(--font-body);
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: var(--ink);
+      text-align: center;
+    }
+
+    .page-bond__text em {
+      font-style: italic;
+      color: var(--rose);
+    }
+
+    /* Page 7 - the gentle truth */
+    .page-truth {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .page-truth__text {
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      line-height: 1.9;
+      color: var(--ink);
+      max-width: 28em;
+      margin: 0 auto;
+    }
+
+    .page-truth__text p + p {
+      margin-top: var(--s-6);
+    }
+
+    .page-truth__text p:last-child {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-variation-settings: "opsz" 144, "SOFT" 100;
+      font-size: 1.4rem;
+      color: var(--ink-soft);
+      margin-top: var(--s-8);
+    }
+
+    .page-truth__art {
+      width: 60%;
+      max-width: 200px;
+      aspect-ratio: 1.5;
+      margin: 0 auto var(--s-8);
+      background: radial-gradient(ellipse at 50% 60%, rgba(184, 133, 122, 0.3) 0%, transparent 60%);
+      position: relative;
+    }
+
+    .page-truth__art svg {
+      width: 100%;
+      height: 100%;
+      opacity: 0.5;
+    }
+
+    /* Page 10 - Love stays */
+    .page-love {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(184, 133, 122, 0.08) 0%, transparent 70%),
+        var(--paper);
+    }
+
+    .page-love__intro {
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--ink-soft);
+      margin-bottom: var(--s-8);
+    }
+
+    .page-love__hero {
+      font-family: var(--font-display);
+      font-variation-settings: "opsz" 144, "SOFT" 30;
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      max-width: 14em;
+      margin: 0 auto;
+    }
+
+    .page-love__hero em {
+      color: var(--rose);
+    }
+
+    .page-love__closer {
+      margin-top: var(--s-12);
+      font-family: var(--font-display);
+      font-variation-settings: "opsz" 144, "SOFT" 30;
+      font-size: 1.1rem;
+      color: var(--ink);
+      font-style: italic;
+    }
+
+    /* Page 12 - Closing */
+    .page-closing {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      text-align: center;
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(168, 129, 71, 0.1) 0%, transparent 70%),
+        linear-gradient(180deg, var(--paper) 0%, var(--cream-deep) 100%);
+    }
+
+    .page-closing__art {
+      width: 75%;
+      max-width: 220px;
+      aspect-ratio: 1;
+      margin: var(--s-6) auto;
+      background:
+        radial-gradient(ellipse at 50% 60%, rgba(184, 133, 122, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 50%, rgba(168, 129, 71, 0.2) 0%, transparent 60%);
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .page-closing__art svg {
+      position: absolute;
+      inset: 20%;
+      opacity: 0.6;
+    }
+
+    .page-closing__text {
+      font-family: var(--font-display);
+      font-variation-settings: "opsz" 144, "SOFT" 30;
+      font-size: clamp(1.3rem, 3vw, 1.85rem);
+      line-height: 1.3;
+      color: var(--ink);
+      max-width: 16em;
+    }
+
+    .page-closing__text em {
+      font-style: italic;
+      color: var(--rose);
+    }
+
+    .page-closing__bottom {
+      font-family: var(--font-body);
+      font-style: italic;
+      color: var(--ink-soft);
+      font-size: var(--t-sm);
+      margin-top: var(--s-6);
+    }
+
+    /* Final CTA section */
+    .download-final {
+      max-width: 600px;
+      margin: var(--s-24) auto 0;
+      text-align: center;
+      padding: var(--s-12) 0;
+      border-top: 1px solid var(--border-hairline);
+    }
+
+    .download-final h2 {
+      font-size: var(--t-3xl);
+      font-weight: 300;
+      font-style: italic;
+      letter-spacing: -0.02em;
+      margin-bottom: var(--s-4);
+    }
+
+    .download-final p {
+      font-family: var(--font-body);
+      font-style: italic;
+      color: var(--ink-soft);
+      margin-bottom: var(--s-8);
+    }
+
+    .download-meta {
+      margin-top: var(--s-6);
+      font-family: var(--font-mono);
+      font-size: var(--t-xs);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <header class="site-header">
+      <a href="index.html" class="wordmark">
+        <svg class="wordmark__ornament" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 8 Q4 5 6 4 Q8 5 7 8 Z M13 8 Q15 5 13 4 Q11 5 12 8 Z M3 12 Q1 10 3 9 Q5 10 4 12 Z M16 12 Q18 10 16 9 Q14 10 15 12 Z M10 17 Q5 17 5 12 Q5 9 10 9 Q15 9 15 12 Q15 17 10 17 Z" fill="currentColor" opacity="0.7"/>
+        </svg>
+        Quietly Kept
+      </a>
+      <a href="#download" class="btn">
+        Download PDF
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1v9m0 0L3 6m4 4l4-4M1 13h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </header>
+
+    <main>
+      <section class="preview-header fade-in">
+        <span class="label label--gold">Your book is ready</span>
+        <h1 class="display-md" style="margin-top: var(--s-4);">
+          <em>Otis's</em> story is yours to keep.
+        </h1>
+        <p>
+          A first look at all twelve pages, exactly as they'll appear in your PDF.
+          Take your time. You can regenerate any illustration that doesn't feel right.
+        </p>
+        <div class="preview-actions">
+          <a href="#download" class="btn btn--primary">
+            Download PDF
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 1v9m0 0L3 6m4 4l4-4M1 13h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <a href="#" class="btn btn--ghost">Regenerate an illustration</a>
+        </div>
+      </section>
+
+      <!-- Spread 1: Cover -->
+      <section class="spread">
+        <div class="spread__label">Cover &amp; Dedication</div>
+
+        <article class="book-page book-page--cover">
+          <div>
+            <div class="cover__ornament">
+              <svg width="36" height="36" viewBox="0 0 36 36">
+                <path d="M18 5 C 16 11, 14 15, 9 17 C 14 19, 16 23, 18 29 C 20 23, 22 19, 27 17 C 22 15, 20 11, 18 5 Z" fill="currentColor" opacity="0.8"/>
+              </svg>
+            </div>
+            <h1 class="cover__title">Saying Goodbye to</h1>
+            <p class="cover__pet-name">Otis</p>
+          </div>
+
+          <div class="cover__art">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="50" cy="60" rx="32" ry="26" fill="#5C544A"/>
+              <ellipse cx="32" cy="40" rx="9" ry="13" fill="#5C544A"/>
+              <ellipse cx="68" cy="40" rx="9" ry="13" fill="#5C544A"/>
+              <circle cx="42" cy="58" r="2.5" fill="#221C16"/>
+              <circle cx="58" cy="58" r="2.5" fill="#221C16"/>
+              <ellipse cx="50" cy="68" rx="3.5" ry="2.5" fill="#221C16"/>
+              <path d="M50 71 L 48 74 M 50 71 L 52 74" stroke="#221C16" stroke-width="1.2" fill="none"/>
+            </svg>
+          </div>
+
+          <p class="cover__attribution">
+            A story for <strong>Emma</strong>
+          </p>
+        </article>
+
+        <article class="book-page">
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <div style="color: var(--rose); margin-bottom: var(--s-8);">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.6"/>
+                <circle cx="12" cy="3" r="1.5" fill="currentColor" opacity="0.4"/>
+                <circle cx="12" cy="21" r="1.5" fill="currentColor" opacity="0.4"/>
+                <circle cx="3" cy="12" r="1.5" fill="currentColor" opacity="0.4"/>
+                <circle cx="21" cy="12" r="1.5" fill="currentColor" opacity="0.4"/>
+              </svg>
+            </div>
+            <p class="book-page__body" style="font-size: 1.15rem; max-width: 22em;">
+              For <em>Emma</em>,<br />
+              and for <em>Otis</em>,<br />
+              who loved her so very much.
+            </p>
+            <p style="margin-top: var(--s-12); font-family: var(--font-mono); font-size: var(--t-xs); letter-spacing: 0.2em; color: var(--ink-muted);">
+              2014 — 2026
+            </p>
+          </div>
+          <div class="book-page__number">i</div>
+        </article>
+      </section>
+
+      <!-- Spread 2: Opening pages -->
+      <section class="spread">
+        <div class="spread__label">Pages 2 &amp; 3</div>
+
+        <article class="book-page page-bond">
+          <div class="page-bond__art">
+            <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="35" cy="50" rx="20" ry="16" fill="#5A4F44" opacity="0.7"/>
+              <ellipse cx="22" cy="38" rx="6" ry="9" fill="#5A4F44" opacity="0.7"/>
+              <ellipse cx="48" cy="38" rx="6" ry="9" fill="#5A4F44" opacity="0.7"/>
+              <circle cx="28" cy="48" r="2" fill="#221C16"/>
+              <circle cx="42" cy="48" r="2" fill="#221C16"/>
+              <ellipse cx="35" cy="55" rx="2.5" ry="1.8" fill="#221C16"/>
+              <path d="M60 30 L 75 25 L 80 50 L 70 60 L 60 55 Z" fill="#221C16" opacity="0.4"/>
+              <circle cx="68" cy="40" r="2" fill="#FBF7EE"/>
+              <circle cx="73" cy="38" r="1.5" fill="#FBF7EE"/>
+            </svg>
+          </div>
+          <p class="page-bond__text">
+            Once, in a home full of love, there lived a dog named <em>Otis</em>.
+            <br /><br />
+            Otis was a sweet rescue mutt, possibly part beagle, with floppy ears
+            and the softest brown eyes — eyes that always knew when you needed a friend.
+          </p>
+          <div class="book-page__number">02</div>
+        </article>
+
+        <article class="book-page page-bond">
+          <div class="page-bond__art">
+            <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="40" r="15" fill="#A88147" opacity="0.5"/>
+              <ellipse cx="60" cy="50" rx="18" ry="14" fill="#5A4F44" opacity="0.6"/>
+              <ellipse cx="48" cy="40" rx="5" ry="8" fill="#5A4F44" opacity="0.6"/>
+              <ellipse cx="70" cy="40" rx="5" ry="8" fill="#5A4F44" opacity="0.6"/>
+              <path d="M32 38 Q 30 35 32 33" stroke="#221C16" stroke-width="0.8" fill="none"/>
+              <path d="M32 42 Q 30 45 32 47" stroke="#221C16" stroke-width="0.8" fill="none"/>
+            </svg>
+          </div>
+          <p class="page-bond__text">
+            Otis loved <em>Emma</em> more than anything in the whole world.
+            <br /><br />
+            And Emma loved Otis right back.
+          </p>
+          <div class="book-page__number">03</div>
+        </article>
+      </section>
+
+      <!-- Spread 3: The hard pages -->
+      <section class="spread">
+        <div class="spread__label">Pages 6 &amp; 7 · The gentle pages</div>
+
+        <article class="book-page" style="display: flex; flex-direction: column; justify-content: center;">
+          <div class="page-bond__art" style="margin-bottom: var(--s-6); min-height: 180px;">
+            <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 60 Q 20 50 40 55 Q 60 60 80 50 Q 95 45 100 50 L 100 80 L 0 80 Z" fill="#7E8D6B" opacity="0.5"/>
+              <ellipse cx="50" cy="55" rx="10" ry="7" fill="#5A4F44" opacity="0.7"/>
+              <ellipse cx="44" cy="48" rx="3" ry="4" fill="#5A4F44" opacity="0.7"/>
+              <ellipse cx="56" cy="48" rx="3" ry="4" fill="#5A4F44" opacity="0.7"/>
+              <circle cx="20" cy="20" r="6" fill="#A88147" opacity="0.4"/>
+              <path d="M0 15 Q 30 5 60 12 Q 80 18 100 10" stroke="#A88147" stroke-width="0.3" fill="none" opacity="0.4"/>
+            </svg>
+          </div>
+          <p class="page-bond__text">
+            There was one day Emma will always remember.
+            <br /><br />
+            <em>The day Otis followed her to the lake, and they both came home soaking wet, laughing the whole way.</em>
+            <br /><br />
+            That was the kind of love Otis and Emma shared.
+          </p>
+          <div class="book-page__number">06</div>
+        </article>
+
+        <article class="book-page page-truth">
+          <div class="page-truth__art">
+            <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="50" cy="40" rx="30" ry="12" fill="#5A4F44" opacity="0.5"/>
+              <ellipse cx="32" cy="35" rx="6" ry="5" fill="#5A4F44" opacity="0.5"/>
+              <path d="M62 32 Q 65 30 67 32" stroke="#221C16" stroke-width="0.8" fill="none"/>
+              <path d="M55 32 Q 58 30 60 32" stroke="#221C16" stroke-width="0.8" fill="none"/>
+            </svg>
+          </div>
+          <div class="page-truth__text">
+            <p>
+              But every living thing has a beginning, a middle, and an end.
+              Even the ones we love most.
+            </p>
+            <p>
+              Otis's body got tired.
+            </p>
+            <p>
+              And then, very gently, his body stopped working.
+              That is what <em>"died"</em> means.
+            </p>
+          </div>
+          <div class="book-page__number">07</div>
+        </article>
+      </section>
+
+      <!-- Spread 4: Love stays + Rainbow Bridge -->
+      <section class="spread">
+        <div class="spread__label">Pages 9 &amp; 10 · Where love goes</div>
+
+        <article class="book-page">
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+            <div class="page-bond__art" style="min-height: 200px;">
+              <svg viewBox="0 0 100 70" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 50 Q 25 30 50 35 Q 75 40 100 25 L 100 70 L 0 70 Z" fill="#7E8D6B" opacity="0.4"/>
+                <ellipse cx="50" cy="45" rx="14" ry="9" fill="#5A4F44" opacity="0.7"/>
+                <ellipse cx="42" cy="38" rx="4" ry="6" fill="#5A4F44" opacity="0.7"/>
+                <ellipse cx="58" cy="38" rx="4" ry="6" fill="#5A4F44" opacity="0.7"/>
+                <circle cx="20" cy="15" r="8" fill="#A88147" opacity="0.5"/>
+                <path d="M70 10 Q 75 8 80 12" stroke="#B8857A" stroke-width="0.5" fill="none"/>
+                <path d="M5 20 Q 15 18 22 22" stroke="#B8857A" stroke-width="0.4" fill="none"/>
+              </svg>
+            </div>
+            <p class="page-bond__text" style="margin-top: var(--s-6);">
+              Some people say there is a place called the Rainbow Bridge.
+              <br /><br />
+              A sunny meadow where pets run free, where bodies don't get tired anymore.
+              <br /><br />
+              Where Otis can <em>chase tennis balls in the backyard</em>
+              for as long as he wants.
+            </p>
+          </div>
+          <div class="book-page__number">09</div>
+        </article>
+
+        <article class="book-page page-love">
+          <p class="page-love__intro">
+            Here is the most important thing of all.
+          </p>
+          <p class="page-love__hero">
+            The love between Emma and Otis did not stop when Otis died.
+            <br /><br />
+            <em>Love does not work that way.</em>
+          </p>
+          <p class="page-love__closer">
+            It stays.<br />It always stays.
+          </p>
+          <div class="book-page__number">10</div>
+        </article>
+      </section>
+
+      <!-- Spread 5: Closing -->
+      <section class="spread">
+        <div class="spread__label">Pages 11 &amp; 12 · The closing</div>
+
+        <article class="book-page">
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+            <p class="book-page__body" style="text-align: center;">
+              When Emma misses Otis — and that will happen many times — there are things Emma can do.
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); margin: var(--s-8) 0;">
+              <div style="aspect-ratio: 1; background: radial-gradient(circle at center, var(--rose-faint), transparent); border-radius: 2px; position: relative; overflow: hidden;">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" style="position: absolute; inset: 20%; opacity: 0.6;">
+                  <rect x="5" y="10" width="50" height="40" fill="none" stroke="#5A4F44" stroke-width="2"/>
+                  <circle cx="20" cy="25" r="5" fill="#5A4F44"/>
+                  <path d="M5 45 L 25 30 L 40 40 L 55 25 L 55 50 L 5 50 Z" fill="#5A4F44" opacity="0.7"/>
+                </svg>
+              </div>
+              <div style="aspect-ratio: 1; background: radial-gradient(circle at center, var(--sage-soft), transparent); border-radius: 2px; position: relative; overflow: hidden;">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" style="position: absolute; inset: 25%; opacity: 0.6;">
+                  <circle cx="30" cy="20" r="8" fill="#5A4F44"/>
+                  <ellipse cx="30" cy="45" rx="14" ry="10" fill="#5A4F44"/>
+                  <circle cx="42" cy="22" r="6" fill="#5A4F44"/>
+                </svg>
+              </div>
+              <div style="aspect-ratio: 1; background: radial-gradient(circle at center, var(--gold-soft), transparent); border-radius: 2px; position: relative; overflow: hidden;">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" style="position: absolute; inset: 20%; opacity: 0.5;">
+                  <circle cx="30" cy="30" r="3" fill="#A88147"/>
+                  <path d="M30 30 L 30 15 M 30 30 L 45 30 M 30 30 L 30 45 M 30 30 L 15 30" stroke="#A88147" stroke-width="0.8"/>
+                </svg>
+              </div>
+            </div>
+
+            <p class="book-page__body" style="text-align: center; font-style: italic; color: var(--ink-soft); font-size: 0.95rem;">
+              Look at a picture. Tell a story. Say Otis's name out loud — names are meant to be said.
+            </p>
+          </div>
+          <div class="book-page__number">11</div>
+        </article>
+
+        <article class="book-page page-closing">
+          <div></div>
+          <div class="page-closing__art">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="35" cy="40" r="14" fill="#A88147" opacity="0.5"/>
+              <ellipse cx="60" cy="55" rx="18" ry="14" fill="#5A4F44" opacity="0.7"/>
+              <ellipse cx="48" cy="46" rx="5" ry="8" fill="#5A4F44" opacity="0.7"/>
+              <ellipse cx="70" cy="46" rx="5" ry="8" fill="#5A4F44" opacity="0.7"/>
+              <circle cx="54" cy="54" r="2" fill="#221C16"/>
+              <circle cx="66" cy="54" r="2" fill="#221C16"/>
+              <ellipse cx="60" cy="62" rx="2.5" ry="1.5" fill="#221C16"/>
+            </svg>
+          </div>
+          <div>
+            <p class="page-closing__text">
+              Otis was a good boy.<br />
+              Otis was <em>Emma's</em> dog.<br /><br />
+              And Otis will always,<br />
+              always be loved.
+            </p>
+            <p class="page-closing__bottom">— end —</p>
+          </div>
+          <div class="book-page__number">12</div>
+        </article>
+      </section>
+
+      <section class="download-final" id="download">
+        <span class="label label--gold">Take it with you</span>
+        <h2 style="margin-top: var(--s-4);">Your book is ready.</h2>
+        <p>
+          A 12-page PDF, ready to print at home, at FedEx, or kept on your device.
+        </p>
+        <a href="#" class="btn btn--primary">
+          Download PDF
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1v9m0 0L3 6m4 4l4-4M1 13h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <p class="download-meta">
+          Saying-Goodbye-to-Otis.pdf · 8.5 × 11 inches · 14.2 MB
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a href="index.html" class="label">Start a new book</a>
+      <p class="label">Made with care · For Emma &amp; Otis</p>
+    </footer>
+  </div>
+</body>
+</html>

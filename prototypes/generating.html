@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bringing Otis to life — Quietly Kept</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,30..100;1,9..144,300..600,30..100&family=Lora:ital,wght@0,400..600;1,400..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .generating {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      max-width: 640px;
+      margin: 0 auto;
+      width: 100%;
+      padding: var(--s-8) 0;
+    }
+
+    .gen-ornament {
+      margin-bottom: var(--s-12);
+      color: var(--rose);
+      animation: orbit 12s linear infinite;
+    }
+
+    .gen-title {
+      font-family: var(--font-display);
+      font-variation-settings: "opsz" 144, "SOFT" 30;
+      font-weight: 300;
+      font-size: var(--t-4xl);
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      text-align: center;
+      margin-bottom: var(--s-4);
+    }
+
+    .gen-title em {
+      color: var(--rose);
+      font-style: italic;
+    }
+
+    .gen-subtitle {
+      font-family: var(--font-body);
+      font-style: italic;
+      color: var(--ink-soft);
+      text-align: center;
+      margin-bottom: var(--s-12);
+      max-width: 30em;
+    }
+
+    .gen-progress {
+      font-family: var(--font-mono);
+      font-size: var(--t-xs);
+      letter-spacing: 0.18em;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: var(--s-2);
+    }
+
+    .gen-progress strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .gen-bar {
+      width: 100%;
+      max-width: 480px;
+      height: 1px;
+      background: var(--border);
+      position: relative;
+      margin-bottom: var(--s-12);
+    }
+
+    .gen-bar::after {
+      content: "";
+      position: absolute;
+      inset: 0 33% 0 0;
+      background: var(--ink);
+      transform-origin: left;
+      animation: draw-line 0.8s ease-out;
+    }
+
+    .gen-list {
+      width: 100%;
+      max-width: 480px;
+      list-style: none;
+    }
+
+    .gen-item {
+      display: flex;
+      align-items: baseline;
+      gap: var(--s-4);
+      padding: var(--s-3) 0;
+      border-bottom: 1px solid var(--border-soft);
+      font-family: var(--font-display);
+      font-variation-settings: "opsz" 36, "SOFT" 50;
+      font-size: var(--t-base);
+    }
+
+    .gen-item:last-child {
+      border-bottom: none;
+    }
+
+    .gen-item__status {
+      flex-shrink: 0;
+      width: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gen-item__label {
+      flex: 1;
+    }
+
+    .gen-item__time {
+      font-family: var(--font-mono);
+      font-size: var(--t-xs);
+      letter-spacing: 0.1em;
+      color: var(--ink-muted);
+    }
+
+    .gen-item--done .gen-item__label {
+      color: var(--ink-soft);
+    }
+
+    .gen-item--done .gen-item__status {
+      color: var(--sage);
+    }
+
+    .gen-item--current {
+      color: var(--ink);
+    }
+
+    .gen-item--current .gen-item__label {
+      font-style: italic;
+    }
+
+    .gen-item--current .gen-item__time {
+      color: var(--rose);
+    }
+
+    .gen-item--pending .gen-item__label,
+    .gen-item--pending .gen-item__time {
+      color: var(--ink-faint);
+    }
+
+    .gen-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--rose);
+      animation: pulse-dot 1.4s ease-in-out infinite;
+    }
+
+    .gen-dot:nth-child(2) { animation-delay: 0.2s; }
+    .gen-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    .gen-dots {
+      display: inline-flex;
+      gap: 3px;
+    }
+
+    /* Three concentric petals that rotate */
+    @keyframes petal-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes petal-back {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+
+    .gen-ornament-stack {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin-bottom: var(--s-12);
+    }
+
+    .gen-ornament-stack svg {
+      position: absolute;
+      inset: 0;
+    }
+
+    .gen-ornament-stack svg:nth-child(1) { animation: petal-slow 16s linear infinite; }
+    .gen-ornament-stack svg:nth-child(2) { animation: petal-back 24s linear infinite; opacity: 0.6; }
+    .gen-ornament-stack svg:nth-child(3) { animation: petal-slow 8s linear infinite; opacity: 0.4; }
+
+    .gen-note {
+      margin-top: var(--s-16);
+      max-width: 32em;
+      text-align: center;
+      font-family: var(--font-body);
+      font-style: italic;
+      color: var(--ink-muted);
+      font-size: var(--t-sm);
+      line-height: 1.7;
+    }
+
+    .gen-note::before,
+    .gen-note::after {
+      content: "·";
+      color: var(--gold);
+      margin: 0 var(--s-2);
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <header class="site-header">
+      <a href="index.html" class="wordmark">
+        <svg class="wordmark__ornament" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 8 Q4 5 6 4 Q8 5 7 8 Z M13 8 Q15 5 13 4 Q11 5 12 8 Z M3 12 Q1 10 3 9 Q5 10 4 12 Z M16 12 Q18 10 16 9 Q14 10 15 12 Z M10 17 Q5 17 5 12 Q5 9 10 9 Q15 9 15 12 Q15 17 10 17 Z" fill="currentColor" opacity="0.7"/>
+        </svg>
+        Quietly Kept
+      </a>
+      <div class="label">Generating · Step 06 of 06</div>
+    </header>
+
+    <main class="generating">
+      <div class="gen-ornament-stack">
+        <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+          <g fill="none" stroke="#B8857A" stroke-width="0.7" opacity="0.8">
+            <ellipse cx="40" cy="40" rx="34" ry="14" />
+            <ellipse cx="40" cy="40" rx="14" ry="34" />
+          </g>
+        </svg>
+        <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+          <g fill="none" stroke="#7E8D6B" stroke-width="0.7">
+            <ellipse cx="40" cy="40" rx="30" ry="20" transform="rotate(45 40 40)" />
+            <ellipse cx="40" cy="40" rx="30" ry="20" transform="rotate(-45 40 40)" />
+          </g>
+        </svg>
+        <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="40" r="3" fill="#A88147"/>
+        </svg>
+      </div>
+
+      <h1 class="gen-title">
+        Bringing <em>Otis</em> to life.
+      </h1>
+      <p class="gen-subtitle">
+        Each illustration is painted from the photo you uploaded.
+        This usually takes a minute or two — please don't close the window.
+      </p>
+
+      <p class="gen-progress">
+        <strong>09</strong> of 12 illustrations complete
+      </p>
+      <div class="gen-bar"></div>
+
+      <ul class="gen-list">
+        <li class="gen-item gen-item--done">
+          <span class="gen-item__status">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6.5l3 3 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="gen-item__label">Reference portrait — Otis as he was</span>
+          <span class="gen-item__time">0:14</span>
+        </li>
+        <li class="gen-item gen-item--done">
+          <span class="gen-item__status">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6.5l3 3 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="gen-item__label">Cover illustration</span>
+          <span class="gen-item__time">0:21</span>
+        </li>
+        <li class="gen-item gen-item--done">
+          <span class="gen-item__status">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6.5l3 3 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="gen-item__label">Otis at the front door</span>
+          <span class="gen-item__time">0:18</span>
+        </li>
+        <li class="gen-item gen-item--done">
+          <span class="gen-item__status">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6.5l3 3 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="gen-item__label">Otis and Emma together</span>
+          <span class="gen-item__time">0:24</span>
+        </li>
+        <li class="gen-item gen-item--done">
+          <span class="gen-item__status">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6.5l3 3 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="gen-item__label">Otis chasing tennis balls in the yard</span>
+          <span class="gen-item__time">0:19</span>
+        </li>
+        <li class="gen-item gen-item--done">
+          <span class="gen-item__status">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6.5l3 3 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="gen-item__label">Otis sleeping at the foot of the bed</span>
+          <span class="gen-item__time">0:22</span>
+        </li>
+        <li class="gen-item gen-item--done">
+          <span class="gen-item__status">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6.5l3 3 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="gen-item__label">The day to remember — at the lake</span>
+          <span class="gen-item__time">0:25</span>
+        </li>
+        <li class="gen-item gen-item--done">
+          <span class="gen-item__status">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6.5l3 3 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="gen-item__label">Otis resting peacefully</span>
+          <span class="gen-item__time">0:31</span>
+        </li>
+        <li class="gen-item gen-item--done">
+          <span class="gen-item__status">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6.5l3 3 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="gen-item__label">Emma with Otis's collar</span>
+          <span class="gen-item__time">0:18</span>
+        </li>
+        <li class="gen-item gen-item--current">
+          <span class="gen-item__status">
+            <span class="gen-dots">
+              <span class="gen-dot"></span>
+              <span class="gen-dot"></span>
+              <span class="gen-dot"></span>
+            </span>
+          </span>
+          <span class="gen-item__label">Otis at the Rainbow Bridge meadow</span>
+          <span class="gen-item__time">painting</span>
+        </li>
+        <li class="gen-item gen-item--pending">
+          <span class="gen-item__status">○</span>
+          <span class="gen-item__label">Things to remember — three small scenes</span>
+          <span class="gen-item__time">—</span>
+        </li>
+        <li class="gen-item gen-item--pending">
+          <span class="gen-item__status">○</span>
+          <span class="gen-item__label">Final page — always, always loved</span>
+          <span class="gen-item__time">—</span>
+        </li>
+      </ul>
+
+      <p class="gen-note">
+        Otis was a sweet rescue mutt, possibly part beagle, with floppy ears and the softest brown eyes
+      </p>
+
+      <p style="margin-top: var(--s-12);">
+        <a href="preview.html" class="btn-link">→ Skip to preview (demo)</a>
+      </p>
+    </main>
+
+    <footer class="site-footer">
+      <p class="label">Using gpt-image-2-2026-04-21 · Medium quality</p>
+      <p class="label">~$0.58 per book · From your own credits</p>
+    </footer>
+  </div>
+</body>
+</html>

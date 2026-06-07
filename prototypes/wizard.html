@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tell us about your pet — Quietly Kept</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,30..100;1,9..144,300..600,30..100&family=Lora:ital,wght@0,400..600;1,400..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Page-specific styles */
+    .wizard {
+      max-width: 1100px;
+      margin: 0 auto;
+      flex: 1;
+      width: 100%;
+    }
+
+    .wizard__intro {
+      max-width: 38em;
+      margin: 0 auto var(--s-16);
+      text-align: center;
+    }
+
+    .wizard__quote {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-variation-settings: "opsz" 144, "SOFT" 100;
+      font-size: var(--t-3xl);
+      line-height: 1.2;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+
+    .wizard__quote::before {
+      content: "“";
+      font-size: 1.5em;
+      line-height: 0;
+      vertical-align: -0.3em;
+      color: var(--rose-soft);
+      margin-right: 0.05em;
+    }
+
+    .wizard__quote::after {
+      content: "”";
+      font-size: 1.5em;
+      line-height: 0;
+      vertical-align: -0.3em;
+      color: var(--rose-soft);
+      margin-left: 0.05em;
+    }
+
+    .wizard__attribution {
+      margin-top: var(--s-4);
+      color: var(--ink-muted);
+      font-style: italic;
+      font-size: var(--t-sm);
+    }
+
+    /* Two-column form */
+    .form-layout {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: var(--s-16);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 720px) {
+      .form-layout {
+        grid-template-columns: 1fr;
+        gap: var(--s-8);
+      }
+    }
+
+    .form-layout__heading {
+      position: sticky;
+      top: var(--s-8);
+      align-self: start;
+    }
+
+    .form-layout__heading h2 {
+      font-family: var(--font-display);
+      font-variation-settings: "opsz" 144, "SOFT" 30;
+      font-weight: 300;
+      font-size: var(--t-3xl);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: var(--s-4);
+    }
+
+    .form-layout__heading h2 em {
+      color: var(--rose);
+      font-style: italic;
+    }
+
+    .form-layout__heading p {
+      font-family: var(--font-body);
+      font-style: italic;
+      color: var(--ink-soft);
+      line-height: 1.6;
+    }
+
+    /* Footer navigation */
+    .wizard-footer {
+      max-width: 900px;
+      margin: var(--s-20) auto 0;
+      padding: var(--s-8) 0 0;
+      border-top: 1px solid var(--border-hairline);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--s-4);
+    }
+
+    .save-status {
+      font-family: var(--font-body);
+      font-style: italic;
+      color: var(--ink-muted);
+      font-size: var(--t-sm);
+      display: flex;
+      align-items: center;
+      gap: var(--s-2);
+    }
+
+    .save-status__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--sage);
+    }
+
+    /* Photo preview */
+    .photo-preview {
+      display: flex;
+      align-items: center;
+      gap: var(--s-6);
+      padding: var(--s-6);
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+    }
+
+    .photo-preview__img {
+      width: 96px;
+      height: 96px;
+      border-radius: 2px;
+      background: linear-gradient(135deg, var(--rose-faint), var(--sage-soft));
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .photo-preview__img svg {
+      position: absolute;
+      inset: 20%;
+      opacity: 0.5;
+    }
+
+    .photo-preview__name {
+      font-family: var(--font-display);
+      font-variation-settings: "opsz" 36, "SOFT" 50;
+      font-size: var(--t-base);
+      color: var(--ink);
+    }
+
+    .photo-preview__meta {
+      font-family: var(--font-body);
+      font-style: italic;
+      font-size: var(--t-sm);
+      color: var(--ink-muted);
+    }
+
+    .photo-preview__replace {
+      margin-left: auto;
+      font-family: var(--font-body);
+      font-size: var(--t-sm);
+      color: var(--rose);
+      font-style: italic;
+      border-bottom: 1px solid var(--rose-soft);
+    }
+
+    /* Illustration style picker */
+    .style-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--s-4);
+      margin-top: var(--s-4);
+    }
+
+    @media (max-width: 540px) {
+      .style-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .style-card {
+      padding: var(--s-3);
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .style-card:hover {
+      border-color: var(--rose);
+    }
+
+    .style-card--selected {
+      border-color: var(--ink);
+      background: var(--cream-deep);
+    }
+
+    .style-card__swatch {
+      aspect-ratio: 4 / 3;
+      border-radius: 2px;
+      margin-bottom: var(--s-3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .style-card--watercolor .style-card__swatch {
+      background:
+        radial-gradient(ellipse at 30% 40%, var(--rose-soft) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 60%, var(--sage-soft) 0%, transparent 60%),
+        var(--paper);
+    }
+
+    .style-card--storybook .style-card__swatch {
+      background: linear-gradient(135deg, var(--gold-soft) 0%, var(--rose-faint) 100%);
+    }
+
+    .style-card--pencil .style-card__swatch {
+      background:
+        repeating-linear-gradient(135deg, var(--border) 0px, var(--border) 1px, transparent 1px, transparent 6px),
+        var(--paper);
+    }
+
+    .style-card__name {
+      font-family: var(--font-display);
+      font-variation-settings: "opsz" 36, "SOFT" 50;
+      font-size: var(--t-sm);
+      color: var(--ink);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <header class="site-header">
+      <a href="index.html" class="wordmark">
+        <svg class="wordmark__ornament" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 8 Q4 5 6 4 Q8 5 7 8 Z M13 8 Q15 5 13 4 Q11 5 12 8 Z M3 12 Q1 10 3 9 Q5 10 4 12 Z M16 12 Q18 10 16 9 Q14 10 15 12 Z M10 17 Q5 17 5 12 Q5 9 10 9 Q15 9 15 12 Q15 17 10 17 Z" fill="currentColor" opacity="0.7"/>
+        </svg>
+        Quietly Kept
+      </a>
+      <div class="steps">
+        <span>Step 02 of 06</span>
+        <span class="steps__bar"></span>
+      </div>
+    </header>
+
+    <main class="wizard">
+      <div class="wizard__intro fade-in">
+        <p class="wizard__quote">
+          Tell us about the one who is gone.
+        </p>
+        <p class="wizard__attribution">
+          So the story can hold them, exactly as they were.
+        </p>
+      </div>
+
+      <form class="form-layout" onsubmit="return false;">
+        <div class="form-layout__heading fade-in fade-in-1">
+          <span class="label label--gold">Section · One</span>
+          <h2>The shape of <em>them</em>.</h2>
+          <p>
+            The details below help us draw the pet that was actually yours —
+            not a stand-in. The more specific, the better the book.
+          </p>
+        </div>
+
+        <div class="form-layout__fields fade-in fade-in-2">
+          <div class="field">
+            <label class="field__label" for="name">
+              <span class="field__num">01</span>
+              What was their name?
+            </label>
+            <p class="field__hint">
+              The name you used when calling them home.
+            </p>
+            <input type="text" id="name" name="name" value="Otis" />
+          </div>
+
+          <div class="field">
+            <label class="field__label">
+              <span class="field__num">02</span>
+              What kind of pet was Otis?
+            </label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="species" value="dog" checked />
+                <span class="radio-option__label">a dog</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="species" value="cat" />
+                <span class="radio-option__label">a cat</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="species" value="rabbit" />
+                <span class="radio-option__label">a rabbit</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="species" value="bird" />
+                <span class="radio-option__label">a bird</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="species" value="other" />
+                <span class="radio-option__label">something else</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="description">
+              <span class="field__num">03</span>
+              A few words to describe Otis.
+            </label>
+            <p class="field__hint">
+              The kind of detail you'd mention to a stranger.
+              <em>A scruffy rescue mutt with one floppy ear. A black tabby with a white chest patch.</em>
+            </p>
+            <input type="text" id="description" name="description" value="a sweet rescue mutt, possibly part beagle, with floppy ears and the softest brown eyes" />
+          </div>
+
+          <div class="field">
+            <label class="field__label">
+              <span class="field__num">04</span>
+              Did you call Otis <em>he</em>, <em>she</em>, or <em>they</em>?
+            </label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="pronoun" value="he" checked />
+                <span class="radio-option__label">he</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="pronoun" value="she" />
+                <span class="radio-option__label">she</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="pronoun" value="they" />
+                <span class="radio-option__label">they</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label">
+              <span class="field__num">05</span>
+              A photograph, if you have one.
+            </label>
+            <p class="field__hint">
+              We'll use this to illustrate Otis throughout the book.
+              A clear photo of the face works best, but any beloved photo will do.
+            </p>
+            <div class="photo-preview">
+              <div class="photo-preview__img">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse cx="50" cy="55" rx="32" ry="28" fill="#5C544A" opacity="0.6"/>
+                  <ellipse cx="30" cy="32" rx="10" ry="14" fill="#5C544A" opacity="0.6"/>
+                  <ellipse cx="70" cy="32" rx="10" ry="14" fill="#5C544A" opacity="0.6"/>
+                  <circle cx="40" cy="52" r="3" fill="#221C16"/>
+                  <circle cx="60" cy="52" r="3" fill="#221C16"/>
+                  <ellipse cx="50" cy="65" rx="4" ry="3" fill="#221C16"/>
+                </svg>
+              </div>
+              <div>
+                <div class="photo-preview__name">otis-by-the-window.jpg</div>
+                <div class="photo-preview__meta">2.3 MB · 2400 × 1600</div>
+              </div>
+              <a href="#" class="photo-preview__replace">replace</a>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label">
+              <span class="field__num">06</span>
+              How should the illustrations feel?
+            </label>
+            <p class="field__hint">
+              You can change this later. Most families choose watercolor.
+            </p>
+            <div class="style-grid">
+              <div class="style-card style-card--watercolor style-card--selected">
+                <div class="style-card__swatch"></div>
+                <div class="style-card__name">Soft watercolor</div>
+              </div>
+              <div class="style-card style-card--storybook">
+                <div class="style-card__swatch"></div>
+                <div class="style-card__name">Gentle storybook</div>
+              </div>
+              <div class="style-card style-card--pencil">
+                <div class="style-card__swatch"></div>
+                <div class="style-card__name">Pencil sketch</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="wizard-footer">
+        <a href="index.html" class="btn-link">← Back</a>
+        <div class="save-status">
+          <span class="save-status__dot"></span>
+          Saved just now
+        </div>
+        <a href="generating.html" class="btn btn--primary">
+          Continue
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <path d="M1 6h16m0 0L12 1m5 5l-5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </a>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p class="label">Step 02 · Pet details</p>
+      <p class="label">Saved to this device only</p>
+    </footer>
+  </div>
+</body>
+</html>
