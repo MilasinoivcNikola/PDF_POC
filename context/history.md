@@ -29,3 +29,17 @@ Milestone 1, feature 02. Established the shared Story-1 data contract every late
 - 31 unit tests across `mappers.test.ts` + `storage.test.ts`: pronoun mapping, species-descriptor (incl. pronoun-independence), `newDraft()` defaults + id uniqueness, localStorage round-trip (stubbed `window`), and disk round-trip incl. missing-id → `null`.
 
 **Gates:** `npm run build` ✓ (17 routes) · `npm run test:run` ✓ (32 tests) · code review PASS (sole blocker — missing tests — resolved by the `test` step).
+
+## 2026-06-07 — Story Master Text, Merge & Variants
+
+**Branch:** `feature/story-master-text` → `main` (`57f5458`, merge `1fd190e`) · Craft Area 1 (pdf-render-specialist)
+
+Milestone 1, feature 03. Turned the Story-1 master template into resolvable data: a pure `resolveStory(session)` that composes the four variant dimensions, then merges, producing the ordered page model feature 04 renders with **no further text logic**. Replaced the three `lib/story/` stubs and added a test fixture + two test files.
+
+- `lib/story/master-text.ts` — the master template as **structured data** (not one string): 14 pages (`cover`, `page-1` dedication, `page-2`–`page-12`, `back-cover`), each with `{merge}` placeholders, an illustration brief (feeds feature 07's prompt builders), and `pageNumber`/`title`/`subtitle`. `masterStory()` returns a **fresh mutable copy** each call so variant composition can mutate without leaking across calls. `PLACEHOLDER_PATTERN` is exported as the single placeholder syntax.
+- `lib/story/merge.ts` — pure merge engine → `ResolvedStory` (`ResolvedPage[]`). Reuses the feature-02 mappers (`pronounObject`/`pronounPossessive`/`speciesDescriptor`) — no re-implementation. Throws **`MergeError`** carrying **all** missing/empty `missingKeys` (sorted, deduped) rather than ever emitting a literal token. `clean()` strips `{`/`}` from customer free-text so an injected `{token}` can't survive (graceful — never throws on valid input). Optional `parentDedication` surfaces on resolved Page 1 as its own `dedication?` block (distinct typeface per the template), populated only when provided.
+- `lib/story/variants.ts` — **compose-before-merge**: death-type → Page 7 (natural default / illness / sudden / euthanasia), belief-frame → Page 9 (rainbow-bridge default / heaven / secular / none, where `none` reuses the secular body), age bracket (3-5 simplifies 7/8/11 and overrides the death-type swap; 6-8 default; 9-12 appends extra sentences on 7/8/11 + a Page-9 line gated on euthanasia), other-pets → appends the extra Page 11 line. `resolveStory()` is the single entry point.
+- 48 unit tests (`merge.test.ts` + `variants.test.ts`, shared `fixtures.ts` Otis session): zero surviving placeholders across a full age×death×belief×pets matrix, pronoun/name consistency, the hard **"died"** rule + banned euphemisms across every combination, `MergeError` reporting (multi-key + whitespace-only), the brace-injection regression, and `parentDedication` present/absent. Added a `@`-alias to `vitest.config.ts` so value-imports resolve under vitest.
+- Two authored gap-fills flagged for the eventual grief-specialist copy review: the `illness` Page-7 wording (template gave no explicit text) and `beliefFrame: "none"` reusing the secular Page-9 body.
+
+**Gates:** `npm run build` ✓ (17 routes) · `npm run test:run` ✓ (80 tests, +48) · code review **PASS** after fixing two blockers (dropped `parentDedication`; free-text `{…}` surviving the single-pass merge).
