@@ -1,0 +1,7 @@
+{
+  "//": "tsx/esbuild config for the CLI render script. The root tsconfig keeps `jsx: preserve` for the Next compiler, which would leave JSX untransformed (so lib/pdf/template.tsx — which has no `import React` — throws `React is not defined` at runtime). Here we extend the root config but switch to the React 17+ automatic runtime, mirroring how vitest.config.ts configures it for tests. `npm run render:test` points tsx at this file.",
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  }
+}

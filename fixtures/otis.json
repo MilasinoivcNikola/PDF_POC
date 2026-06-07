@@ -1,0 +1,28 @@
+{
+  "id": "test-otis",
+  "createdAt": "2026-06-07T00:00:00.000Z",
+  "status": "ready",
+  "pet": {
+    "name": "Otis",
+    "species": "dog",
+    "breedColor": "sweet rescue mutt, possibly part beagle, with floppy ears",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/otis-by-the-window.jpg"
+  },
+  "child": {
+    "name": "Emma",
+    "ageBracket": "6-8"
+  },
+  "memories": {
+    "favoriteActivity": "chasing tennis balls in the backyard",
+    "sleepingSpot": "at the foot of your bed",
+    "favoriteMemory": "The day Otis followed her to the lake, and they both came home soaking wet, laughing the whole way."
+  },
+  "toggles": {
+    "deathType": "natural",
+    "beliefFrame": "rainbow-bridge",
+    "otherPetsInHome": "no"
+  },
+  "images": []
+}
