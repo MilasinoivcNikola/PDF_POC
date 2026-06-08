@@ -11,6 +11,8 @@
 //                shows the REAL generated illustrations (a missing slot is simply
 //                omitted, and the template falls back to placeholder art).
 //   - `petName`/`childName`: small bits the preview header / download CTA use.
+//   - `fields`: the current RAW value of each editable field (preview-text-edit
+//                feature) so the inline "edit your own words" editors pre-fill.
 //
 // House JSON shape throughout. The id is validated with the same traversal guard
 // the rest of the app uses before any disk access.
@@ -21,6 +23,11 @@ import { isSafeSessionId } from "@/lib/ai/paths";
 import { manifestToImageMap } from "@/lib/ai/generate";
 import { resolveStory } from "@/lib/story/variants";
 import { MergeError } from "@/lib/story/merge";
+import {
+  EDITABLE_FIELDS,
+  type EditableField,
+  getSessionFieldValue,
+} from "@/lib/story/editable-fields";
 
 export async function GET(request: Request): Promise<Response> {
   const id = new URL(request.url).searchParams.get("id");
@@ -62,11 +69,18 @@ export async function GET(request: Request): Promise<Response> {
 
   const images = await manifestToImageMap(session.images);
 
+  // The current raw value of every editable field, so the inline editors on the
+  // preview pre-fill with what the parent actually typed.
+  const fields = Object.fromEntries(
+    EDITABLE_FIELDS.map((field) => [field, getSessionFieldValue(session, field)]),
+  ) as Record<EditableField, string>;
+
   return NextResponse.json({
     ok: true,
     pages,
     images,
     petName: session.pet.name,
     childName: session.child.name,
+    fields,
   });
 }
