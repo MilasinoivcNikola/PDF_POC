@@ -18,7 +18,12 @@ import Link from "next/link";
 
 import { PageView } from "@/components/preview/PageView";
 import type { PageId } from "@/lib/story/master-text";
-import type { ResolvedStory } from "@/lib/story/merge";
+import { clean, type ResolvedStory } from "@/lib/story/merge";
+import {
+  EDITABLE_FIELDS,
+  type EditableField,
+  editableFieldsForPage,
+} from "@/lib/story/editable-fields";
 
 /** Page slots that carry a regenerate-able illustration (back cover is text). */
 const ILLUSTRATED_PAGES = new Set<PageId>([
@@ -38,12 +43,21 @@ const ILLUSTRATED_PAGES = new Set<PageId>([
 ]);
 
 type ImageMap = Partial<Record<PageId, string>>;
+type FieldValues = Record<EditableField, string>;
+
+/** A blank value for every editable field, so the editors always have a string. */
+function emptyFieldValues(): FieldValues {
+  return Object.fromEntries(
+    EDITABLE_FIELDS.map((field) => [field, ""]),
+  ) as FieldValues;
+}
 
 interface PreviewData {
   pages: ResolvedStory;
   images: ImageMap;
   petName: string;
   childName: string;
+  fields: FieldValues;
 }
 
 interface PreviewResponse {
@@ -52,6 +66,7 @@ interface PreviewResponse {
   images?: ImageMap;
   petName?: string;
   childName?: string;
+  fields?: Partial<FieldValues>;
   error?: string;
 }
 
@@ -86,6 +101,7 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [regenerating, setRegenerating] = useState<PageId | null>(null);
+  const [savingText, setSavingText] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloadMeta, setDownloadMeta] = useState<DownloadMeta | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -115,6 +131,7 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
           images: body.images ?? {},
           petName: body.petName ?? "your pet",
           childName: body.childName ?? "",
+          fields: { ...emptyFieldValues(), ...(body.fields ?? {}) },
         });
         setImages(body.images ?? {});
       } catch {
@@ -174,11 +191,71 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
     }
   }
 
+  // Persist one edited free-text field. On success the server returns the WHOLE
+  // re-resolved book (a name edit changes every page), so we replace `pages` and
+  // the header names, and update our raw `fields` so the editor stays in sync.
+  // Returns true on success so PageView can keep its editor open on failure.
+  async function handleSaveText(
+    field: EditableField,
+    value: string,
+  ): Promise<boolean> {
+    if (savingText) {
+      return false;
+    }
+    setActionError(null);
+    setSavingText(true);
+    try {
+      const res = await fetch("/api/update-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: sessionId, field, value }),
+      });
+      const body = (await res.json()) as {
+        ok: boolean;
+        pages?: ResolvedStory;
+        petName?: string;
+        childName?: string;
+        error?: string;
+      };
+      if (!res.ok || !body.ok || !body.pages) {
+        setActionError(
+          body.error === "field_required"
+            ? "That part of the story can't be left empty. Please add a few words."
+            : "We couldn't save that change just now. Please try again.",
+        );
+        return false;
+      }
+      const resolvedPages = body.pages;
+      // Mirror the server's `clean()` locally so the editor re-fills with exactly
+      // what was persisted (no double spaces, stripped braces).
+      const persisted = clean(value);
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              pages: resolvedPages,
+              petName: body.petName ?? current.petName,
+              childName: body.childName ?? current.childName,
+              fields: { ...current.fields, [field]: persisted },
+            }
+          : current,
+      );
+      // The book changed, so any prior download meta is stale.
+      setDownloadMeta(null);
+      return true;
+    } catch {
+      setActionError("We couldn't save that change just now. Please try again.");
+      return false;
+    } finally {
+      setSavingText(false);
+    }
+  }
+
   async function handleDownload() {
-    // Don't render the PDF while a page is mid-repaint: the new image isn't
-    // persisted to the manifest until regenerate resolves, so the download would
-    // capture the pre-repaint book. Wait for the regenerate to finish first.
-    if (downloading || regenerating) {
+    // Don't render the PDF while a page is mid-repaint or a text save is in
+    // flight: the change isn't persisted to disk until the call resolves, so the
+    // download would capture the stale book. Wait for those to finish first.
+    if (downloading || regenerating || savingText) {
       return;
     }
     setActionError(null);
@@ -264,7 +341,7 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
             type="button"
             className="btn btn--primary"
             onClick={handleDownload}
-            disabled={downloading || regenerating !== null}
+            disabled={downloading || regenerating !== null || savingText}
           >
             {downloading ? "Building your PDF…" : "Download PDF"}
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
@@ -303,6 +380,10 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
                   canRegenerate={canRegenerate}
                   regenerating={regenerating === page.id}
                   onRegenerate={() => handleRegenerate(page.id)}
+                  editableFields={editableFieldsForPage(page.id)}
+                  fieldValues={data.fields}
+                  saving={savingText}
+                  onSaveText={handleSaveText}
                 />
               );
             })}
@@ -323,7 +404,7 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
           type="button"
           className="btn btn--primary"
           onClick={handleDownload}
-          disabled={downloading || regenerating !== null}
+          disabled={downloading || regenerating !== null || savingText}
         >
           {downloading ? "Building your PDF…" : "Download PDF"}
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>

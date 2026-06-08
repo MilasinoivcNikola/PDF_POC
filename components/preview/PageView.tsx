@@ -2,15 +2,55 @@
 
 // One book page in the in-browser preview. It renders the SAME per-page markup
 // the PDF uses (the shared `renderPage` from lib/pdf/pages) so screen and print
-// can't drift, then overlays a screen-only "Regenerate" affordance for the pages
-// that carry an illustration. The regenerate call is owned by BookPreview (it
-// holds the image map + session id); PageView just shows the control and its
-// painting state.
+// can't drift, then overlays screen-only affordances for the pages that support
+// them:
+//   - "Regenerate" — re-paint the page's illustration (owned by BookPreview), and
+//   - "Edit the words" — correct the parent's OWN free-text inputs/names for this
+//     page inline (preview-text-edit feature). The editor is local UI state; the
+//     actual write + re-resolve is owned by BookPreview (it holds the session id
+//     and the whole-book `pages` state a name edit refreshes).
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { renderPage } from "@/lib/pdf/pages";
 import type { ResolvedPage } from "@/lib/story/merge";
+import {
+  type EditableField,
+  isBlankAfterClean,
+  isRequiredField,
+} from "@/lib/story/editable-fields";
+
+/** A gentle, human label + hint for each editable field's inline editor. */
+const FIELD_COPY: Record<EditableField, { label: string; hint: string }> = {
+  petName: {
+    label: "Their name",
+    hint: "The name you used when calling them home.",
+  },
+  childName: {
+    label: "Your child's name",
+    hint: "Who the book is written for.",
+  },
+  parentDedication: {
+    label: "A dedication, if you'd like one",
+    hint: "An optional few words, printed on the dedication page. Leave blank to omit it.",
+  },
+  breedColor: {
+    label: "A few words to describe them",
+    hint: "The kind of detail you'd mention to a stranger.",
+  },
+  favoriteActivity: {
+    label: "Their favorite thing to do",
+    hint: "What they loved most in the world.",
+  },
+  sleepingSpot: {
+    label: "Where they liked to sleep",
+    hint: "Their favorite warm, safe place.",
+  },
+  favoriteMemory: {
+    label: "A favorite memory",
+    hint: "One or two sentences about a day to remember.",
+  },
+};
 
 interface PageViewProps {
   /** The fully-resolved page (copy already merged). */
@@ -23,6 +63,14 @@ interface PageViewProps {
   regenerating: boolean;
   /** Re-paint just this page's illustration. */
   onRegenerate: () => void;
+  /** The editable free-text fields exposed on this page (empty for most pages). */
+  editableFields: readonly EditableField[];
+  /** Current raw values for every editable field (the editor pre-fills from this). */
+  fieldValues: Record<EditableField, string>;
+  /** True while ANY text save is in flight (disables the editors book-wide). */
+  saving: boolean;
+  /** Persist one edited field; resolves true on success, false on failure. */
+  onSaveText: (field: EditableField, value: string) => Promise<boolean>;
 }
 
 const regenerateIcon: ReactNode = (
@@ -37,34 +85,165 @@ const regenerateIcon: ReactNode = (
   </svg>
 );
 
+const editIcon: ReactNode = (
+  <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
+    <path
+      d="M9.5 1.5l3 3L5 12l-3.5.5L2 9l7.5-7.5z"
+      stroke="currentColor"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 export function PageView({
   page,
   src,
   canRegenerate,
   regenerating,
   onRegenerate,
+  editableFields,
+  fieldValues,
+  saving,
+  onSaveText,
 }: PageViewProps) {
+  const [editing, setEditing] = useState(false);
+  // Local working copy of the field values while the editor is open.
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+
+  const canEdit = editableFields.length > 0;
+
+  function openEditor() {
+    const initial: Record<string, string> = {};
+    for (const field of editableFields) {
+      initial[field] = fieldValues[field] ?? "";
+    }
+    setDrafts(initial);
+    setEditing(true);
+  }
+
+  function cancelEditor() {
+    setEditing(false);
+    setDrafts({});
+  }
+
+  // A required field blanked in the editor blocks Save (the server rejects it too).
+  const hasBlankRequired = editableFields.some(
+    (field) => isRequiredField(field) && isBlankAfterClean(drafts[field] ?? ""),
+  );
+
+  async function handleSaveAll() {
+    if (saving || hasBlankRequired) {
+      return;
+    }
+    // Persist each changed field in turn; a failure leaves the editor open so the
+    // parent can retry without losing their other edits.
+    for (const field of editableFields) {
+      const next = drafts[field] ?? "";
+      if (next === (fieldValues[field] ?? "")) {
+        continue;
+      }
+      const ok = await onSaveText(field, next);
+      if (!ok) {
+        return;
+      }
+    }
+    setEditing(false);
+    setDrafts({});
+  }
+
   return (
     <div className="preview-page">
       {renderPage(page, src)}
-      {canRegenerate ? (
-        <button
-          type="button"
-          className="preview-page__regen"
-          onClick={onRegenerate}
-          disabled={regenerating}
-        >
-          {regenerating ? (
-            <span className="gen-dots" aria-hidden>
-              <span className="gen-dot" />
-              <span className="gen-dot" />
-              <span className="gen-dot" />
-            </span>
-          ) : (
-            regenerateIcon
-          )}
-          {regenerating ? "Painting…" : "Regenerate"}
-        </button>
+
+      {canRegenerate || canEdit ? (
+        <div className="preview-page__controls">
+          {canEdit ? (
+            <button
+              type="button"
+              className="preview-page__control"
+              onClick={editing ? cancelEditor : openEditor}
+              disabled={saving && !editing}
+            >
+              {editIcon}
+              {editing ? "Close" : "Edit the words"}
+            </button>
+          ) : null}
+          {canRegenerate ? (
+            <button
+              type="button"
+              className="preview-page__control"
+              onClick={onRegenerate}
+              disabled={regenerating}
+            >
+              {regenerating ? (
+                <span className="gen-dots" aria-hidden>
+                  <span className="gen-dot" />
+                  <span className="gen-dot" />
+                  <span className="gen-dot" />
+                </span>
+              ) : (
+                regenerateIcon
+              )}
+              {regenerating ? "Painting…" : "Regenerate"}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {canEdit && editing ? (
+        <div className="preview-page__editor">
+          {editableFields.map((field) => {
+            const copy = FIELD_COPY[field];
+            const value = drafts[field] ?? "";
+            const blankRequired =
+              isRequiredField(field) && isBlankAfterClean(value);
+            return (
+              <div className="field" key={field}>
+                <label className="field__label" htmlFor={`edit-${page.id}-${field}`}>
+                  {copy.label}
+                </label>
+                <p className="field__hint">{copy.hint}</p>
+                <textarea
+                  id={`edit-${page.id}-${field}`}
+                  value={value}
+                  onChange={(event) =>
+                    setDrafts((current) => ({
+                      ...current,
+                      [field]: event.target.value,
+                    }))
+                  }
+                  disabled={saving}
+                  rows={2}
+                />
+                {blankRequired ? (
+                  <p className="notice notice--required" style={{ marginTop: "var(--s-2)" }}>
+                    This is part of the story, so it can&apos;t be left empty.
+                  </p>
+                ) : null}
+              </div>
+            );
+          })}
+          <div className="preview-page__editor-actions">
+            <button
+              type="button"
+              className="btn-link"
+              onClick={cancelEditor}
+              disabled={saving}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={handleSaveAll}
+              disabled={saving || hasBlankRequired}
+            >
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </div>
       ) : null}
     </div>
   );

@@ -1251,11 +1251,24 @@ p {
   position: relative;
 }
 
-.preview-page__regen {
+/* Hover-revealed control row (Regenerate / Edit the words) on a preview page. */
+.preview-page__controls {
   position: absolute;
   bottom: var(--s-4);
   right: var(--s-4);
   z-index: 4;
+  display: inline-flex;
+  gap: var(--s-2);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.preview-page:hover .preview-page__controls,
+.preview-page__controls:focus-within {
+  opacity: 1;
+}
+
+.preview-page__control {
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
@@ -1269,24 +1282,48 @@ p {
   border-radius: 999px;
   padding: var(--s-2) var(--s-4);
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease;
 }
 
-.preview-page:hover .preview-page__regen,
-.preview-page__regen:focus-visible,
-.preview-page__regen:disabled {
-  opacity: 1;
-}
-
-.preview-page__regen:hover:not(:disabled) {
+.preview-page__control:hover:not(:disabled) {
   border-color: var(--rose);
   color: var(--rose);
 }
 
-.preview-page__regen:disabled {
+.preview-page__control:disabled {
   cursor: default;
   color: var(--ink-muted);
+}
+
+/* The inline "edit your own words" panel that drops below a page when opened. */
+.preview-page__editor {
+  position: relative;
+  z-index: 4;
+  margin-top: var(--s-4);
+  padding: var(--s-6);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.preview-page__editor .field {
+  margin-bottom: var(--s-6);
+}
+
+.preview-page__editor .field:last-of-type {
+  margin-bottom: var(--s-4);
+}
+
+.preview-page__editor textarea {
+  font-size: var(--t-base);
+}
+
+.preview-page__editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-6);
+  padding-top: var(--s-2);
 }
 
 /* Final download section */

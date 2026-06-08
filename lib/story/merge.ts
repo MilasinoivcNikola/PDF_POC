@@ -93,8 +93,13 @@ export class MergeError extends Error {
  * Braces are not meaningful in grief prose, so removing them is lossless enough;
  * brackets `[...]` are harmless prose and are left untouched. This runs only on
  * substituted *values*, never on the template text itself.
+ *
+ * Exported so the preview "edit your own words" path (lib/story/editable-fields)
+ * persists exactly the same normalization the merge engine would apply — an edit
+ * can't reintroduce a placeholder injection or a double-space the merge would
+ * have collapsed.
  */
-function clean(value: string): string {
+export function clean(value: string): string {
   return value.replace(/[{}]/g, "").replace(/\s+/g, " ").trim();
 }
 
