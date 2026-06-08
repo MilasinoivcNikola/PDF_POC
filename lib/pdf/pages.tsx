@@ -211,7 +211,11 @@ function NarrativePage({
 function TruthPage({ page, src }: { page: ResolvedPage; src?: string }) {
   return (
     <section className="story-page story-page--truth" data-page={page.id}>
-      <ArtSlot src={src} alt={page.illustrationBrief} className="story-art" />
+      <ArtSlot
+        src={src}
+        alt={page.illustrationBrief}
+        className="story-art story-art--landscape"
+      />
       <div className="truth__text">
         {page.body.map((text, i) => (
           <p key={i}>{text}</p>

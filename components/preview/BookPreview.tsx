@@ -13,7 +13,7 @@
 // and each page renders through the shared per-page template (lib/pdf/pages via
 // PageView), so what the user sees here equals what the PDF contains.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 import { PageView } from "@/components/preview/PageView";
@@ -95,10 +95,17 @@ function formatBytes(bytes: number): string {
   return `${mb.toFixed(1)} MB`;
 }
 
+/** Printed page width in CSS px (8.5in @ 96dpi). The preview .story-page renders
+ *  at this real size, then `zoom: --preview-scale` shrinks it to its column. */
+const PRINT_PAGE_PX = 816;
+
 export function BookPreview({ sessionId }: { sessionId: string }) {
   const [data, setData] = useState<PreviewData | null>(null);
   const [images, setImages] = useState<ImageMap>({});
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // The <main> we set the per-column --preview-scale on (cascades to every page).
+  const mainRef = useRef<HTMLElement | null>(null);
 
   const [regenerating, setRegenerating] = useState<PageId | null>(null);
   const [savingText, setSavingText] = useState(false);
@@ -144,6 +151,34 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
       cancelled = true;
     };
   }, [sessionId]);
+
+  // True-scale preview: measure a real spread cell and set --preview-scale so the
+  // print-sized .story-page (816px) zooms down to fit its column exactly. The
+  // .spread columns are minmax(0, 1fr), so a cell's width is half the row (minus
+  // gap) and does NOT depend on the zoomed page inside it — no measure↔zoom loop.
+  // Re-measures on resize and at the responsive (≤900px) single-column breakpoint.
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main || !data) {
+      return;
+    }
+    const cell = main.querySelector<HTMLElement>(".preview-page");
+    if (!cell) {
+      return;
+    }
+    let lastWidth = 0;
+    const apply = () => {
+      const width = cell.clientWidth;
+      if (width > 0 && width !== lastWidth) {
+        lastWidth = width;
+        main.style.setProperty("--preview-scale", String(width / PRINT_PAGE_PX));
+      }
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(cell);
+    return () => observer.disconnect();
+  }, [data]);
 
   // Group the resolved pages into facing-page spreads of two.
   const spreads = useMemo(() => {
@@ -325,7 +360,7 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
   const petName = data.petName.trim() || "your pet";
 
   return (
-    <main>
+    <main ref={mainRef}>
       <section className="preview-header fade-in">
         <span className="label label--gold">Your book is ready</span>
         <h1 className="display-md" style={{ marginTop: "var(--s-4)" }}>

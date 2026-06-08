@@ -39,10 +39,23 @@
   --border-soft: #ECE3D2;
   --border-hairline: #D9CDB7;
 
-  /* Keepsake frame — screen mirror of the print frame in lib/pdf/styles.css.
-     The print side insets in physical inches; on screen the preview pages are
-     responsive, so the inset is sized relatively (see .story-page::before). */
+  /* Keepsake frame — screen mirror of the print frame in lib/pdf/styles.css. */
   --frame-line: var(--border-hairline);
+
+  /* Printed page geometry, mirrored from lib/pdf/styles.css so the in-browser
+     preview can render each page at the PDF's REAL inch geometry and then scale
+     the whole page down by ONE factor (--preview-scale) to fit its spread
+     column. Used ONLY under the .preview-page scope (see the preview block near
+     the end of this file) — everything else (wizard, landing) is unaffected. */
+  --page-width: 8.5in;
+  --page-height: 11in;
+  --page-margin: 0.75in;
+  --frame-inset: 0.42in;
+
+  /* Per-column scale applied to the preview .story-page (W / 816, where 816px =
+     8.5in @96dpi). Set at runtime by a ResizeObserver in BookPreview; this
+     fallback keeps the first paint sane before JS measures the real column. */
+  --preview-scale: 0.5;
 
   /* Typography — wired to next/font (see app/layout.tsx).
      The --font-*-loaded vars are injected by next/font; we fall back
@@ -1189,10 +1202,13 @@ p {
   flex-wrap: wrap;
 }
 
-/* Spreads: two facing pages side by side */
+/* Spreads: two facing pages side by side. minmax(0, 1fr) lets each column be an
+   exact half of the row (minus the gap) regardless of the page's intrinsic
+   min-content width — so a preview cell is a stable measurement target for the
+   true-scale ResizeObserver, never inflated by the 816px page inside it. */
 .spread {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--s-2);
   max-width: 1180px;
   margin: 0 auto var(--s-24);
@@ -1219,7 +1235,7 @@ p {
 
 @media (max-width: 900px) {
   .spread {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s-8);
   }
   .spread::before {
@@ -1479,8 +1495,14 @@ p {
   overflow: hidden;
 }
 
+/* Landscape art is centered. Its size/ratio live in the preview-scoped rule
+   (.preview-page .story-art--landscape) so the on-screen box matches the printed
+   slot exactly — see that rule near the end of this file. (On screen this class
+   only ever renders inside .preview-page, so no width/ratio is set here; keeping
+   them here would silently contradict the print side.) */
 .story-art--landscape {
-  aspect-ratio: 4 / 3;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* On the narrative pages the divider supplies the art→body separation (mirrors
@@ -1615,17 +1637,18 @@ p {
   justify-content: flex-start;
 }
 
-/* Page 7 — the gentle truth */
+/* Page 7 — the gentle truth. Top-aligned (mirrors print) so its illustration
+   starts at the same top spacing as the narrative pages; text stays centered. */
 .story-page--truth {
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
 }
 
+/* Page 7's art uses the same landscape slot as the narrative pages (mirrors the
+   print rule), so its size is NOT overridden here — only the softer placeholder
+   wash and the gap below the art are kept. */
 .story-page--truth .story-art {
-  width: 60%;
-  max-width: 200px;
-  aspect-ratio: 1.5;
-  margin: 0 auto var(--s-6);
+  margin-bottom: var(--s-6);
   background: radial-gradient(ellipse at 50% 60%, rgba(184, 133, 122, 0.3) 0%, transparent 60%);
 }
 
@@ -1791,6 +1814,152 @@ p {
   margin: var(--s-10) auto 0;
   color: var(--rose);
   opacity: 0.6;
+}
+
+/* ----------------------------------------------------------------
+   True-scale preview (fix/preview-pdf-image-parity, follow-up 2)
+
+   The screen .story-page* rules above are responsive (aspect-ratio pages,
+   clamp()/vw fonts). That made the preview NOT a uniform scale-model of the
+   PDF: the body text is the SAME 16.8px (1.05rem) in both targets, but the
+   on-screen page was only ~65% of the printed sheet, so the text read ~1.5x
+   too large relative to the page once the image proportion (follow-up 1) was
+   fixed to match print.
+
+   Fix: inside the preview ONLY, render each .story-page at the PDF's REAL inch
+   geometry (the fixed values mirrored from lib/pdf/styles.css below) and scale
+   the WHOLE page down by ONE factor with `zoom: var(--preview-scale)`. Because
+   the page is now 8.5x11in with the print font/spacing values, every fraction
+   (text/page, image/page, padding/page, line-height, drop-cap, divider) equals
+   the PDF automatically; the single zoom shrinks it to fit the spread column.
+   `zoom` (not transform) is used so the page reflows into normal flow and the
+   sibling controls/editor below it stay full size and correctly placed.
+
+   This block is scoped to `.preview-page` so the wizard/landing are untouched,
+   and it deliberately mirrors the PRINT side as the source of truth — every
+   value here has a twin in lib/pdf/styles.css. The PDF (lib/pdf/*) is NOT
+   changed by any of this.
+   ---------------------------------------------------------------- */
+.preview-page .story-page {
+  /* PDF page box (overrides the responsive aspect-ratio page above) */
+  width: var(--page-width);
+  height: var(--page-height);
+  aspect-ratio: auto;
+  padding: var(--page-margin);
+  /* One uniform downscale to fit the column; measured by BookPreview. */
+  zoom: var(--preview-scale);
+}
+
+/* Frame inset in inches (mirrors print --frame-inset), not the responsive clamp. */
+.preview-page .story-page::before {
+  inset: var(--frame-inset);
+}
+
+/* Page number sits in the bottom margin band, as in print. */
+.preview-page .story-page__number {
+  bottom: calc(var(--page-margin) - 0.35in);
+}
+
+/* Body copy at the print fixed size (the same 1.05rem as the PDF). */
+.preview-page .story-page__body {
+  font-size: 1.05rem;
+}
+
+/* Divider hairline matches the print 0.5pt rule. */
+.preview-page .story-divider__rule {
+  height: 0.5pt;
+}
+
+/* Landscape art at the print inch box (6.27x5.2in, centered) — fixed inch values
+   on the print-sized page, so it lands at exactly the PDF proportion. */
+.preview-page .story-art--landscape {
+  width: 6.27in;
+  height: 5.2in;
+  aspect-ratio: 6.27 / 5.2;
+}
+
+/* --- Cover --- */
+.preview-page .cover__ornament {
+  margin-bottom: var(--s-8);
+}
+
+.preview-page .cover__title {
+  font-size: 2.75rem;
+}
+
+/* Cover/closing art at the print inch box (4x4in). Mirrors print exactly:
+   explicit width+height in inches, aspect-ratio reset (the screen rule used
+   aspect-ratio:1 instead of a fixed height). `flex: 1` is kept as in print. */
+.preview-page .cover__art {
+  width: 4in;
+  height: 4in;
+  aspect-ratio: auto;
+  max-width: 100%;
+  margin: var(--s-8) auto;
+}
+
+.preview-page .cover__subtitle {
+  font-size: var(--t-lg);
+  margin-top: var(--s-8);
+}
+
+/* --- Dedication --- */
+.preview-page .dedication__ornament {
+  margin-bottom: var(--s-8);
+}
+
+.preview-page .dedication__verse {
+  font-size: 1.2rem;
+}
+
+.preview-page .dedication__parent {
+  margin-top: var(--s-12);
+}
+
+/* --- Page 7 — gentle truth --- */
+.preview-page .story-page--truth .story-art {
+  margin-bottom: var(--s-8);
+}
+
+.preview-page .truth__text {
+  font-size: 1.1rem;
+}
+
+/* --- Page 10 — love stays --- */
+.preview-page .love__hero {
+  font-size: 2rem;
+}
+
+.preview-page .love__closer {
+  margin-top: var(--s-12);
+}
+
+/* --- Page 12 — closing --- */
+.preview-page .closing__art {
+  width: 4in;
+  height: 4in;
+  aspect-ratio: auto;
+  max-width: 100%;
+  margin: var(--s-8) auto;
+}
+
+.preview-page .closing__text {
+  font-size: 1.85rem;
+}
+
+/* --- Back cover --- */
+.preview-page .back-cover__title {
+  font-size: 1.85rem;
+  margin-bottom: var(--s-12);
+}
+
+.preview-page .back-cover__lines li {
+  font-size: 1.05rem;
+  padding: var(--s-6) 0 var(--s-2);
+}
+
+.preview-page .back-cover__ornament {
+  margin-top: var(--s-16);
 }
 
 /* --------------------------------------------------------------

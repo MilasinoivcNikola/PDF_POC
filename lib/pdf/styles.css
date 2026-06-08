@@ -392,8 +392,18 @@ em {
   overflow: hidden;
 }
 
+/* Centered illustration box — the source images are square (1024×1024) shown via
+   object-fit: cover, so the slot's ratio decides how much of the pet is cropped.
+   6.27×5.2in (≈6:5) is the prominent size; the screen preview mirrors it exactly
+   so the print crop stays identical to the preview. width+height are both explicit
+   (aspect-ratio is documentary only). NOTE: at 5.2in tall the text-heavy pages
+   (8/9/11) have less body room — kept within 14 Letter pages, verified in QA. */
 .story-art--landscape {
-  height: 3.2in;
+  width: 6.27in;
+  height: 5.2in;
+  aspect-ratio: 6.27 / 5.2;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* On the narrative pages the divider now supplies the art→body separation, so
@@ -556,14 +566,20 @@ em {
    Page 7 — the gentle truth (centered, no art-led layout)
    -------------------------------------------------------------- */
 .story-page--truth {
-  justify-content: center;
+  /* Top-aligned (like the narrative pages) so page 7's illustration starts at the
+     same top spacing as the others — the text still centers horizontally. */
+  justify-content: flex-start;
   text-align: center;
 }
 
+/* Page 7's art uses the same centered landscape slot as the narrative pages
+   (.story-art--landscape on the element), so its size is NOT overridden here —
+   only the truth page's softer placeholder wash and the gap below the art (the
+   centered text needs room to breathe) are kept. The body is short (3 short
+   paragraphs), so the larger image still fits the centered layout with no
+   clipping. */
 .story-page--truth .story-art {
-  width: 3.5in;
-  height: 2.2in;
-  margin: 0 auto var(--s-8);
+  margin-bottom: var(--s-8);
   background: radial-gradient(ellipse at 50% 60%, rgba(184, 133, 122, 0.3) 0%, transparent 60%);
 }
 
