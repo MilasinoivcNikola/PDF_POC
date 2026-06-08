@@ -85,13 +85,53 @@ function ArtSlot({
   );
 }
 
-/** Render resolved body paragraphs. Copy is already final — no text logic. */
-function Body({ paragraphs }: { paragraphs: string[] }) {
+/**
+ * A small petal divider used to separate a page's art from its body so the
+ * narrative pages don't read as a flat slab of type. Reuses the same petal
+ * shape as `Ornament`, sized down. Purely decorative (aria-hidden); it carries
+ * no copy, so it never touches the merged text or the "died" rule.
+ */
+function Divider() {
+  return (
+    <div className="story-divider" aria-hidden="true">
+      <span className="story-divider__rule" />
+      <Ornament size={16} />
+      <span className="story-divider__rule" />
+    </div>
+  );
+}
+
+/**
+ * Render resolved body paragraphs. Copy is already final — no text logic.
+ *
+ * When `dropCap` is set, the first character of the first paragraph is wrapped
+ * in its own `<span class="story-page__dropcap">` so the stylesheet can render a
+ * Fraunces initial against the Lora body. This is presentation-only: the letter
+ * is the same character from the same merged copy, just split for styling, so
+ * the rendered text (and the "died" rule) is unchanged.
+ */
+function Body({
+  paragraphs,
+  dropCap = false,
+}: {
+  paragraphs: string[];
+  dropCap?: boolean;
+}) {
   return (
     <div className="story-page__body">
-      {paragraphs.map((text, i) => (
-        <p key={i}>{text}</p>
-      ))}
+      {paragraphs.map((text, i) => {
+        if (dropCap && i === 0 && text.length > 0) {
+          const initial = text.slice(0, 1);
+          const rest = text.slice(1);
+          return (
+            <p key={i}>
+              <span className="story-page__dropcap">{initial}</span>
+              {rest}
+            </p>
+          );
+        }
+        return <p key={i}>{text}</p>;
+      })}
     </div>
   );
 }
@@ -161,7 +201,8 @@ function NarrativePage({
   return (
     <section className="story-page story-page--narrative" data-page={page.id}>
       <ArtSlot src={src} alt={page.illustrationBrief} className={artClassName} />
-      <Body paragraphs={page.body} />
+      <Divider />
+      <Body paragraphs={page.body} dropCap />
       <PageNumber value={page.pageNumber} />
     </section>
   );

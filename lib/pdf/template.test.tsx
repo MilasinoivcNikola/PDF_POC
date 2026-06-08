@@ -90,11 +90,16 @@ describe("resolved copy present", () => {
 
   it("contains body copy from a narrative page", () => {
     const html = renderStoryHtml(resolveStory(otisSession()));
-    // Page 2 opening, fully merged (no special chars to escape).
+    // Page 2 opening, fully merged. The narrative pages get a drop cap (the
+    // typography pass): the first letter of the first paragraph is split into a
+    // <span class="story-page__dropcap"> for styling, so the copy lands as
+    // `<span ...>O</span>nce, in a home...`. The text is unchanged — only the
+    // initial is wrapped — so assert the drop-cap initial plus the remainder.
+    expect(html).toContain('<span class="story-page__dropcap">O</span>');
     expect(html).toContain(
-      "Once, in a home full of love, there lived a dog named Otis.",
+      "nce, in a home full of love, there lived a dog named Otis.",
     );
-    // Page 4 favorite-activity line.
+    // Page 4 favorite-activity line (mid-paragraph, unaffected by the drop cap).
     expect(html).toContain("chasing tennis balls in the backyard");
   });
 

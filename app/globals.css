@@ -39,6 +39,11 @@
   --border-soft: #ECE3D2;
   --border-hairline: #D9CDB7;
 
+  /* Keepsake frame — screen mirror of the print frame in lib/pdf/styles.css.
+     The print side insets in physical inches; on screen the preview pages are
+     responsive, so the inset is sized relatively (see .story-page::before). */
+  --frame-line: var(--border-hairline);
+
   /* Typography — wired to next/font (see app/layout.tsx).
      The --font-*-loaded vars are injected by next/font; we fall back
      to the original family names then a system serif/mono. */
@@ -1337,6 +1342,30 @@ p {
     0 20px 40px rgba(60, 45, 30, 0.1);
 }
 
+/* Keepsake frame — the screen mirror of the print .story-page::before. A subtle
+   double hairline rule inset from the page edge; pseudo-element so it adds no
+   layout box (mirrors the print behavior that protects the break boundary). */
+.story-page::before {
+  content: "";
+  position: absolute;
+  inset: clamp(var(--s-3), 2.4vw, var(--s-5));
+  border: 1px solid var(--frame-line);
+  outline: 1px solid var(--frame-line);
+  outline-offset: 3px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.story-page--cover::before,
+.story-page--back-cover::before {
+  display: none;
+}
+
+.story-page > * {
+  position: relative;
+  z-index: 1;
+}
+
 .story-page__number {
   position: absolute;
   bottom: var(--s-6);
@@ -1364,6 +1393,45 @@ p {
   color: var(--rose);
 }
 
+/* Drop cap — screen mirror of the print rule. Floated Fraunces initial that
+   adds no vertical height, so the responsive page keeps its proportions. */
+.story-page__dropcap {
+  float: left;
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+  font-weight: 300;
+  font-size: 3.2em;
+  line-height: 0.78;
+  margin: 0.02em 0.06em 0 0;
+  color: var(--rose);
+}
+
+/* The narrative body reads as a left-aligned storybook block under the drop cap
+   (mirrors the print rule; the divider carries the centered rhythm). */
+.story-page--narrative .story-page__body {
+  text-align: left;
+  max-width: 30em;
+  margin: 0 auto;
+}
+
+/* Decorative divider — screen mirror of the print rule (rule + petal). */
+.story-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  color: var(--rose);
+  margin: 0 auto var(--s-5);
+  width: 60%;
+  opacity: 0.7;
+}
+
+.story-divider__rule {
+  flex: 1;
+  height: 1px;
+  background: var(--border-hairline);
+}
+
 /* Illustration slots — responsive on screen (aspect-ratio, not fixed inches) */
 .story-art {
   width: 100%;
@@ -1376,6 +1444,12 @@ p {
 
 .story-art--landscape {
   aspect-ratio: 4 / 3;
+}
+
+/* On the narrative pages the divider supplies the art→body separation (mirrors
+   the print rule), so the art's own bottom margin is removed. */
+.story-page--narrative .story-art {
+  margin-bottom: 0;
 }
 
 .story-art img {
@@ -1499,13 +1573,9 @@ p {
   max-width: 24em;
 }
 
-/* Standard narrative page — art on top, centered body */
+/* Standard narrative page — art on top, drop-capped storybook body */
 .story-page--narrative {
   justify-content: flex-start;
-}
-
-.story-page--narrative .story-page__body {
-  text-align: center;
 }
 
 /* Page 7 — the gentle truth */

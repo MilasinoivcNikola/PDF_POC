@@ -136,6 +136,13 @@
   --page-width: 8.5in;
   --page-height: 11in;
   --page-margin: 0.75in;
+
+  /* Keepsake frame — a hairline ruled border inset from the paper edge, drawn
+     as a .story-page::before so it adds no layout box and can't push content
+     across a page break. The inset sits inside --page-margin so the frame never
+     collides with the body text. */
+  --frame-inset: 0.42in;
+  --frame-line: var(--border-hairline);
 }
 
 /* --------------------------------------------------------------
@@ -222,6 +229,35 @@ em {
   break-after: auto;
 }
 
+/* Keepsake frame — a subtle double hairline ruled border inset from the paper
+   edge, consistent on every page. Drawn as a pseudo-element so it occupies no
+   layout box (it cannot affect the page's content height or break boundary).
+   The faint inner wash + outer rule read as a printed keepsake border; both
+   honor print-color-adjust: exact (set globally above) so they print. */
+.story-page::before {
+  content: "";
+  position: absolute;
+  inset: var(--frame-inset);
+  border: 0.5pt solid var(--frame-line);
+  outline: 0.5pt solid var(--frame-line);
+  outline-offset: 2.5pt;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Cover and back cover are framed treatments of their own — keep the inner
+   keepsake rule off them so it doesn't fight the cover wash / memory page. */
+.story-page--cover::before,
+.story-page--back-cover::before {
+  display: none;
+}
+
+/* Page content sits above the frame so washes/art never hide it inconsistently. */
+.story-page > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* On screen only, give the stacked pages a little separation + lift. The
    print media query below neutralizes these so they never affect the PDF. */
 @media screen {
@@ -294,6 +330,52 @@ em {
   color: var(--rose);
 }
 
+/* Drop cap — a Fraunces initial on the first body paragraph of the narrative
+   pages. Floated so it adds no vertical height (the body text wraps beside it),
+   which keeps the page's content box — and its break boundary — unchanged.
+   line-height:0.78 + a small negative top margin seat the cap against the first
+   two body lines without an orphaned baseline. */
+.story-page__dropcap {
+  float: left;
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+  font-weight: 300;
+  font-size: 3.2em;
+  line-height: 0.78;
+  margin: 0.02em 0.06em 0 0;
+  color: var(--rose);
+}
+
+/* A left-floated drop cap fights centered text, so the narrative body reads as
+   a left-aligned storybook block (the divider above carries the centered
+   rhythm). This also avoids an orphaned cap when the first paragraph is a single
+   short line — the following paragraphs sit flush against the same left margin. */
+.story-page--narrative .story-page__body {
+  text-align: left;
+  max-width: 30em;
+  margin: 0 auto;
+}
+
+/* Decorative divider — a hairline rule + petal between a page's art and its
+   body. Fixed small height; lives between two existing blocks, so its footprint
+   is a few millimetres that the narrative pages have ample room for. */
+.story-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  color: var(--rose);
+  margin: 0 auto var(--s-5);
+  width: 60%;
+  opacity: 0.7;
+}
+
+.story-divider__rule {
+  flex: 1;
+  height: 0.5pt;
+  background: var(--border-hairline);
+}
+
 /* --------------------------------------------------------------
    Illustration slots — sized in inches for 300 DPI print
 
@@ -311,7 +393,14 @@ em {
 }
 
 .story-art--landscape {
-  height: 3.4in;
+  height: 3.2in;
+}
+
+/* On the narrative pages the divider now supplies the art→body separation, so
+   the art's own bottom margin is removed to keep the page's total height within
+   its break boundary after the divider is added. */
+.story-page--narrative .story-art {
+  margin-bottom: 0;
 }
 
 .story-art--square {
@@ -456,14 +545,11 @@ em {
 }
 
 /* --------------------------------------------------------------
-   Standard "bond"/narrative page — art on top, centered body
+   Standard "bond"/narrative page — art on top, drop-capped storybook body
+   (left-aligned measure; see the drop-cap rules above for why)
    -------------------------------------------------------------- */
 .story-page--narrative {
   justify-content: flex-start;
-}
-
-.story-page--narrative .story-page__body {
-  text-align: center;
 }
 
 /* --------------------------------------------------------------
