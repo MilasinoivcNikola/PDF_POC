@@ -33,9 +33,39 @@ built actually works for the user, by exercising it — not by reading code.
 3. Capture concrete evidence: what you did, what you saw, screenshots or DOM/log
    observations. Distinguish "works" from "looks plausible."
 
+## Cost discipline — image generation spends REAL money
+
+Generating a book through the UI calls `gpt-image-2` and **bills your credits**.
+The route defaults to **Medium** (~$0.70 per 14-image book). A 20-minute QA that
+repeatedly completes the wizard, refreshes mid-run, and stress-tests idempotency
+can quietly burn **several dollars** — most of it on runs that get overwritten or
+cleaned up and leave no file behind. Treat real spend as a hard constraint.
+
+**Default to spending $0. In order of preference:**
+
+1. **Reuse an existing completed session.** Look in `./sessions/*.json`
+   (status `ready`) with its images already under `./generated/[id]/`. Seed the
+   wizard's `localStorage` (key `quietly-kept:draft`) with that session's `id` +
+   fields, or hit the API with that id directly. **Re-running an identical session
+   is a pure cache hit (`hash(prompt + references)` matches, PNGs on disk) → $0.**
+   This covers virtually all flow/orchestration/progress/preview/download QA.
+2. **Verify for free before you generate.** GET endpoints, disk state, seeded
+   sessions, and `curl` contract checks prove most behavior (progress counts,
+   status inference, resume, redirects) without a single paid image.
+3. **Only generate fresh images when *generation itself or art quality* is the
+   explicit thing under test** (e.g. feature 07's pet-consistency QA). When you
+   must, generate **once**, at the **Low** tier (~$0.08/book) unless the goal is
+   specifically to judge Medium/High art. Never spin up *multiple* fresh books to
+   test refresh / idempotency / resume — seed an existing session instead.
+
+If a goal genuinely cannot be verified without fresh Medium/High generation, say
+so and **estimate the spend before doing it** — don't silently run up the bill.
+Report the rough number of images generated so cost is auditable.
+
 ## Output
 
 Return **PASS** or **FAIL** per goal, with the concrete observation that backs
 each verdict and any screenshots/log excerpts. If something can't be tested
 (e.g. needs a real OpenAI key), say so explicitly rather than marking it passed.
-Your final message is the return value; no preamble.
+State the **approximate image-generation spend** for the run (ideally $0 via
+reuse). Your final message is the return value; no preamble.

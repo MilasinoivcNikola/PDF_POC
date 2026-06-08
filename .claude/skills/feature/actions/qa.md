@@ -27,3 +27,10 @@ any visible flow. Skip for pure backend/library features (those rely on `test`).
 - Desktop browser only — mobile responsiveness is out of scope for this POC.
 - If QA fails, loop back to `start` / the relevant specialist to fix before
   `complete`. Don't merge a feature whose visible goals don't work.
+- **Cost: image generation spends real credits.** When briefing `qa-verifier`,
+  for any feature where image *quality* isn't the thing under test
+  (orchestration, progress, wizard, preview, download), tell it to **reuse an
+  existing `./sessions/` fixture** (re-running an identical session is a free
+  cache hit) rather than generate fresh books — and if a fresh run is truly
+  needed, **Low tier, once**. See the qa-verifier's "Cost discipline" section.
+  A flow feature should cost ~$0 to QA, not several dollars.
