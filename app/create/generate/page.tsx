@@ -1,15 +1,17 @@
 "use client";
 
-// Step 6 of 6 — the kick-off / Generate step. This feature owns only the entry
-// and the CTA that writes the finalized session to disk: it assembles the draft
-// into a complete StorySession (filling skipped optionals with the master-template
-// defaults), gates on the three required fields, POSTs it to /api/session, and on
-// success records the written id. The actual generation progress animation and
-// the orchestration call are feature 09 — out of scope here.
+// Step 6 of 6 — the kick-off / Generate step. It assembles the draft into a
+// complete StorySession (filling skipped optionals with the master-template
+// defaults), gates on the seven required fields, and POSTs it to /api/session.
+// On success it hands off into the live illustration run (feature 09):
+// <GenerationProgress> POSTs /api/generate-illustrations, polls progress, and
+// auto-advances to /create/preview when the book is ready.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useWizard } from "@/components/wizard/WizardProvider";
+import { GenerationProgress } from "@/components/wizard/GenerationProgress";
 import {
   draftToSession,
   missingRequiredFields,
@@ -46,12 +48,18 @@ const FIELD_FIX: Record<
   },
 };
 
-type Phase = "idle" | "writing" | "written" | "error";
+type Phase = "idle" | "writing" | "generating" | "error";
 
 export default function GeneratePage() {
   const { draft, hydrated } = useWizard();
+  const router = useRouter();
   const [phase, setPhase] = useState<Phase>("idle");
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // True until we've checked whether a run already exists for this session, so a
+  // refresh mid-generation drops back into progress instead of the Generate CTA.
+  // Gating the render on it avoids a flash of the wrong screen during the check.
+  const [checkingResume, setCheckingResume] = useState(true);
 
   const missing = useMemo<RequiredField[]>(
     () => (draft ? missingRequiredFields(draft) : []),
@@ -60,6 +68,60 @@ export default function GeneratePage() {
 
   const petName = draft?.pet.name?.trim() ? draft.pet.name.trim() : "your pet";
   const description = draft?.pet.breedColor?.trim() ?? "";
+
+  // On load/refresh, resume an already-started run rather than showing the
+  // Generate CTA again. Ask the orchestration API whether a run exists for this
+  // draft's session: "generating" → re-enter the live progress screen (the POST
+  // it fires is an idempotent no-op for an in-flight run, so no duplicate starts);
+  // "ready" → the book is done, go straight to preview. Anything else (no session
+  // yet, or a prior error) → fall through to the CTA.
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+    if (!draft?.id || phase !== "idle") {
+      setCheckingResume(false);
+      return;
+    }
+    const id = draft.id;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(
+          `/api/generate-illustrations?id=${encodeURIComponent(id)}`,
+        );
+        if (cancelled) {
+          return;
+        }
+        if (res.ok) {
+          const data = (await res.json()) as {
+            ok: boolean;
+            status?: "generating" | "ready" | "error";
+          };
+          if (cancelled) {
+            return;
+          }
+          if (data.ok && data.status === "generating") {
+            setSessionId(id);
+            setPhase("generating");
+            return;
+          }
+          if (data.ok && data.status === "ready") {
+            router.replace("/create/preview");
+            return;
+          }
+        }
+      } catch {
+        // No reachable run / network hiccup — fall through to the CTA.
+      }
+      if (!cancelled) {
+        setCheckingResume(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, draft?.id, phase, router]);
 
   async function handleGenerate() {
     if (!draft) {
@@ -82,14 +144,28 @@ export default function GeneratePage() {
         setPhase("error");
         return;
       }
-      // Feature 09 will hand off into the live generation progress here.
-      setPhase("written");
+      // Session is on disk; hand off into the live illustration run. The
+      // progress component kicks off generation and polls it from here.
+      setSessionId(session.id);
+      setPhase("generating");
     } catch {
       setErrorMessage(
         "We couldn't save your book just yet. Please try again in a moment.",
       );
       setPhase("error");
     }
+  }
+
+  // Once the session is on disk, hand the whole screen over to the live
+  // generation progress (its own full-page layout); it auto-advances to preview.
+  if (phase === "generating" && sessionId) {
+    return (
+      <GenerationProgress
+        sessionId={sessionId}
+        petName={petName}
+        petDescription={description}
+      />
+    );
   }
 
   return (
@@ -123,7 +199,7 @@ export default function GeneratePage() {
           textAlign: "center",
         }}
       >
-        {!hydrated ? (
+        {!hydrated || checkingResume ? (
           <p className="lede">Gathering your story…</p>
         ) : missing.length > 0 ? (
           <div className="fade-in">
@@ -151,19 +227,6 @@ export default function GeneratePage() {
                 </li>
               ))}
             </ul>
-          </div>
-        ) : phase === "written" ? (
-          <div className="fade-in">
-            <span className="label label--gold">Your story is saved</span>
-            <h1 className="display-md mt-4">
-              <em>{petName}</em> is ready to be painted.
-            </h1>
-            <p className="lede mt-4" style={{ margin: "1rem auto 0" }}>
-              Your answers are saved. The illustration step picks up from here.
-            </p>
-            <p className="helper mt-8">
-              (The live generation progress is the next step in the build.)
-            </p>
           </div>
         ) : (
           <div className="fade-in">
