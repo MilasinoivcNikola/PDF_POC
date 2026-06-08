@@ -524,8 +524,284 @@ p {
 .steps__bar::after {
   content: "";
   position: absolute;
-  inset: 0 60% 0 0;
+  inset: 0 var(--steps-remaining, 60%) 0 0;
   background: var(--ink);
+}
+
+/* --------------------------------------------------------------
+   Wizard (ported from prototypes/wizard.html inline styles)
+   Page-specific styles for the multi-step create wizard. Shared
+   tokens/components live above; these are the wizard's own chrome.
+   -------------------------------------------------------------- */
+.wizard {
+  max-width: 1100px;
+  margin: 0 auto;
+  flex: 1;
+  width: 100%;
+}
+
+.wizard__intro {
+  max-width: 38em;
+  margin: 0 auto var(--s-16);
+  text-align: center;
+}
+
+.wizard__quote {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-size: var(--t-3xl);
+  line-height: 1.2;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.wizard__quote::before {
+  content: "\201C";
+  font-size: 1.5em;
+  line-height: 0;
+  vertical-align: -0.3em;
+  color: var(--rose-soft);
+  margin-right: 0.05em;
+}
+
+.wizard__quote::after {
+  content: "\201D";
+  font-size: 1.5em;
+  line-height: 0;
+  vertical-align: -0.3em;
+  color: var(--rose-soft);
+  margin-left: 0.05em;
+}
+
+.wizard__attribution {
+  margin-top: var(--s-4);
+  color: var(--ink-muted);
+  font-style: italic;
+  font-size: var(--t-sm);
+}
+
+/* Two-column form layout */
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--s-16);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+@media (max-width: 720px) {
+  .form-layout {
+    grid-template-columns: 1fr;
+    gap: var(--s-8);
+  }
+}
+
+.form-layout__heading {
+  position: sticky;
+  top: var(--s-8);
+  align-self: start;
+}
+
+.form-layout__heading h2 {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+  font-weight: 300;
+  font-size: var(--t-3xl);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--s-4);
+}
+
+.form-layout__heading h2 em {
+  color: var(--rose);
+  font-style: italic;
+}
+
+.form-layout__heading p {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+/* Footer navigation */
+.wizard-footer {
+  max-width: 900px;
+  margin: var(--s-20) auto 0;
+  padding: var(--s-8) 0 0;
+  border-top: 1px solid var(--border-hairline);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+
+.save-status {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-muted);
+  font-size: var(--t-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.save-status__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sage);
+}
+
+/* Photo preview (uploaded-photo card) */
+.photo-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  padding: var(--s-6);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.photo-preview__img {
+  width: 96px;
+  height: 96px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, var(--rose-faint), var(--sage-soft));
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.photo-preview__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-preview__img svg {
+  position: absolute;
+  inset: 20%;
+  opacity: 0.5;
+}
+
+.photo-preview__name {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 36, "SOFT" 50;
+  font-size: var(--t-base);
+  color: var(--ink);
+  word-break: break-all;
+}
+
+.photo-preview__meta {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--t-sm);
+  color: var(--ink-muted);
+}
+
+.photo-preview__replace {
+  margin-left: auto;
+  font-family: var(--font-body);
+  font-size: var(--t-sm);
+  color: var(--rose);
+  font-style: italic;
+  border-bottom: 1px solid var(--rose-soft);
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* A gentle, non-blocking warning notice (low-res / blurry photo) */
+.notice {
+  margin-top: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  background: var(--rose-faint);
+  border: 1px solid var(--rose-soft);
+  border-radius: 2px;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--t-sm);
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+/* Required-field gate message */
+.notice--required {
+  background: var(--cream-deep);
+  border-color: var(--border-hairline);
+  color: var(--ink-soft);
+}
+
+/* Illustration style picker */
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+
+@media (max-width: 540px) {
+  .style-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.style-card {
+  padding: var(--s-3);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.style-card:hover {
+  border-color: var(--rose);
+}
+
+.style-card--selected {
+  border-color: var(--ink);
+  background: var(--cream-deep);
+}
+
+.style-card__swatch {
+  aspect-ratio: 4 / 3;
+  border-radius: 2px;
+  margin-bottom: var(--s-3);
+  position: relative;
+  overflow: hidden;
+}
+
+.style-card--watercolor .style-card__swatch {
+  background:
+    radial-gradient(ellipse at 30% 40%, var(--rose-soft) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 60%, var(--sage-soft) 0%, transparent 60%),
+    var(--paper);
+}
+
+.style-card--storybook .style-card__swatch {
+  background: linear-gradient(135deg, var(--gold-soft) 0%, var(--rose-faint) 100%);
+}
+
+.style-card--pencil .style-card__swatch {
+  background:
+    repeating-linear-gradient(135deg, var(--border) 0px, var(--border) 1px, transparent 1px, transparent 6px),
+    var(--paper);
+}
+
+.style-card__name {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 36, "SOFT" 50;
+  font-size: var(--t-sm);
+  color: var(--ink);
+  text-align: center;
 }
 
 /* --------------------------------------------------------------
