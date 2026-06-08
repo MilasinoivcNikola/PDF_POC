@@ -838,6 +838,206 @@ p {
 .fade-in-5 { animation-delay: 0.7s; }
 
 /* --------------------------------------------------------------
+   Generation progress screen (ported from prototypes/generating.html)
+   -------------------------------------------------------------- */
+.generating {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+  padding: var(--s-8) 0;
+}
+
+/* Three concentric petal rings that counter-rotate while painting. */
+@keyframes petal-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes petal-back {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+.gen-ornament-stack {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin-bottom: var(--s-12);
+}
+
+.gen-ornament-stack svg {
+  position: absolute;
+  inset: 0;
+}
+
+.gen-ornament-stack svg:nth-child(1) { animation: petal-slow 16s linear infinite; }
+.gen-ornament-stack svg:nth-child(2) { animation: petal-back 24s linear infinite; opacity: 0.6; }
+.gen-ornament-stack svg:nth-child(3) { animation: petal-slow 8s linear infinite; opacity: 0.4; }
+
+.gen-title {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+  font-weight: 300;
+  font-size: var(--t-4xl);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  text-align: center;
+  margin-bottom: var(--s-4);
+}
+
+.gen-title em {
+  color: var(--rose);
+  font-style: italic;
+}
+
+.gen-subtitle {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-bottom: var(--s-12);
+  max-width: 30em;
+}
+
+.gen-progress {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.18em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: var(--s-2);
+}
+
+.gen-progress strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.gen-bar {
+  width: 100%;
+  max-width: 480px;
+  height: 1px;
+  background: var(--border);
+  position: relative;
+  margin-bottom: var(--s-12);
+}
+
+.gen-bar__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  background: var(--ink);
+  transform-origin: left;
+  transition: width 0.6s ease-out;
+}
+
+.gen-list {
+  width: 100%;
+  max-width: 480px;
+  list-style: none;
+}
+
+.gen-item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--border-soft);
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 36, "SOFT" 50;
+  font-size: var(--t-base);
+}
+
+.gen-item:last-child {
+  border-bottom: none;
+}
+
+.gen-item__status {
+  flex-shrink: 0;
+  width: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gen-item__label {
+  flex: 1;
+}
+
+.gen-item__time {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+}
+
+.gen-item--done .gen-item__label {
+  color: var(--ink-soft);
+}
+
+.gen-item--done .gen-item__status {
+  color: var(--sage);
+}
+
+.gen-item--current {
+  color: var(--ink);
+}
+
+.gen-item--current .gen-item__label {
+  font-style: italic;
+}
+
+.gen-item--current .gen-item__time {
+  color: var(--rose);
+}
+
+.gen-item--pending .gen-item__label,
+.gen-item--pending .gen-item__time {
+  color: var(--ink-faint);
+}
+
+.gen-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.gen-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rose);
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+
+.gen-dot:nth-child(2) { animation-delay: 0.2s; }
+.gen-dot:nth-child(3) { animation-delay: 0.4s; }
+
+.gen-note {
+  margin-top: var(--s-16);
+  max-width: 32em;
+  text-align: center;
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-muted);
+  font-size: var(--t-sm);
+  line-height: 1.7;
+}
+
+.gen-note::before,
+.gen-note::after {
+  content: "·";
+  color: var(--gold);
+  margin: 0 var(--s-2);
+}
+
+/* --------------------------------------------------------------
    Story page (the actual book preview)
    -------------------------------------------------------------- */
 .book-page {
