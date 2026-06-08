@@ -8,10 +8,9 @@ import {
   loadDraft,
   saveDraft,
   clearDraft,
-  writeSession,
-  readSession,
   DRAFT_STORAGE_KEY,
 } from "./storage";
+import { writeSession, readSession } from "./disk";
 import type { StorySession } from "./types";
 
 // ---------------------------------------------------------------------------
