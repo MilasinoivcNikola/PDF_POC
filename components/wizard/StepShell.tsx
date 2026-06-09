@@ -16,8 +16,10 @@ import { ProgressBar } from "@/components/wizard/ProgressBar";
 import { useWizard } from "@/components/wizard/WizardProvider";
 
 interface StepShellProps {
-  /** Current step number, 1-based (drives the "Step NN of 06" counter). */
+  /** Current step number, 1-based (drives the "Step NN of NN" counter). */
   step: number;
+  /** Total steps for this product's wizard. Defaults to 6 (Story 1). */
+  total?: number;
   /** Centered intro quote above the form. */
   introQuote: string;
   /** Italic line under the intro quote. */
@@ -59,6 +61,7 @@ const arrowRight = (
 
 export function StepShell({
   step,
+  total = 6,
   introQuote,
   introAttribution,
   sectionLabel,
@@ -98,7 +101,7 @@ export function StepShell({
           </svg>
           Quietly Kept
         </Link>
-        <ProgressBar step={step} />
+        <ProgressBar step={step} total={total} />
       </header>
 
       <main className="wizard">

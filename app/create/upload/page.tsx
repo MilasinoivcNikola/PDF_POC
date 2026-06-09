@@ -9,10 +9,15 @@ import { useState } from "react";
 import { StepShell } from "@/components/wizard/StepShell";
 import { ImageUploader } from "@/components/wizard/ImageUploader";
 import { useWizard } from "@/components/wizard/WizardProvider";
+import { getWizardConfig } from "@/lib/story/wizard-config";
 
 export default function UploadPage() {
   const { draft } = useWizard();
   const [showGate, setShowGate] = useState(false);
+  // The upload step is shared by both products; only the total (for the counter)
+  // is product-specific. Both Story 1 and Story 2 continue to /create/pet.
+  const storyType = draft?.storyType ?? "story-1";
+  const total = getWizardConfig(storyType).total;
 
   function handleContinue(): boolean {
     if (!draft?.pet.photo) {
@@ -25,6 +30,7 @@ export default function UploadPage() {
   return (
     <StepShell
       step={1}
+      total={total}
       introQuote="First, a face we can hold onto."
       introAttribution="The photo you share becomes the pet in every illustration."
       sectionLabel="Section · One"

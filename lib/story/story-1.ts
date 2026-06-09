@@ -13,12 +13,14 @@ import type { ResolvedStory } from "@/lib/story/merge";
 import { SCENE_PAGE_IDS } from "@/lib/ai/prompts";
 import { storyPdfFilename } from "@/lib/pdf/render";
 import type { StoryDefinition } from "@/lib/story/registry";
+import { getWizardConfig } from "@/lib/story/wizard-config";
 
 /**
  * The Story-1 product definition. `resolve` is the existing `resolveStory`;
  * `illustrationSlots` is the existing `SCENE_PAGE_IDS`; `pdfFilename` builds the
  * production-checklist name `Saying-Goodbye-to-[PET_NAME].pdf` from the existing
- * `storyPdfFilename` helper. No behavior is added here.
+ * `storyPdfFilename` helper. `wizard` is the Story-1 step config (feature 18). No
+ * behavior is added here.
  */
 export const story1Definition: StoryDefinition = {
   resolve(session: StorySession): ResolvedStory {
@@ -28,4 +30,5 @@ export const story1Definition: StoryDefinition = {
   pdfFilename(session: StorySession): string {
     return storyPdfFilename(session.pet.name);
   },
+  wizard: getWizardConfig("story-1"),
 };

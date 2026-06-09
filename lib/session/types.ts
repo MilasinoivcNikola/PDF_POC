@@ -282,3 +282,19 @@ export interface Story2Session {
   /** Path to the rendered PDF under ./output, once produced. */
   pdfPath?: string;
 }
+
+// ===========================================================================
+// Wizard draft union — what the in-browser wizard holds (either product)
+// ===========================================================================
+
+/**
+ * The draft the wizard provider holds in localStorage, for either product. The
+ * `storyType` discriminant decides which groups are present: a `StoryDraft`
+ * (Story 1, with `child`/`memories: Memories`) or a `Story2Draft` (Story 2, with
+ * `owner`/`memories: LetterMemories`). Consumers branch on `storyType` (a missing
+ * one is Story 1, via `?? "story-1"`, since legacy Story-1 drafts omit it).
+ *
+ * `loadDraft()` returns this union so a single localStorage entry can hold either
+ * product without crashing the other product's reader.
+ */
+export type WizardDraft = StoryDraft | Story2Draft;

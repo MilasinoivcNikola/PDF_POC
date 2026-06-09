@@ -17,6 +17,7 @@ import type { ResolvedStory } from "@/lib/story/merge";
 import type { StoryDefinition } from "@/lib/story/registry";
 import { resolveStory2 } from "@/lib/story/story2/variants";
 import { letterPdfFilename } from "@/lib/pdf/render";
+import { getWizardConfig } from "@/lib/story/wizard-config";
 
 /**
  * The Story-2 illustrated page slots, in book order. The letter is text-first
@@ -45,4 +46,5 @@ export const story2Definition: StoryDefinition = {
   pdfFilename(session: StorySession): string {
     return letterPdfFilename(session.pet.name);
   },
+  wizard: getWizardConfig("story-2"),
 };

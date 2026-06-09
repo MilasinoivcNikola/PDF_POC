@@ -410,6 +410,28 @@ p {
   line-height: 1.5;
 }
 
+/* "(optional)" qualifier inside a field label */
+.field__optional {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--t-sm);
+  font-weight: 400;
+  color: var(--ink-muted);
+  font-variation-settings: normal;
+}
+
+/* Two inputs side by side (e.g. the optional adopted/passed dates) */
+.field-row {
+  display: flex;
+  gap: var(--s-8);
+  flex-wrap: wrap;
+}
+
+.field-row > input {
+  flex: 1;
+  min-width: 10em;
+}
+
 .field input[type="text"],
 .field input[type="email"],
 .field textarea {
