@@ -47,7 +47,15 @@ export type PageLayout =
   | "truth"
   | "love"
   | "closing"
-  | "back-cover";
+  | "back-cover"
+  // Story-2 letter layouts (feature 16): the typeset-letter cover and the plain
+  // letter body pages. A frameable letter is not a children's book, so it gets
+  // its own treatments instead of falling through to "narrative" (art slot +
+  // petal divider + drop-cap). The signature hierarchy on the final letter page
+  // is handled inside the `letter` treatment, keyed off the sign-off sentinel —
+  // see lib/pdf/pages-story2.tsx.
+  | "letter-cover"
+  | "letter";
 
 /**
  * One fully-resolved book page: same shape as `MasterPage`, but every

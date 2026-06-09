@@ -541,12 +541,12 @@ describe("the resolved letter has exactly 6 pages with the correct ids and layou
   // Authored independently from STORY_2_LAYOUT in merge.ts so a future drift is
   // caught (mirrors how Story-1's merge.test.ts double-locks its layout map).
   const expectedLayout: Record<Story2PageId, PageLayout> = {
-    "letter-cover": "cover",
-    "letter-page-2": "narrative",
-    "letter-page-3": "narrative",
-    "letter-page-4": "narrative",
-    "letter-page-5": "narrative",
-    "letter-page-6": "narrative",
+    "letter-cover": "letter-cover",
+    "letter-page-2": "letter",
+    "letter-page-3": "letter",
+    "letter-page-4": "letter",
+    "letter-page-5": "letter",
+    "letter-page-6": "letter",
   };
   const expectedOrder: Story2PageId[] = [
     "letter-cover",
@@ -563,7 +563,7 @@ describe("the resolved letter has exactly 6 pages with the correct ids and layou
     expect(story.map((p) => p.id)).toEqual(expectedOrder);
   });
 
-  it("tags every page with the correct layout (cover + 5 narrative)", () => {
+  it("tags every page with the correct layout (letter-cover + 5 letter)", () => {
     const story = resolveStory2(murphySession());
     for (const page of story) {
       expect(
