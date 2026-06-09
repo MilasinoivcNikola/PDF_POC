@@ -27,6 +27,17 @@ import type { MasterPage, Story2PageId } from "@/lib/story/master-text";
 export type Story2MasterPage = MasterPage & { id: Story2PageId };
 export type Story2Story = Story2MasterPage[];
 
+/**
+ * The letter's sign-off line, single-sourced here so the Page-6 master text and
+ * the letter renderer (lib/pdf/pages-story2.tsx) agree on where the signature
+ * block begins WITHOUT the renderer hard-coding the literal copy. It carries no
+ * merge field, so it is invariant across every variant; the renderer splits the
+ * Page-6 body at this line — everything from it onward (the sign-off, the pet
+ * name, the optional nickname + date lines) is the signature block, regardless of
+ * how many prose paragraphs precede it (the new-pet variant inserts before it).
+ */
+export const LETTER_SIGNOFF = "Yours, always,";
+
 // ---------------------------------------------------------------------------
 // Placeholder syntax
 // ---------------------------------------------------------------------------
@@ -148,7 +159,7 @@ export function masterStory2(): Story2Story {
         'Be sad. Be sad for exactly as long as you need to be. Don\'t let anyone tell you I was "just a {species}." They didn\'t know me, and they didn\'t know us.',
         "But then, when you're ready — and only when you're ready — be happy again. Laugh at something stupid. Eat something good. Take a walk and notice the things I used to notice with you. The smell of grass after rain. The way the light moves in the late afternoon. The dog two houses down who barks at nothing.",
         "I loved you. I always did. I always will, as much as a {species} can love — which, it turns out, is a lot.",
-        "Yours, always,",
+        LETTER_SIGNOFF,
         "{petName}",
       ],
       illustrationBrief:

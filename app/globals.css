@@ -52,6 +52,10 @@
   --page-margin: 0.75in;
   --frame-inset: 0.42in;
 
+  /* Story-2 letter framing margin — screen mirror of --page-margin-letter in
+     lib/pdf/styles.css. Used only under .preview-page (feature 19). */
+  --page-margin-letter: 1.25in;
+
   /* Per-column scale applied to the preview .story-page (W / 816, where 816px =
      8.5in @96dpi). Set at runtime by a ResizeObserver in BookPreview; this
      fallback keeps the first paint sane before JS measures the real column. */
@@ -1817,6 +1821,122 @@ p {
 }
 
 /* ----------------------------------------------------------------
+   STORY 2 — letter pages (feature 16): SCREEN mirror of the print
+   .letter-page* rules in lib/pdf/styles.css, for feature 19's preview.
+   Responsive page (aspect-ratio + clamp fonts) here; the .preview-page block
+   below renders it at the PDF's real inch geometry. Tokens single-sourced via
+   var() — the only divergence is inch-vs-responsive geometry, as with Story 1.
+   ---------------------------------------------------------------- */
+.letter-page {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 8.5 / 11;
+  background: var(--paper);
+  padding: clamp(var(--s-8), 6vw, var(--s-16)) clamp(var(--s-6), 4.5vw, var(--s-12));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(60, 45, 30, 0.04),
+    0 20px 40px rgba(60, 45, 30, 0.1);
+}
+
+.letter-page--cover {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.letter-cover__mark {
+  width: 1in;
+  height: 1in;
+  color: var(--rose);
+  margin-bottom: var(--s-16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.letter-cover__mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.letter-cover__title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-weight: 300;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.letter-cover__subtitle {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--t-lg);
+  color: var(--ink-soft);
+  margin-top: var(--s-5);
+}
+
+.letter-cover__dates {
+  position: absolute;
+  bottom: clamp(var(--s-8), 6vw, var(--s-16));
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.18em;
+  color: var(--ink-muted);
+}
+
+.letter-page--body {
+  justify-content: flex-start;
+}
+
+.letter-page__prose {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.letter-page__para + .letter-page__para {
+  margin-top: var(--s-6);
+}
+
+.letter-signature {
+  margin-top: var(--s-12);
+  font-family: var(--font-body);
+  color: var(--ink);
+}
+
+.letter-signature__signoff {
+  font-style: italic;
+  font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+  line-height: 1.5;
+}
+
+.letter-signature__name {
+  font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+  line-height: 1.5;
+  margin-top: var(--s-2);
+}
+
+.letter-signature__extra {
+  font-style: italic;
+  font-size: var(--t-sm);
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin-top: var(--s-2);
+}
+
+/* ----------------------------------------------------------------
    True-scale preview (fix/preview-pdf-image-parity, follow-up 2)
 
    The screen .story-page* rules above are responsive (aspect-ratio pages,
@@ -1960,6 +2080,34 @@ p {
 
 .preview-page .back-cover__ornament {
   margin-top: var(--s-16);
+}
+
+/* --- Story-2 letter: true-scale preview (mirrors the print inch values in
+   lib/pdf/styles.css). Render each .letter-page at the PDF's real inch geometry
+   (1.25" margin) and reuse the single --preview-scale zoom from the .story-page
+   rule above (it's scoped to `.preview-page .story-page`; the letter page needs
+   its own zoom declaration). Body font at the print fixed 1.05rem so text/page
+   matches the PDF. The cover date line sits in the bottom margin band. --- */
+.preview-page .letter-page {
+  width: var(--page-width);
+  height: var(--page-height);
+  aspect-ratio: auto;
+  padding: var(--page-margin-letter);
+  zoom: var(--preview-scale);
+}
+
+.preview-page .letter-cover__title {
+  font-size: 2.75rem;
+}
+
+.preview-page .letter-cover__dates {
+  bottom: var(--page-margin-letter);
+}
+
+.preview-page .letter-page__prose,
+.preview-page .letter-signature__signoff,
+.preview-page .letter-signature__name {
+  font-size: 1.05rem;
 }
 
 /* --------------------------------------------------------------

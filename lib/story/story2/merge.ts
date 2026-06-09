@@ -36,24 +36,19 @@ import type { Story2Story } from "@/lib/story/story2/master-text";
 // ---------------------------------------------------------------------------
 //
 // The renderer (lib/pdf/pages.tsx) dispatches on `layout`, not on page id, so a
-// Story-2 letter page must declare one of the shared `PageLayout` values. The
-// letter has no children's-book treatments: the cover maps to "cover"; every
-// letter body page is plain typeset prose, which is closest to "narrative".
-//
-// NOTE (flagged for feature 16 / review): "narrative" is a deliberate STRETCH —
-// the Story-1 narrative treatment renders an art slot + petal divider + drop-cap,
-// none of which suits a frameable letter. Per the feature-15 guidance we reuse the
-// closest existing tag rather than invent one; feature 16 owns the actual letter
-// CSS/treatment and may add a dedicated `letter` layout to the union + a renderer
-// case at that point. Keeping every body page on one tag keeps this mapping simple
-// and the renderer's exhaustive switch satisfied today.
+// Story-2 letter page must declare one of the shared `PageLayout` values. Feature
+// 16 added the dedicated letter layouts: the cover maps to "letter-cover" (a
+// typeset poem-book cover, not a children's-book cover), and every letter body
+// page maps to "letter" (plain reverent prose, with the final page's signature
+// hierarchy handled inside the `letter` treatment). This replaces feature 15's
+// stop-gap that mapped the body pages to the children's-book "narrative" tag.
 const STORY_2_LAYOUT: Record<Story2PageId, PageLayout> = {
-  "letter-cover": "cover",
-  "letter-page-2": "narrative",
-  "letter-page-3": "narrative",
-  "letter-page-4": "narrative",
-  "letter-page-5": "narrative",
-  "letter-page-6": "narrative",
+  "letter-cover": "letter-cover",
+  "letter-page-2": "letter",
+  "letter-page-3": "letter",
+  "letter-page-4": "letter",
+  "letter-page-5": "letter",
+  "letter-page-6": "letter",
 };
 
 // ---------------------------------------------------------------------------

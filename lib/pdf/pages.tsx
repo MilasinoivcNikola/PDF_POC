@@ -19,6 +19,7 @@ import type { ReactElement } from "react";
 
 import type { PageId } from "@/lib/story/master-text";
 import type { ResolvedPage, ResolvedStory } from "@/lib/story/merge";
+import { renderLetterBody, renderLetterCover } from "@/lib/pdf/pages-story2";
 
 // ---------------------------------------------------------------------------
 // Image input contract
@@ -299,6 +300,11 @@ function BackCoverPage({ page }: { page: ResolvedPage }) {
  *
  * This is the single per-page renderer both the PDF document and the in-browser
  * preview call, so the two targets can never drift in structure or copy.
+ *
+ * The Story-2 letter layouts (`letter-cover`/`letter`, feature 16) dispatch to the
+ * sibling lib/pdf/pages-story2.tsx components — the switch stays exhaustive over
+ * `PageLayout` with no `default`, so a future product's new layout that forgets a
+ * case is a compile-time error, not a silent fall-through to the wrong treatment.
  */
 export function renderPage(page: ResolvedPage, src?: string): ReactElement {
   switch (page.layout) {
@@ -323,6 +329,10 @@ export function renderPage(page: ResolvedPage, src?: string): ReactElement {
           artClassName="story-art story-art--landscape"
         />
       );
+    case "letter-cover":
+      return renderLetterCover(page, src);
+    case "letter":
+      return renderLetterBody(page);
   }
 }
 
