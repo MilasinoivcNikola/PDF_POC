@@ -18,6 +18,12 @@
 import type { ResolvedPage } from "@/lib/story/merge";
 import { LETTER_SIGNOFF } from "@/lib/story/story2/master-text";
 
+// The single body page that carries the optional belief-frame wash (master
+// template Page 5, "Where I Am Now"). Only this page renders the wash slot; the
+// other body pages (letter-page-2/-3/-4/-6) stay text-only — no image, no empty
+// box, no layout shift — keeping the letter's "white space is the design" feel.
+const LETTER_WASH_PAGE_ID = "letter-page-5";
+
 // ---------------------------------------------------------------------------
 // Small shared bits
 // ---------------------------------------------------------------------------
@@ -87,12 +93,15 @@ function LetterCoverPage({ page, src }: { page: ResolvedPage; src?: string }) {
  * italic, name in the serif, nickname/date smaller). Pages without a sign-off
  * (2–5) render every paragraph as prose and have no signature block.
  */
-function LetterBodyPage({ page }: { page: ResolvedPage }) {
+function LetterBodyPage({ page, src }: { page: ResolvedPage; src?: string }) {
   const signoffIndex = page.body.indexOf(LETTER_SIGNOFF);
   const hasSignature = signoffIndex !== -1;
   const prose = hasSignature ? page.body.slice(0, signoffIndex) : page.body;
   // Signature run: [sign-off, petName, (nickname?), (date?)].
   const signature = hasSignature ? page.body.slice(signoffIndex) : [];
+  // The belief-frame wash (feature 17) renders ONLY on letter-page-5 and only
+  // when present; every other body page ignores `src`, staying text-only.
+  const showWash = page.id === LETTER_WASH_PAGE_ID && Boolean(src);
 
   return (
     <section className="letter-page letter-page--body" data-page={page.id}>
@@ -103,8 +112,26 @@ function LetterBodyPage({ page }: { page: ResolvedPage }) {
           </p>
         ))}
       </div>
+      {showWash ? <LetterWash src={src!} alt={page.illustrationBrief} /> : null}
       {hasSignature ? <LetterSignature lines={signature} /> : null}
     </section>
+  );
+}
+
+/**
+ * The Page-5 belief-frame wash — a soft, full-width band the letter prose sits
+ * above. Kept reverent and abstract on purpose (the master template's "white
+ * space is the design"): a single gentle landscape/object image, not a full-
+ * bleed photo that fights the typography. The CSS clamps its height and softens
+ * its edges so it reads as a watercolor wash, not a feature illustration.
+ * Rendered only when a `src` is present (see LetterBodyPage), so it never leaves
+ * an empty slot.
+ */
+function LetterWash({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="letter-page__wash">
+      <img src={src} alt={alt} />
+    </div>
   );
 }
 
@@ -139,7 +166,11 @@ export function renderLetterCover(page: ResolvedPage, src?: string) {
   return <LetterCoverPage key={page.id} page={page} src={src} />;
 }
 
-/** Render a Story-2 letter body page (signature block handled within). */
-export function renderLetterBody(page: ResolvedPage) {
-  return <LetterBodyPage key={page.id} page={page} />;
+/**
+ * Render a Story-2 letter body page (signature block handled within). `src` is
+ * the optional Premium belief-frame wash — used only on the belief-wash page
+ * (`letter-page-5`); other body pages ignore it.
+ */
+export function renderLetterBody(page: ResolvedPage, src?: string) {
+  return <LetterBodyPage key={page.id} page={page} src={src} />;
 }
