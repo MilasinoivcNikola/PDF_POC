@@ -47,6 +47,16 @@ export function storyPdfFilename(petName: string): string {
   return `Saying-Goodbye-to-${slug}.pdf`;
 }
 
+/**
+ * The output filename for a rendered Story-2 letter, per that template's
+ * production checklist: `Letter-from-[PET_NAME].pdf`. Same path-safe slugify as
+ * `storyPdfFilename`, with the same `Pet` fallback for an empty/symbol-only name.
+ */
+export function letterPdfFilename(petName: string): string {
+  const slug = slugify(petName) || "Pet";
+  return `Letter-from-${slug}.pdf`;
+}
+
 // ---------------------------------------------------------------------------
 // In-page readiness
 // ---------------------------------------------------------------------------
