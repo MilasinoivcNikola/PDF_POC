@@ -33,6 +33,14 @@ Build them roughly in number order — each feature lists what it depends on.
 | 11 | [Polish & iteration](11-polish-and-iteration.md) | 6 | mixed | 10 |
 | 12 | [Input photo downscale](12-input-photo-downscale.md) | 6 (polish) | 2 · `ai-image-specialist` | 06, 07, 10 |
 | 13 | [Switch scene generation to Low tier](13-low-tier-images.md) | 6 (polish) | 2 · `ai-image-specialist` | 07, 09 |
+| 14 | [Multi-story engine generalization](14-multi-story-engine.md) | 7 (Story 2) | 1 · `pdf-render-specialist` | 10 |
+| 15 | [Story 2 — master text, merge & variants](15-story2-master-text-and-variants.md) | 7 (Story 2) | 1 · `pdf-render-specialist` | 14 |
+| 16 | [Story 2 — letter PDF template & print CSS](16-story2-letter-template-and-css.md) | 7 (Story 2) | 1 · `pdf-render-specialist` | 15 |
+| 17 | [Story 2 — Premium imagery (portrait + belief wash)](17-story2-imagery.md) | 7 (Story 2) | 2 · `ai-image-specialist` | 14, 16 |
+| 18 | [Story 2 — wizard inputs & landing story picker](18-story2-wizard-and-story-picker.md) | 7 (Story 2) | 3 · `nextjs-ui-builder` | 14, 15 |
+| 19 | [Story 2 — in-browser preview & PDF download](19-story2-preview-and-download.md) | 7 (Story 2) | 3 + 1 · `nextjs-ui-builder` / `pdf-render-specialist` | 16, 17, 18 |
+
+> **Note:** Stories 2–3 were "out of scope" in the original `local-prototype-plan.md`. Story 2 (features 14–19) is a deliberate, PM-approved scope expansion (2026-06-09): full product, with the AI pet portrait (Premium tier), built on a generalized multi-story engine.
 
 ## Milestone map (from the plan)
 
@@ -42,6 +50,7 @@ Build them roughly in number order — each feature lists what it depends on.
 - **M4 — Wizard UI:** 08 → 09. *Done = complete the wizard, click Generate, backend produces a book.*
 - **M5 — In-browser preview:** 10. *Done = see all 12 pages with real illustrations, then download the PDF.*
 - **M6 — Polish:** 11 (open-ended).
+- **M7 — Story 2 (A Letter from [PET_NAME]):** 14 → 15 → 16 → 17 → 18 → 19. *Done = pick Story 2 on the landing page, walk the wizard, generate the Premium portrait + belief wash, preview the typeset letter, and download `Letter-from-[PET_NAME].pdf`.* Phase 0 (14) is the behavior-preserving engine refactor — Story 1 must stay byte-identical.
 
 ## Spec file shape
 
