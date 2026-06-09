@@ -7,7 +7,14 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { StorySession } from "@/lib/session/types";
+import type { StorySession, Story2Session } from "@/lib/session/types";
+
+/**
+ * Either product's finalized session. The disk layer is product-agnostic — it
+ * round-trips whichever shape it's handed as id-keyed JSON. Readers narrow on
+ * `storyType` (`?? "story-1"`) after reading.
+ */
+export type AnySession = StorySession | Story2Session;
 
 /** Absolute path to ./sessions/[id].json for a given session id. */
 function sessionFilePath(id: string): string {
@@ -15,10 +22,10 @@ function sessionFilePath(id: string): string {
 }
 
 /**
- * Write a finalized session to ./sessions/[id].json (creating the directory if
- * needed). Server-side only.
+ * Write a finalized session (either product) to ./sessions/[id].json (creating the
+ * directory if needed). Server-side only.
  */
-export async function writeSession(session: StorySession): Promise<void> {
+export async function writeSession(session: AnySession): Promise<void> {
   const filePath = sessionFilePath(session.id);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, JSON.stringify(session, null, 2), "utf8");
@@ -26,7 +33,10 @@ export async function writeSession(session: StorySession): Promise<void> {
 
 /**
  * Read a finalized session from ./sessions/[id].json. Returns `null` if the file
- * doesn't exist. Server-side only.
+ * doesn't exist. Returns the Story-1 type for back-compat (the existing callers
+ * default on `storyType`); a Story-2 session is structurally a superset on the
+ * fields those callers touch (pet/id/status) plus `storyType: "story-2"`, so they
+ * branch via the registry. Server-side only.
  */
 export async function readSession(id: string): Promise<StorySession | null> {
   const filePath = sessionFilePath(id);

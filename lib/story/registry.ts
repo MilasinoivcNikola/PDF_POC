@@ -15,6 +15,7 @@
 import type { StorySession, StoryType } from "@/lib/session/types";
 import type { PageId } from "@/lib/story/master-text";
 import type { ResolvedStory } from "@/lib/story/merge";
+import type { WizardConfig } from "@/lib/story/wizard-config";
 import { story1Definition } from "@/lib/story/story-1";
 import { story2Definition } from "@/lib/story/story-2";
 
@@ -26,9 +27,9 @@ import { story2Definition } from "@/lib/story/story-2";
  * - `illustrationSlots` is the page ids that get a generated scene illustration
  *   (the AI orchestration + regenerate paths gate on this set).
  * - `pdfFilename` builds the download filename for a session.
- *
- * `wizardSteps` is intentionally left out for now — feature 18 (the multi-product
- * wizard) will add it; the interface has room to grow without touching callers.
+ * - `wizard` is the per-story wizard configuration (feature 18): the ordered
+ *   steps, the step count, and the generation-progress checklist slots. It maps a
+ *   `storyType` to its wizard exactly as the other fields map it to its renderer.
  */
 export interface StoryDefinition {
   /** Resolve a finalized session into its ordered, merged, laid-out pages. */
@@ -37,6 +38,8 @@ export interface StoryDefinition {
   illustrationSlots: readonly PageId[];
   /** The download filename for this session's rendered PDF. */
   pdfFilename(session: StorySession): string;
+  /** The wizard steps, step count, and progress checklist for this product. */
+  wizard: WizardConfig;
 }
 
 /** Each known product's definition, keyed by `StoryType`. */

@@ -14,6 +14,9 @@
 import type {
   StoryDraft,
   StorySession,
+  Story2Draft,
+  Story2Session,
+  WizardDraft,
   AgeBracket,
   DeathType,
   BeliefFrame,
@@ -21,6 +24,11 @@ import type {
   OtherPetsInHome,
   Pronoun,
   Species,
+  Relationship,
+  LetterDeathType,
+  LetterBeliefFrame,
+  GiftFor,
+  NewPet,
 } from "@/lib/session/types";
 
 /** A required field the wizard gates Generate on. */
@@ -130,4 +138,161 @@ export function draftToSession(draft: StoryDraft): StorySession {
     },
     images: [],
   };
+}
+
+// ===========================================================================
+// Story 2 — "A Letter from [PET_NAME]" draft → session bridge
+// ===========================================================================
+//
+// Story 2 has no child. Seven fields are required: pet name, owner names,
+// species, photo (the Premium cover uses it), plus the three personal free-text
+// fields the letter merges as live placeholders — quirks, favoriteRitual,
+// favoriteSpots. A blank in any of those resolves to an empty merge value, which
+// `lib/story/story2/merge.ts` treats as a missing field and rejects with a
+// MergeError; requiring them here keeps every written letter renderable. The
+// optional nicknames/dateAdopted/datePassed stay optional — merge drops a blank
+// one rather than printing an empty line — and the enum/toggle fields have
+// non-empty defaults that never break merge.
+
+/** A required field the Story-2 wizard gates Generate on. */
+export type Story2RequiredField =
+  | "petName"
+  | "ownerNames"
+  | "species"
+  | "photo"
+  | "quirks"
+  | "favoriteRitual"
+  | "favoriteSpots";
+
+/** Story-2 defaults the master template assumes when the user skips them. */
+const DEFAULT_RELATIONSHIP: Relationship = "single";
+const DEFAULT_LETTER_DEATH_TYPE: LetterDeathType = "peaceful";
+const DEFAULT_LETTER_BELIEF_FRAME: LetterBeliefFrame = "rainbow-bridge";
+const DEFAULT_GIFT_FOR: GiftFor = "self";
+const DEFAULT_NEW_PET: NewPet = "no";
+
+/**
+ * The required Story-2 fields still missing from a draft, in display order. Empty
+ * array means the draft can be finalized. Required = pet name, owner names,
+ * species, photo, and the three personal free-text fields (quirks, favoriteRitual,
+ * favoriteSpots) the letter merges as live placeholders.
+ */
+export function missingRequiredFieldsStory2(
+  draft: Story2Draft,
+): Story2RequiredField[] {
+  const missing: Story2RequiredField[] = [];
+  if (!present(draft.pet.name)) {
+    missing.push("petName");
+  }
+  if (!present(draft.owner.names)) {
+    missing.push("ownerNames");
+  }
+  if (!present(draft.pet.species)) {
+    missing.push("species");
+  }
+  if (!present(draft.pet.photo)) {
+    missing.push("photo");
+  }
+  if (!present(draft.memories.quirks)) {
+    missing.push("quirks");
+  }
+  if (!present(draft.memories.favoriteRitual)) {
+    missing.push("favoriteRitual");
+  }
+  if (!present(draft.memories.favoriteSpots)) {
+    missing.push("favoriteSpots");
+  }
+  return missing;
+}
+
+/**
+ * Assemble a finalized `Story2Session` from a complete Story-2 draft, filling any
+ * skipped optional fields with the master-template defaults. Throws if a required
+ * field (pet name, owner names, species, photo, quirks, favoriteRitual,
+ * favoriteSpots) is missing — callers should gate on `missingRequiredFieldsStory2`
+ * first. Free-text fields are trimmed; the optional nickname/date fields are
+ * dropped rather than stored as "" so merge never prints an empty line.
+ */
+export function draftToSessionStory2(draft: Story2Draft): Story2Session {
+  const missing = missingRequiredFieldsStory2(draft);
+  if (missing.length > 0) {
+    throw new Error(`missing_required_fields: ${missing.join(", ")}`);
+  }
+
+  const { nicknames, dateAdopted, datePassed } = draft.memories;
+
+  return {
+    id: draft.id,
+    createdAt: draft.createdAt,
+    status: "generating",
+    storyType: "story-2",
+    pet: {
+      name: draft.pet.name!.trim(),
+      species: draft.pet.species ?? DEFAULT_SPECIES,
+      breedColor: draft.pet.breedColor?.trim() ?? "",
+      pronoun: draft.pet.pronoun ?? DEFAULT_PRONOUN,
+      illustrationStyle:
+        draft.pet.illustrationStyle ?? DEFAULT_ILLUSTRATION_STYLE,
+      photo: draft.pet.photo!,
+    },
+    owner: {
+      names: draft.owner.names!.trim(),
+      relationship: draft.owner.relationship ?? DEFAULT_RELATIONSHIP,
+    },
+    memories: {
+      quirks: draft.memories.quirks!.trim(),
+      favoriteRitual: draft.memories.favoriteRitual!.trim(),
+      favoriteSpots: draft.memories.favoriteSpots!.trim(),
+      ...(present(nicknames) ? { nicknames: nicknames.trim() } : {}),
+      ...(present(dateAdopted) ? { dateAdopted: dateAdopted.trim() } : {}),
+      ...(present(datePassed) ? { datePassed: datePassed.trim() } : {}),
+    },
+    toggles: {
+      deathType: draft.toggles.deathType ?? DEFAULT_LETTER_DEATH_TYPE,
+      beliefFrame: draft.toggles.beliefFrame ?? DEFAULT_LETTER_BELIEF_FRAME,
+      giftFor: draft.toggles.giftFor ?? DEFAULT_GIFT_FOR,
+      newPet: draft.toggles.newPet ?? DEFAULT_NEW_PET,
+    },
+    images: [],
+  };
+}
+
+// ===========================================================================
+// Story-type dispatchers — branch on the draft's storyType
+// ===========================================================================
+//
+// The Generate step holds a `WizardDraft` (either product) and needs the right
+// gate + assembler without knowing which. A missing `storyType` is Story 1
+// (legacy drafts), so the dispatch keys on `draft.storyType ?? "story-1"`.
+
+/** True if the draft is a Story-2 draft (narrows the union for callers). */
+export function isStory2Draft(draft: WizardDraft): draft is Story2Draft {
+  return draft.storyType === "story-2";
+}
+
+/**
+ * The required fields still missing from a draft of EITHER product, as string
+ * codes (the union of `RequiredField` | `Story2RequiredField`). The Generate step
+ * uses this to gate and to drive the "go fix it" links per product.
+ */
+export function missingRequiredFieldsForDraft(
+  draft: WizardDraft,
+): (RequiredField | Story2RequiredField)[] {
+  return isStory2Draft(draft)
+    ? missingRequiredFieldsStory2(draft)
+    : missingRequiredFields(draft);
+}
+
+/**
+ * Assemble the finalized session for a draft of EITHER product. Throws if a
+ * required field is missing — callers gate on `missingRequiredFieldsForDraft`
+ * first. Returns the `StorySession | Story2Session` union; the POST body the
+ * /api/session route validates carries `storyType` so the server re-branches.
+ */
+export function draftToSessionForDraft(
+  draft: WizardDraft,
+): StorySession | Story2Session {
+  return isStory2Draft(draft)
+    ? draftToSessionStory2(draft)
+    : draftToSession(draft);
 }

@@ -49,6 +49,73 @@
   max-width: 22em;
 }
 
+/* Story chooser — two product cards (Story 1 / Story 2) */
+.chooser {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-6);
+  max-width: 52em;
+  margin-top: var(--s-4);
+}
+
+@media (max-width: 720px) {
+  .chooser {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chooserCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-8);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.chooserKicker {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.chooserTitle {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+  font-weight: 300;
+  font-size: var(--t-2xl);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.chooserTitle em {
+  color: var(--rose);
+  font-style: italic;
+}
+
+.chooserBody {
+  font-family: var(--font-body);
+  color: var(--ink-soft);
+  line-height: 1.7;
+  font-size: var(--t-sm);
+  flex: 1;
+}
+
+.chooserMeta {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-muted);
+  font-size: var(--t-xs);
+}
+
+.chooserAction {
+  margin-top: var(--s-2);
+}
+
 /* Table of contents grid */
 .toc {
   margin-top: var(--s-24);

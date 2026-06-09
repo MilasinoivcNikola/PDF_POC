@@ -14,10 +14,12 @@ export default function MemoriesPage() {
   const { draft, updateDraft } = useWizard();
   const [showGate, setShowGate] = useState(false);
 
-  const favoriteActivity = draft?.memories.favoriteActivity ?? "";
-  const sleepingSpot = draft?.memories.sleepingSpot ?? "";
-  const favoriteMemory = draft?.memories.favoriteMemory ?? "";
-  const parentDedication = draft?.memories.parentDedication ?? "";
+  // This is a Story-1-only step; narrow the union to its `child`/`memories` shape.
+  const memories = draft && "child" in draft ? draft.memories : {};
+  const favoriteActivity = memories.favoriteActivity ?? "";
+  const sleepingSpot = memories.sleepingSpot ?? "";
+  const favoriteMemory = memories.favoriteMemory ?? "";
+  const parentDedication = memories.parentDedication ?? "";
   const petLabel = draft?.pet.name?.trim() ? draft.pet.name.trim() : "your pet";
 
   function handleContinue(): boolean {

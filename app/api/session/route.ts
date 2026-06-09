@@ -1,24 +1,92 @@
-// POST /api/session — persist a finalized StorySession to ./sessions/[id].json so
-// the generation pipeline (features 07/09) can pick it up by id. The wizard
-// assembles the draft into a complete session client-side (draftToSession), then
-// POSTs it here.
+// POST /api/session — persist a finalized session to ./sessions/[id].json so the
+// generation pipeline (features 07/09) can pick it up by id. The wizard assembles
+// the draft into a complete session client-side (draftToSession), then POSTs it
+// here.
 //
 // Validation happens at the boundary even though the app is local-only: the id
-// must be a safe single path segment (it becomes the filename), and the seven
-// required fields (pet name, child name, photo, plus the four personal free-text
-// fields — breedColor, favoriteActivity, sleepingSpot, favoriteMemory — that the
-// master text merges as live placeholders) must be present, mirroring the
-// client-side `missingRequiredFields` gate. Anything else is trusted to have been
-// defaulted by the assembler.
+// must be a safe single path segment (it becomes the filename), and the product's
+// required fields must be present, mirroring the client-side gate. Which fields are
+// required depends on `storyType`:
+//   - Story 1 (default / missing storyType): pet name, child name, photo, plus the
+//     four personal free-text fields (breedColor, favoriteActivity, sleepingSpot,
+//     favoriteMemory) the master text merges as live placeholders.
+//   - Story 2: pet name, species, photo, owner names, plus the three personal
+//     free-text fields (quirks, favoriteRitual, favoriteSpots) the letter merges.
+// Anything else is trusted to have been defaulted by the assembler.
 
 import { NextResponse } from "next/server";
-import { writeSession } from "@/lib/session/disk";
+import { writeSession, type AnySession } from "@/lib/session/disk";
 import { isSafeSessionId } from "@/lib/ai/paths";
-import type { StorySession } from "@/lib/session/types";
+import type { StorySession, Story2Session } from "@/lib/session/types";
 
 /** Whether a value is a non-empty trimmed string. */
 function nonEmpty(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
+}
+
+/** A JSON error response in the house shape, with the given status. */
+function fail(error: string, status = 400): Response {
+  return NextResponse.json({ ok: false, error }, { status });
+}
+
+/**
+ * Validate a Story-2 body. Required: pet name, species, photo, owner names, and
+ * the three personal free-text fields (quirks, favoriteRitual, favoriteSpots).
+ * Returns an error code (the missing field), or null when valid.
+ */
+function validateStory2(session: Partial<Story2Session>): string | null {
+  if (!nonEmpty(session.pet?.name)) {
+    return "missing_pet_name";
+  }
+  if (!nonEmpty(session.pet?.species)) {
+    return "missing_species";
+  }
+  if (!nonEmpty(session.pet?.photo)) {
+    return "missing_photo";
+  }
+  if (!nonEmpty(session.owner?.names)) {
+    return "missing_owner_names";
+  }
+  if (!nonEmpty(session.memories?.quirks)) {
+    return "missing_quirks";
+  }
+  if (!nonEmpty(session.memories?.favoriteRitual)) {
+    return "missing_favorite_ritual";
+  }
+  if (!nonEmpty(session.memories?.favoriteSpots)) {
+    return "missing_favorite_spots";
+  }
+  return null;
+}
+
+/**
+ * Validate a Story-1 body. Required: pet name, child name, photo, and the four
+ * personal free-text fields (breedColor, favoriteActivity, sleepingSpot,
+ * favoriteMemory). Returns an error code (the missing field), or null when valid.
+ */
+function validateStory1(session: Partial<StorySession>): string | null {
+  if (!nonEmpty(session.pet?.name)) {
+    return "missing_pet_name";
+  }
+  if (!nonEmpty(session.child?.name)) {
+    return "missing_child_name";
+  }
+  if (!nonEmpty(session.pet?.photo)) {
+    return "missing_photo";
+  }
+  if (!nonEmpty(session.pet?.breedColor)) {
+    return "missing_breed_color";
+  }
+  if (!nonEmpty(session.memories?.favoriteActivity)) {
+    return "missing_favorite_activity";
+  }
+  if (!nonEmpty(session.memories?.sleepingSpot)) {
+    return "missing_sleeping_spot";
+  }
+  if (!nonEmpty(session.memories?.favoriteMemory)) {
+    return "missing_favorite_memory";
+  }
+  return null;
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -26,85 +94,36 @@ export async function POST(request: Request): Promise<Response> {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { ok: false, error: "invalid_json" },
-      { status: 400 },
-    );
+    return fail("invalid_json");
   }
 
   if (typeof body !== "object" || body === null) {
-    return NextResponse.json(
-      { ok: false, error: "invalid_session" },
-      { status: 400 },
-    );
+    return fail("invalid_session");
   }
 
-  const session = body as Partial<StorySession>;
+  const base = body as Partial<StorySession | Story2Session>;
 
-  if (!nonEmpty(session.id) || !isSafeSessionId(session.id.trim())) {
-    return NextResponse.json(
-      { ok: false, error: "invalid_session_id" },
-      { status: 400 },
-    );
+  if (!nonEmpty(base.id) || !isSafeSessionId(base.id.trim())) {
+    return fail("invalid_session_id");
   }
 
-  if (!nonEmpty(session.pet?.name)) {
-    return NextResponse.json(
-      { ok: false, error: "missing_pet_name" },
-      { status: 400 },
-    );
-  }
-
-  if (!nonEmpty(session.child?.name)) {
-    return NextResponse.json(
-      { ok: false, error: "missing_child_name" },
-      { status: 400 },
-    );
-  }
-
-  if (!nonEmpty(session.pet?.photo)) {
-    return NextResponse.json(
-      { ok: false, error: "missing_photo" },
-      { status: 400 },
-    );
-  }
-
-  if (!nonEmpty(session.pet?.breedColor)) {
-    return NextResponse.json(
-      { ok: false, error: "missing_breed_color" },
-      { status: 400 },
-    );
-  }
-
-  if (!nonEmpty(session.memories?.favoriteActivity)) {
-    return NextResponse.json(
-      { ok: false, error: "missing_favorite_activity" },
-      { status: 400 },
-    );
-  }
-
-  if (!nonEmpty(session.memories?.sleepingSpot)) {
-    return NextResponse.json(
-      { ok: false, error: "missing_sleeping_spot" },
-      { status: 400 },
-    );
-  }
-
-  if (!nonEmpty(session.memories?.favoriteMemory)) {
-    return NextResponse.json(
-      { ok: false, error: "missing_favorite_memory" },
-      { status: 400 },
-    );
+  // Branch on the product. A missing storyType is Story 1 (legacy default).
+  const storyType = base.storyType ?? "story-1";
+  const error =
+    storyType === "story-2"
+      ? validateStory2(body as Partial<Story2Session>)
+      : validateStory1(body as Partial<StorySession>);
+  if (error) {
+    return fail(error);
   }
 
   try {
-    await writeSession(session as StorySession);
+    // writeSession serializes whichever shape it's handed (the same id-keyed JSON
+    // write); both StorySession and Story2Session round-trip identically.
+    await writeSession(body as AnySession);
   } catch {
-    return NextResponse.json(
-      { ok: false, error: "write_failed" },
-      { status: 500 },
-    );
+    return fail("write_failed", 500);
   }
 
-  return NextResponse.json({ ok: true, id: session.id });
+  return NextResponse.json({ ok: true, id: base.id });
 }

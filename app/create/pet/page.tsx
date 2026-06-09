@@ -1,14 +1,20 @@
 "use client";
 
-// Step 2 of 6 — the pet's identity and look: name (required), species, a few
-// words of appearance (required), pronoun, and illustration style. Mirrors the
-// prototype's pet form. Every field writes straight through to the draft so a
-// refresh keeps it; the name and the description gate Continue (the description
-// is a live merge field, so a blank one would break book generation).
+// Step 2 of 6 — the pet's identity and look, shared by both products.
+//   - Story 1: name (required), species, a few words of appearance (required),
+//     pronoun, illustration style; name + description gate Continue (the
+//     description is a live merge field, so a blank one would break generation);
+//     continues to /create/child.
+//   - Story 2 (the letter): name (required), species, a few words of appearance
+//     (optional — feeds the cover portrait). Pronoun + illustration style are
+//     dropped (the letter is first-person and photo-led). Name gates Continue;
+//     continues to /create/owner.
+// Every field writes straight through to the draft so a refresh keeps it.
 
 import { useState } from "react";
 import { StepShell } from "@/components/wizard/StepShell";
 import { useWizard } from "@/components/wizard/WizardProvider";
+import { getWizardConfig } from "@/lib/story/wizard-config";
 import type {
   IllustrationStyle,
   Pronoun,
@@ -43,6 +49,12 @@ export default function PetPage() {
   const { draft, updateDraft } = useWizard();
   const [showGate, setShowGate] = useState(false);
 
+  const storyType = draft?.storyType ?? "story-1";
+  const isStory2 = storyType === "story-2";
+  const total = getWizardConfig(storyType).total;
+  // Story 1 continues to the child step; Story 2 (no child) to the owner step.
+  const continueHref = isStory2 ? "/create/owner" : "/create/child";
+
   const name = draft?.pet.name ?? "";
   const species = draft?.pet.species ?? "dog";
   const breedColor = draft?.pet.breedColor ?? "";
@@ -53,7 +65,9 @@ export default function PetPage() {
   const petLabel = name.trim() ? name.trim() : "your pet";
 
   function handleContinue(): boolean {
-    if (!name.trim() || !breedColor.trim()) {
+    // Story 1 also gates the description (a live merge field). Story 2's letter
+    // doesn't merge breedColor, so it only gates the name.
+    if (!name.trim() || (!isStory2 && !breedColor.trim())) {
       setShowGate(true);
       return false;
     }
@@ -63,6 +77,7 @@ export default function PetPage() {
   return (
     <StepShell
       step={2}
+      total={total}
       introQuote="Tell us about the one who is gone."
       introAttribution="So the story can hold them, exactly as they were."
       sectionLabel="Section · Two"
@@ -73,7 +88,7 @@ export default function PetPage() {
       }
       sectionDescription="The details below help us draw the pet that was actually yours — not a stand-in. The more specific, the better the book."
       backHref="/create/upload"
-      continueHref="/create/child"
+      continueHref={continueHref}
       footerNote="Step 02 · Pet details"
       onContinue={handleContinue}
     >
@@ -130,6 +145,7 @@ export default function PetPage() {
             A scruffy rescue mutt with one floppy ear. A black tabby with a
             white chest patch.
           </em>
+          {isStory2 ? " Optional, but it helps us paint the cover." : ""}
         </p>
         <input
           type="text"
@@ -138,7 +154,7 @@ export default function PetPage() {
           onChange={(e) => updateDraft({ pet: { breedColor: e.target.value } })}
           placeholder="a sweet rescue mutt with floppy ears and soft brown eyes"
         />
-        {showGate && !breedColor.trim() ? (
+        {!isStory2 && showGate && !breedColor.trim() ? (
           <p className="notice notice--required">
             A few words here let us draw {petLabel} as they truly were. Please
             add a little to continue.
@@ -146,54 +162,61 @@ export default function PetPage() {
         ) : null}
       </div>
 
-      <div className="field">
-        <label className="field__label">
-          <span className="field__num">04</span>
-          Did you call {petLabel} <em>he</em>, <em>she</em>, or <em>they</em>?
-        </label>
-        <div className="radio-group">
-          {PRONOUN_OPTIONS.map((opt) => (
-            <label className="radio-option" key={opt.value}>
-              <input
-                type="radio"
-                name="pronoun"
-                value={opt.value}
-                checked={pronoun === opt.value}
-                onChange={() => updateDraft({ pet: { pronoun: opt.value } })}
-              />
-              <span className="radio-option__label">{opt.label}</span>
+      {!isStory2 ? (
+        <>
+          <div className="field">
+            <label className="field__label">
+              <span className="field__num">04</span>
+              Did you call {petLabel} <em>he</em>, <em>she</em>, or{" "}
+              <em>they</em>?
             </label>
-          ))}
-        </div>
-      </div>
+            <div className="radio-group">
+              {PRONOUN_OPTIONS.map((opt) => (
+                <label className="radio-option" key={opt.value}>
+                  <input
+                    type="radio"
+                    name="pronoun"
+                    value={opt.value}
+                    checked={pronoun === opt.value}
+                    onChange={() => updateDraft({ pet: { pronoun: opt.value } })}
+                  />
+                  <span className="radio-option__label">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
-      <div className="field">
-        <label className="field__label">
-          <span className="field__num">05</span>
-          How should the illustrations feel?
-        </label>
-        <p className="field__hint">
-          You can change this later. Most families choose watercolor.
-        </p>
-        <div className="style-grid">
-          {STYLE_OPTIONS.map((opt) => (
-            <button
-              type="button"
-              key={opt.value}
-              className={`style-card style-card--${opt.modifier}${
-                illustrationStyle === opt.value ? " style-card--selected" : ""
-              }`}
-              onClick={() =>
-                updateDraft({ pet: { illustrationStyle: opt.value } })
-              }
-              aria-pressed={illustrationStyle === opt.value}
-            >
-              <div className="style-card__swatch" />
-              <div className="style-card__name">{opt.label}</div>
-            </button>
-          ))}
-        </div>
-      </div>
+          <div className="field">
+            <label className="field__label">
+              <span className="field__num">05</span>
+              How should the illustrations feel?
+            </label>
+            <p className="field__hint">
+              You can change this later. Most families choose watercolor.
+            </p>
+            <div className="style-grid">
+              {STYLE_OPTIONS.map((opt) => (
+                <button
+                  type="button"
+                  key={opt.value}
+                  className={`style-card style-card--${opt.modifier}${
+                    illustrationStyle === opt.value
+                      ? " style-card--selected"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    updateDraft({ pet: { illustrationStyle: opt.value } })
+                  }
+                  aria-pressed={illustrationStyle === opt.value}
+                >
+                  <div className="style-card__swatch" />
+                  <div className="style-card__name">{opt.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      ) : null}
     </StepShell>
   );
 }

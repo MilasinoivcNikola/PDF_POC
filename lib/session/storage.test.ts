@@ -56,6 +56,46 @@ describe("newDraft", () => {
   it("produces a distinct id on each call", () => {
     expect(newDraft().id).not.toBe(newDraft().id);
   });
+
+  it("omits storyType on the bare / 'story-1' call (zero-migration default)", () => {
+    // A Story-1 draft carries no storyType so legacy drafts (written before the
+    // field existed) read back identically — readers default via ?? "story-1".
+    expect("storyType" in newDraft()).toBe(false);
+    expect("storyType" in newDraft("story-1")).toBe(false);
+  });
+});
+
+describe("newDraft('story-2')", () => {
+  it("tags the draft storyType 'story-2' with the draft lifecycle", () => {
+    const draft = newDraft("story-2");
+    expect(draft.storyType).toBe("story-2");
+    expect(draft.status).toBe("draft");
+  });
+
+  it("populates id and a parseable createdAt", () => {
+    const draft = newDraft("story-2");
+    expect(draft.id).toBeTypeOf("string");
+    expect(draft.id.length).toBeGreaterThan(0);
+    expect(Number.isNaN(Date.parse(draft.createdAt))).toBe(false);
+  });
+
+  it("pre-seeds the pet defaults (species 'dog', illustrationStyle 'watercolor')", () => {
+    // species is pre-seeded because it IS a Story-2 required field and the pet
+    // step shows "dog" selected by default — the draft must match what's shown.
+    const draft = newDraft("story-2");
+    expect(draft.pet).toEqual({ species: "dog", illustrationStyle: "watercolor" });
+  });
+
+  it("starts the owner/memories groups empty and seeds the default belief frame", () => {
+    const draft = newDraft("story-2");
+    expect(draft.owner).toEqual({});
+    expect(draft.memories).toEqual({});
+    expect(draft.toggles).toEqual({ beliefFrame: "rainbow-bridge" });
+  });
+
+  it("produces a distinct id on each call", () => {
+    expect(newDraft("story-2").id).not.toBe(newDraft("story-2").id);
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -18,8 +18,10 @@ export default function ChildPage() {
   const { draft, updateDraft } = useWizard();
   const [showGate, setShowGate] = useState(false);
 
-  const name = draft?.child.name ?? "";
-  const ageBracket = draft?.child.ageBracket ?? "6-8";
+  // This is a Story-1-only step; narrow the union to its `child` group.
+  const child = draft && "child" in draft ? draft.child : {};
+  const name = child.name ?? "";
+  const ageBracket = child.ageBracket ?? "6-8";
   const childLabel = name.trim() ? name.trim() : "your child";
 
   function handleContinue(): boolean {

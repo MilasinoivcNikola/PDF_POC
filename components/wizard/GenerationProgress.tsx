@@ -5,18 +5,20 @@
 // the rotating ornament stack, the "NN of MM illustrations complete" count, the
 // progress bar, and the per-illustration checklist (done / current / pending),
 // then it auto-advances to /create/preview when the run reports "ready". The
-// prototype's hardcoded 12-item list is replaced by the REAL slot set (reference
-// + SCENE_PAGE_IDS = 14), labelled in the same warm voice.
+// prototype's hardcoded 12-item list is replaced by the REAL slot set, per product
+// (Story 1: reference + SCENE_PAGE_IDS = 14; Story 2: the two Premium letter slots
+// = 2), labelled in the same warm voice — feature 18 makes this story-aware.
 
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ILLUSTRATION_SLOTS,
+  illustrationSlotsFor,
   illustrationLabel,
   type IllustrationSlot,
 } from "@/components/wizard/illustrationLabels";
 import { useGenerationProgress } from "@/components/wizard/useGenerationProgress";
+import type { StoryType } from "@/lib/session/types";
 
 interface GenerationProgressProps {
   /** The written session id to generate for. */
@@ -25,6 +27,8 @@ interface GenerationProgressProps {
   petName: string;
   /** Pet description (session.pet.breedColor), shown in the footer note. */
   petDescription: string;
+  /** Which product is generating — drives the checklist slots + labels. */
+  storyType?: StoryType;
 }
 
 type SlotState = "done" | "current" | "pending";
@@ -45,13 +49,15 @@ export function GenerationProgress({
   sessionId,
   petName,
   petDescription,
+  storyType = "story-1",
 }: GenerationProgressProps) {
   const router = useRouter();
   const { status, donePages, total, error, retry } =
     useGenerationProgress(sessionId);
 
+  const slots = illustrationSlotsFor(storyType);
   const name = petName.trim() || "your pet";
-  const totalImages = total || ILLUSTRATION_SLOTS.length;
+  const totalImages = total || slots.length;
   const done = donePages.length;
   const donePercent = totalImages > 0 ? (done / totalImages) * 100 : 0;
 
@@ -64,7 +70,7 @@ export function GenerationProgress({
 
   const doneSet = new Set(donePages);
   // The first not-yet-done slot in book order is the one "painting" now.
-  const currentSlot = ILLUSTRATION_SLOTS.find((slot) => !doneSet.has(slot));
+  const currentSlot = slots.find((slot) => !doneSet.has(slot));
 
   function slotState(slot: IllustrationSlot): SlotState {
     if (doneSet.has(slot)) {
@@ -119,8 +125,9 @@ export function GenerationProgress({
           Bringing <em>{name}</em> to life.
         </h1>
         <p className="gen-subtitle">
-          Each illustration is painted from the photo you uploaded. This usually
-          takes a few minutes — please don&apos;t close the window.
+          {storyType === "story-2"
+            ? "The cover portrait is painted from the photo you uploaded. This usually takes a minute or two — please don't close the window."
+            : "Each illustration is painted from the photo you uploaded. This usually takes a few minutes — please don't close the window."}
         </p>
 
         {error ? (
@@ -149,7 +156,7 @@ export function GenerationProgress({
             </div>
 
             <ul className="gen-list">
-              {ILLUSTRATION_SLOTS.map((slot) => {
+              {slots.map((slot) => {
                 const state = slotState(slot);
                 return (
                   <li key={slot} className={`gen-item gen-item--${state}`}>
@@ -167,7 +174,7 @@ export function GenerationProgress({
                       )}
                     </span>
                     <span className="gen-item__label">
-                      {illustrationLabel(slot, name)}
+                      {illustrationLabel(slot, name, storyType)}
                     </span>
                     <span className="gen-item__time">
                       {state === "done"
@@ -192,7 +199,11 @@ export function GenerationProgress({
         <p className="label">
           Using gpt-image-2-2026-04-21 · Low quality
         </p>
-        <p className="label">~$0.07 per book · From your own credits</p>
+        <p className="label">
+          {storyType === "story-2"
+            ? "~$0.02 per letter · From your own credits"
+            : "~$0.07 per book · From your own credits"}
+        </p>
       </footer>
     </div>
   );

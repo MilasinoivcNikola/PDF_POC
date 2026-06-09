@@ -13,16 +13,20 @@ import { useRouter } from "next/navigation";
 import { useWizard } from "@/components/wizard/WizardProvider";
 import { GenerationProgress } from "@/components/wizard/GenerationProgress";
 import {
-  draftToSession,
-  missingRequiredFields,
+  draftToSessionForDraft,
+  missingRequiredFieldsForDraft,
   type RequiredField,
+  type Story2RequiredField,
 } from "@/lib/session/draft";
 
-/** Which step a missing required field lives on, for the "go fix it" link. */
-const FIELD_FIX: Record<
-  RequiredField,
-  { label: string; href: string; step: string }
-> = {
+interface FieldFix {
+  label: string;
+  href: string;
+  step: string;
+}
+
+/** Which step a missing Story-1 required field lives on, for the "go fix it" link. */
+const STORY1_FIELD_FIX: Record<RequiredField, FieldFix> = {
   petName: { label: "your pet's name", href: "/create/pet", step: "Step 2" },
   childName: { label: "your child's name", href: "/create/child", step: "Step 3" },
   photo: { label: "a photo of your pet", href: "/create/upload", step: "Step 1" },
@@ -48,6 +52,29 @@ const FIELD_FIX: Record<
   },
 };
 
+/** Which step a missing Story-2 required field lives on, for the "go fix it" link. */
+const STORY2_FIELD_FIX: Record<Story2RequiredField, FieldFix> = {
+  petName: { label: "your pet's name", href: "/create/pet", step: "Step 2" },
+  species: { label: "what kind of pet they were", href: "/create/pet", step: "Step 2" },
+  photo: { label: "a photo of your pet", href: "/create/upload", step: "Step 1" },
+  ownerNames: { label: "who the letter is for", href: "/create/owner", step: "Step 3" },
+  quirks: {
+    label: "a quirk that was only theirs",
+    href: "/create/letter",
+    step: "Step 4",
+  },
+  favoriteRitual: {
+    label: "a ritual you shared",
+    href: "/create/letter",
+    step: "Step 4",
+  },
+  favoriteSpots: {
+    label: "the spots that were theirs",
+    href: "/create/letter",
+    step: "Step 4",
+  },
+};
+
 type Phase = "idle" | "writing" | "generating" | "error";
 
 export default function GeneratePage() {
@@ -61,8 +88,14 @@ export default function GeneratePage() {
   // Gating the render on it avoids a flash of the wrong screen during the check.
   const [checkingResume, setCheckingResume] = useState(true);
 
-  const missing = useMemo<RequiredField[]>(
-    () => (draft ? missingRequiredFields(draft) : []),
+  const storyType = draft?.storyType ?? "story-1";
+  const isStory2 = storyType === "story-2";
+  // The previous step differs by product (Story 1: style; Story 2: tone).
+  const backHref = isStory2 ? "/create/tone" : "/create/style";
+  const fieldFix = isStory2 ? STORY2_FIELD_FIX : STORY1_FIELD_FIX;
+
+  const missing = useMemo<(RequiredField | Story2RequiredField)[]>(
+    () => (draft ? missingRequiredFieldsForDraft(draft) : []),
     [draft],
   );
 
@@ -130,7 +163,7 @@ export default function GeneratePage() {
     setErrorMessage(null);
     setPhase("writing");
     try {
-      const session = draftToSession(draft);
+      const session = draftToSessionForDraft(draft);
       const res = await fetch("/api/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -164,6 +197,7 @@ export default function GeneratePage() {
         sessionId={sessionId}
         petName={petName}
         petDescription={description}
+        storyType={storyType}
       />
     );
   }
@@ -219,13 +253,16 @@ export default function GeneratePage() {
                 gap: "0.75rem",
               }}
             >
-              {missing.map((field) => (
-                <li key={field}>
-                  <Link href={FIELD_FIX[field].href} className="btn-link">
-                    Add {FIELD_FIX[field].label} ({FIELD_FIX[field].step}) &rarr;
-                  </Link>
-                </li>
-              ))}
+              {missing.map((field) => {
+                const fix = fieldFix[field as keyof typeof fieldFix];
+                return (
+                  <li key={field}>
+                    <Link href={fix.href} className="btn-link">
+                      Add {fix.label} ({fix.step}) &rarr;
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ) : (
@@ -235,8 +272,9 @@ export default function GeneratePage() {
               Ready to bring <em>{petName}</em> to life?
             </h1>
             <p className="lede mt-4" style={{ margin: "1rem auto 0" }}>
-              We&apos;ll paint each illustration from the photo you shared and
-              assemble the twelve-page book. This usually takes a minute or two.
+              {isStory2
+                ? "We'll paint the cover portrait from the photo you shared and typeset the six-page letter. This usually takes a minute or two."
+                : "We'll paint each illustration from the photo you shared and assemble the twelve-page book. This usually takes a minute or two."}
             </p>
 
             {description ? (
@@ -263,7 +301,7 @@ export default function GeneratePage() {
             ) : null}
 
             <p className="mt-8">
-              <Link href="/create/style" className="btn-link">
+              <Link href={backHref} className="btn-link">
                 &larr; Back
               </Link>
             </p>

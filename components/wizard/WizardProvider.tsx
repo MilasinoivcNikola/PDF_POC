@@ -1,14 +1,24 @@
 "use client";
 
-// The wizard's shared state. A single `StoryDraft` lives in React Context and is
-// mirrored to localStorage on every change so a refresh never loses progress
-// (feature 02's loadDraft/saveDraft/newDraft helpers do the actual persistence).
+// The wizard's shared state. A single `WizardDraft` (Story 1 or Story 2) lives in
+// React Context and is mirrored to localStorage on every change so a refresh never
+// loses progress (feature 02's loadDraft/saveDraft/newDraft helpers do the actual
+// persistence).
 //
 // SSR-safe by design: the provider renders nothing draft-dependent until it has
 // hydrated from localStorage in an effect, so the server and first client render
 // agree (no hydration mismatch). `updateDraft` takes a partial-group patch and
 // merges it shallowly per group, then bumps the "saved" timestamp the StepShell
 // shows.
+//
+// Multi-product: the draft is discriminated by `storyType` (a missing one is Story
+// 1 — legacy drafts had no field). `loadDraft()` returns the union; the provider
+// reuses whatever shape is saved. A FRESH draft is minted with the product the
+// caller asks for: the landing story picker seeds + persists the chosen-product
+// draft BEFORE entering /create, so the provider hydrates the right shape on first
+// load. The per-group merge below only touches the groups the patch names, so the
+// shared `pet` group works for both products and the product-specific groups
+// (`child`/`owner`/etc.) are merged only when present.
 
 import {
   createContext,
@@ -18,7 +28,16 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { StoryDraft } from "@/lib/session/types";
+import type {
+  Child,
+  LetterMemories,
+  Memories,
+  Owner,
+  Pet,
+  Story2Toggles,
+  Toggles,
+  WizardDraft,
+} from "@/lib/session/types";
 import {
   clearDraft as clearStoredDraft,
   loadDraft,
@@ -26,17 +45,24 @@ import {
   saveDraft,
 } from "@/lib/session/storage";
 
-/** A patch to the draft's input groups. Each group merges shallowly. */
+/**
+ * A patch to the draft's input groups. Each named group merges shallowly. Story 1
+ * uses `pet`/`child`/`memories: Memories`/`toggles: Toggles`; Story 2 uses
+ * `pet`/`owner`/`memories: LetterMemories`/`toggles: Story2Toggles`. The union of
+ * the per-group types is intentional — a step only ever patches the groups its own
+ * product has, and the merge below applies only the named groups.
+ */
 export interface DraftPatch {
-  pet?: Partial<StoryDraft["pet"]>;
-  child?: Partial<StoryDraft["child"]>;
-  memories?: Partial<StoryDraft["memories"]>;
-  toggles?: Partial<StoryDraft["toggles"]>;
+  pet?: Partial<Pet>;
+  child?: Partial<Child>;
+  owner?: Partial<Owner>;
+  memories?: Partial<Memories> | Partial<LetterMemories>;
+  toggles?: Partial<Toggles> | Partial<Story2Toggles>;
 }
 
 interface WizardContextValue {
   /** The current draft, or `null` until hydrated on the client. */
-  draft: StoryDraft | null;
+  draft: WizardDraft | null;
   /** True once the draft has been hydrated from localStorage. */
   hydrated: boolean;
   /** ISO timestamp of the last save, for the "Saved just now" indicator. */
@@ -50,12 +76,15 @@ interface WizardContextValue {
 const WizardContext = createContext<WizardContextValue | null>(null);
 
 export function WizardProvider({ children }: { children: React.ReactNode }) {
-  const [draft, setDraft] = useState<StoryDraft | null>(null);
+  const [draft, setDraft] = useState<WizardDraft | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
-  // Hydrate once on mount: reuse the saved draft if present, otherwise mint a
-  // fresh one (and persist it so a refresh on step 1 keeps the same id).
+  // Hydrate once on mount: reuse the saved draft if present (either product),
+  // otherwise mint a fresh Story-1 draft (the default; the landing picker seeds a
+  // Story-2 draft into localStorage before entering /create, so a Story-2 wizard
+  // reads it here as an existing draft). Persisting the fresh one keeps the same id
+  // across a refresh on step 1.
   useEffect(() => {
     const existing = loadDraft();
     if (existing) {
@@ -75,13 +104,32 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
       if (!current) {
         return current;
       }
-      const next: StoryDraft = {
+      // Shallow-merge only the groups the patch names. `current` already carries
+      // exactly the groups its product has (Story 1: pet/child/memories/toggles;
+      // Story 2: pet/owner/memories/toggles), and each step only patches groups its
+      // own product has — so we merge `pet`/`memories`/`toggles` (shared on both
+      // shapes) plus whichever of `child`/`owner` the patch carries. An absent
+      // group never invents the other product's group. The cast reconciles the
+      // per-group union on `DraftPatch` with the concrete draft shape.
+      const merged: Record<string, unknown> = {
         ...current,
         pet: { ...current.pet, ...patch.pet },
-        child: { ...current.child, ...patch.child },
-        memories: { ...current.memories, ...patch.memories },
-        toggles: { ...current.toggles, ...patch.toggles },
+        memories: {
+          ...(current.memories as object),
+          ...(patch.memories as object | undefined),
+        },
+        toggles: {
+          ...(current.toggles as object),
+          ...(patch.toggles as object | undefined),
+        },
       };
+      if (patch.child) {
+        merged.child = { ...(current as { child?: object }).child, ...patch.child };
+      }
+      if (patch.owner) {
+        merged.owner = { ...(current as { owner?: object }).owner, ...patch.owner };
+      }
+      const next = merged as unknown as WizardDraft;
       saveDraft(next);
       return next;
     });

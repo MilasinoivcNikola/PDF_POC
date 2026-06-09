@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { access } from "node:fs/promises";
 
 import { isSafeSessionId } from "@/lib/ai/paths";
-import type { StorySession } from "@/lib/session/types";
+import type { StorySession, Story2Session } from "@/lib/session/types";
 
 // The /api/session boundary is the high-value surface: a malformed body, an
 // unsafe id (it becomes the filename), and each of the seven missing required
@@ -19,7 +19,8 @@ import type { StorySession } from "@/lib/session/types";
 const writeSessionMock = vi.fn();
 
 vi.mock("@/lib/session/disk", () => ({
-  writeSession: (session: StorySession) => writeSessionMock(session),
+  writeSession: (session: StorySession | Story2Session) =>
+    writeSessionMock(session),
 }));
 
 // Import the route AFTER the mock is registered.
@@ -62,6 +63,37 @@ function validSession(id = "session-id-abc123"): StorySession {
       deathType: "natural",
       beliefFrame: "rainbow-bridge",
       otherPetsInHome: "no",
+    },
+    images: [],
+  };
+}
+
+/** A complete, valid finalized Story-2 session payload. */
+function validStory2Session(id = "story2-id-xyz789"): Story2Session {
+  return {
+    id,
+    createdAt: "2026-06-09T09:00:00.000Z",
+    status: "generating",
+    storyType: "story-2",
+    pet: {
+      name: "Murphy",
+      species: "dog",
+      breedColor: "rescue mutt with the lopsided grin",
+      pronoun: "he",
+      illustrationStyle: "watercolor",
+      photo: "uploads/sess/murphy.jpg",
+    },
+    owner: { names: "Sarah", relationship: "single" },
+    memories: {
+      quirks: "the way you tilted your head when I said your name",
+      favoriteRitual: "our walk before coffee, every morning",
+      favoriteSpots: "the spot by the back door",
+    },
+    toggles: {
+      deathType: "peaceful",
+      beliefFrame: "rainbow-bridge",
+      giftFor: "self",
+      newPet: "no",
     },
     images: [],
   };
@@ -301,6 +333,136 @@ describe("POST /api/session — happy path", () => {
       id: "good-session-id",
       pet: { name: "Otis", photo: "uploads/sess/photo.jpg" },
       child: { name: "Emma" },
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story 2 — per-storyType validation branches (disk write still mocked)
+// ---------------------------------------------------------------------------
+//
+// The route branches on body.storyType: a "story-2" body validates the Story-2
+// required set (pet name, species, photo, owner names, quirks, favoriteRitual,
+// favoriteSpots) and writes a Story2Session. The id traversal guard is shared.
+
+describe("POST /api/session — Story 2 validation", () => {
+  it("rejects a missing pet name with 400 missing_pet_name", async () => {
+    const body = validStory2Session();
+    body.pet.name = "   ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_pet_name",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing species with 400 missing_species", async () => {
+    const body = validStory2Session();
+    body.pet.species = "" as Story2Session["pet"]["species"];
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_species",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing photo with 400 missing_photo", async () => {
+    const body = validStory2Session();
+    body.pet.photo = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_photo",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing owner names with 400 missing_owner_names", async () => {
+    const body = validStory2Session();
+    body.owner.names = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_owner_names",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing quirks with 400 missing_quirks", async () => {
+    const body = validStory2Session();
+    body.memories.quirks = "   ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_quirks",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing favorite ritual with 400 missing_favorite_ritual", async () => {
+    const body = validStory2Session();
+    body.memories.favoriteRitual = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_favorite_ritual",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing favorite spots with 400 missing_favorite_spots", async () => {
+    const body = validStory2Session();
+    body.memories.favoriteSpots = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_favorite_spots",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a path-traversal id for a Story-2 body (shared guard) and writes nothing", async () => {
+    const malicious = "../../../tmp/evil-story2";
+    expect(isSafeSessionId(malicious)).toBe(false);
+    const res = await POST(
+      jsonRequest({ ...validStory2Session(), id: malicious }),
+    );
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "invalid_session_id",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/session — Story 2 happy path", () => {
+  it("writes the Story-2 session and returns { ok:true, id }", async () => {
+    const body = validStory2Session("good-story2-id");
+    const res = await POST(jsonRequest(body));
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      id: "good-story2-id",
+    });
+
+    expect(writeSessionMock).toHaveBeenCalledTimes(1);
+    expect(writeSessionMock.mock.calls[0][0]).toMatchObject({
+      id: "good-story2-id",
+      storyType: "story-2",
+      pet: { name: "Murphy", species: "dog", photo: "uploads/sess/murphy.jpg" },
+      owner: { names: "Sarah", relationship: "single" },
+      memories: { quirks: expect.any(String) },
     });
   });
 });
