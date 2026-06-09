@@ -40,6 +40,7 @@ vi.mock("openai", () => ({
 import {
   generateSceneIllustration,
   generateAllIllustrations,
+  regenerateSceneIllustration,
   manifestToImageMap,
   MAX_REFERENCE_IMAGES,
   IMAGE_MODEL,
@@ -306,6 +307,72 @@ describe("generateAllIllustrations — manifest shape", () => {
     session.pet = { ...session.pet, photo: "../../../etc/passwd" };
     await expect(generateAllIllustrations(session)).rejects.toThrow(/outside .*uploads/i);
     expect(editMock).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Scene quality default (feature 13) — the production path defaults to "low"
+// ---------------------------------------------------------------------------
+
+// Regression guard so the scene tier can't silently drift back to "medium".
+// The quality argument is asserted where it actually reaches the OpenAI image
+// call: images.edit's `quality`, on the scene calls (array `image`). All OpenAI
+// calls are mocked — no network, no credits.
+
+describe("scene quality default — feature 13", () => {
+  /** The quality values seen on the scene-path images.edit calls (array image). */
+  function sceneQualities(): string[] {
+    return editMock.mock.calls
+      .map((c) => c[0])
+      .filter((args) => Array.isArray(args.image))
+      .map((args) => args.quality);
+  }
+
+  it("generateAllIllustrations defaults every scene call to low quality", async () => {
+    mockEditReturnsImage();
+    const session = otisSession();
+    await withTempCwd(session);
+
+    // No sceneQuality option ⇒ the production default must reach the API as "low".
+    await generateAllIllustrations(session);
+
+    const qualities = sceneQualities();
+    expect(qualities).toHaveLength(SCENE_PAGE_IDS.length);
+    for (const quality of qualities) {
+      expect(quality).toBe("low");
+    }
+  });
+
+  it("honors an explicit sceneQuality override (proves low is a default, not a hardcode)", async () => {
+    mockEditReturnsImage();
+    const session = otisSession();
+    await withTempCwd(session);
+
+    await generateAllIllustrations(session, { sceneQuality: "medium" });
+
+    const qualities = sceneQualities();
+    expect(qualities).toHaveLength(SCENE_PAGE_IDS.length);
+    for (const quality of qualities) {
+      expect(quality).toBe("medium");
+    }
+  });
+
+  it("regenerateSceneIllustration defaults the single-page repaint to low quality", async () => {
+    mockEditReturnsImage();
+    const session = otisSession();
+    await withTempCwd(session);
+
+    // Seed the reference + scenes on the temp disk so regenerate can read the
+    // reference illustration and the photo back.
+    const manifest = await generateAllIllustrations(session);
+    editMock.mockClear();
+
+    // No sceneQuality option ⇒ the repaint defaults to "low" so it matches the book.
+    await regenerateSceneIllustration({ ...session, images: manifest }, "page-4");
+
+    // Exactly one scene call (the repainted page) at "low".
+    const qualities = sceneQualities();
+    expect(qualities).toEqual(["low"]);
   });
 });
 

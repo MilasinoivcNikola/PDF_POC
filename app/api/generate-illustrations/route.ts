@@ -79,7 +79,7 @@ async function listDonePages(sessionId: string): Promise<string[]> {
  * in-memory job (so the GET surfaces it) and never let the rejection go unhandled.
  */
 function startGeneration(session: StorySession): void {
-  // generateAllIllustrations defaults: approach "A", sceneQuality "medium",
+  // generateAllIllustrations defaults: approach "A", sceneQuality "low",
   // referenceQuality "low" — exactly the cost/quality the footer advertises.
   generateAllIllustrations(session)
     .then(async (manifest) => {
