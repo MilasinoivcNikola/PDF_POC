@@ -37,13 +37,14 @@ describe("getStory registry lookup", () => {
     expect([...slots]).toEqual([...SCENE_PAGE_IDS]);
   });
 
-  it('throws for "story-2", which has no registered definition yet', () => {
-    // Feature 15 adds the letter; until then the entry is absent. No current
-    // session carries `storyType: "story-2"`, so this path is never reached in
-    // production — but the absent-entry contract is an explicit throw, asserted here.
-    expect(() => getStory("story-2")).toThrow(
-      /No story definition registered for storyType: story-2/,
-    );
+  it('returns the Story-2 StoryDefinition for "story-2"', () => {
+    // Feature 15 registers the letter — `getStory("story-2")` now resolves to it
+    // (it threw under feature 14, before the definition existed). The definition
+    // exposes the same three things the pipeline needs.
+    const definition = getStory("story-2");
+    expect(typeof definition.resolve).toBe("function");
+    expect(typeof definition.pdfFilename).toBe("function");
+    expect(Array.isArray(definition.illustrationSlots)).toBe(true);
   });
 
   it("throws for an unknown storyType outside the union", () => {

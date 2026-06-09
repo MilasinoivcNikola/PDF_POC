@@ -4,17 +4,19 @@
 //
 // Routing those lookups through `getStory(session.storyType ?? "story-1")` instead
 // of importing the Story-1 modules directly is the seam that lets the app host more
-// than one product. Story 1 is the only entry today; the "story-2" letter is added
-// by feature 15 — until then `getStory("story-2")` throws (it is never reached,
-// because no session carries `storyType: "story-2"` yet).
+// than one product. Story 1 ("Saying Goodbye") and Story 2 ("A Letter") are both
+// registered; a type with no definition still throws (so an unknown future type is
+// loud rather than silently mis-resolved).
 //
 // This module is a lookup table only — no story logic lives here. Each product's
-// definition wraps its own existing functions (see lib/story/story-1.ts).
+// definition wraps its own existing functions (see lib/story/story-1.ts and
+// lib/story/story-2.ts).
 
 import type { StorySession, StoryType } from "@/lib/session/types";
 import type { PageId } from "@/lib/story/master-text";
 import type { ResolvedStory } from "@/lib/story/merge";
 import { story1Definition } from "@/lib/story/story-1";
+import { story2Definition } from "@/lib/story/story-2";
 
 /**
  * Everything the render + API pipeline needs from a story product, in one place.
@@ -40,14 +42,15 @@ export interface StoryDefinition {
 /** Each known product's definition, keyed by `StoryType`. */
 const REGISTRY: Partial<Record<StoryType, StoryDefinition>> = {
   "story-1": story1Definition,
-  // "story-2": added by feature 15 (the letter). Absent until then.
+  "story-2": story2Definition,
 };
 
 /**
  * Look up the definition for a story type. Throws for a type with no registered
- * definition (today: "story-2"); callers always pass a defaulted value
- * (`session.storyType ?? "story-1"`), so a missing/legacy `storyType` resolves to
- * the Story-1 definition and this never throws for current sessions.
+ * definition (none today — both products are registered); callers pass a
+ * defaulted value (`session.storyType ?? "story-1"`), so a missing/legacy
+ * `storyType` resolves to the Story-1 definition. The `Partial` typing keeps the
+ * throw reachable for any future `StoryType` value added before its definition.
  */
 export function getStory(storyType: StoryType): StoryDefinition {
   const definition = REGISTRY[storyType];

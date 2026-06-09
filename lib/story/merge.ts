@@ -21,6 +21,7 @@ import {
   type MasterPage,
   type MasterStory,
   type PageId,
+  type Story1PageId,
   PLACEHOLDER_PATTERN,
 } from "@/lib/story/master-text";
 
@@ -168,8 +169,12 @@ function buildValues(session: StorySession): Record<string, string> {
  * is missing or empty into `missing` (so the whole story can report all gaps at
  * once). A key resolved to an empty string counts as missing — an empty
  * required field must be surfaced, not silently rendered as a blank.
+ *
+ * Exported so a second product's merge (lib/story/story2/merge.ts) reuses the
+ * exact same single-pass substitution + missing-key accounting, rather than
+ * re-implementing the placeholder contract.
  */
-function substitute(
+export function substitute(
   text: string,
   values: Record<string, string>,
   missing: Set<string>,
@@ -191,7 +196,7 @@ function substitute(
  * treatments; every other numbered page (2-6, 8, 9, 11) is "narrative". Kept
  * here (beside the merge) because the layout is a property of the resolved page.
  */
-const STORY_1_LAYOUT: Record<PageId, PageLayout> = {
+const STORY_1_LAYOUT: Record<Story1PageId, PageLayout> = {
   cover: "cover",
   "page-1": "dedication",
   "page-2": "narrative",
@@ -216,7 +221,9 @@ function resolvePage(
 ): ResolvedPage {
   const resolved: ResolvedPage = {
     id: page.id,
-    layout: STORY_1_LAYOUT[page.id],
+    // `mergeStory` is the Story-1 path: every page in the master story carries a
+    // Story-1 id, so the (Story-1-scoped) layout map always has an entry.
+    layout: STORY_1_LAYOUT[page.id as Story1PageId],
     pageNumber: page.pageNumber,
     body: page.body.map((p) => substitute(p, values, missing)),
     illustrationBrief: substitute(page.illustrationBrief, values, missing),

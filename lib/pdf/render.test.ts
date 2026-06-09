@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { storyPdfFilename } from "@/lib/pdf/render";
+import { letterPdfFilename, storyPdfFilename } from "@/lib/pdf/render";
 
 // `storyPdfFilename` is the one pure, fast-to-test surface in the renderer: it
 // turns a pet name into the master template's exact output-file convention,
@@ -46,5 +46,26 @@ describe("storyPdfFilename", () => {
 
   it("falls back to 'Pet' for a symbol-only name with no usable characters", () => {
     expect(storyPdfFilename("✦✦✦")).toBe("Saying-Goodbye-to-Pet.pdf");
+  });
+});
+
+// `letterPdfFilename` is the Story-2 analog: same path-safe slug, but the
+// Story-2 master template's `Letter-from-[PET_NAME].pdf` convention. It shares
+// `slugify`, so this locks the production-checklist name + the `Pet` fallback
+// rather than re-covering every slug branch.
+describe("letterPdfFilename", () => {
+  it("follows the Story-2 Letter-from-[PET_NAME].pdf convention", () => {
+    expect(letterPdfFilename("Murphy")).toBe("Letter-from-Murphy.pdf");
+  });
+
+  it("slugifies a multi-word/symbol name to a safe single segment", () => {
+    expect(letterPdfFilename("Mr. Murphy O'Brien")).toBe(
+      "Letter-from-Mr-Murphy-O-Brien.pdf",
+    );
+  });
+
+  it("falls back to 'Pet' for an empty or symbol-only name", () => {
+    expect(letterPdfFilename("")).toBe("Letter-from-Pet.pdf");
+    expect(letterPdfFilename("✦✦✦")).toBe("Letter-from-Pet.pdf");
   });
 });

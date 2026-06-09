@@ -174,3 +174,111 @@ export interface StorySession {
   /** Path to the rendered PDF under ./output, once produced. */
   pdfPath?: string;
 }
+
+// ===========================================================================
+// Story 2 — "A Letter from [PET_NAME]" (adult keepsake letter)
+// ===========================================================================
+//
+// The second product (feature 15). A first-person letter in the pet's voice,
+// addressed to the owner — cover + 5 letter pages. Field coverage maps 1:1 to
+// the master template's "Merge fields" + "Special-case toggles" tables
+// (context/masterstories/story-2-master-template.md). Story 2 has NO child: it
+// REUSES the `Pet` group above (name, species, breedColor, pronoun,
+// illustrationStyle, photo) and adds the owner/letter-memory/toggle groups below.
+// The "family" relationship variant is deliberately punted — single + couple only.
+
+/** How the owner is addressed — drives the "you" vs "you both" letter voice. */
+export type Relationship = "single" | "couple";
+
+/** Death-type toggle (Story 2) — adjusts Page 4 (the goodbye). */
+export type LetterDeathType = "peaceful" | "illness" | "sudden" | "euthanasia";
+
+/** Belief-frame toggle (Story 2) — adjusts Page 5. Default "rainbow-bridge". */
+export type LetterBeliefFrame = "rainbow-bridge" | "heaven" | "secular";
+
+/** Whether the letter is for the owner themselves or a sympathy gift. */
+export type GiftFor = "self" | "friend";
+
+/** Whether the owner has / plans to adopt another pet — adjusts Page 6. */
+export type NewPet = "yes" | "no";
+
+/** The owner the letter is addressed to. */
+export interface Owner {
+  /** [OWNER_NAMES] — e.g. "Sarah" or "Sarah and David" or "Mom". */
+  names: string;
+  /** [RELATIONSHIP_TYPE] — drives "you" (single) vs "you both" (couple). */
+  relationship: Relationship;
+}
+
+/** The customer's free-text inputs that personalize the letter. */
+export interface LetterMemories {
+  /** [QUIRKS] — 1-3 sentences, e.g. "the way you tilted your head". */
+  quirks: string;
+  /** [FAVORITE_RITUAL] — e.g. "our walk before coffee, every morning". */
+  favoriteRitual: string;
+  /** [FAVORITE_SPOTS] — 1-3 spots, e.g. "the spot by the back door". */
+  favoriteSpots: string;
+  /** [PET_NICKNAMES] — optional, up to 3, e.g. "Murph, Mr. Murph". */
+  nicknames?: string;
+  /** [DATE_ADOPTED] — optional, e.g. "March 2014". */
+  dateAdopted?: string;
+  /** [DATE_PASSED] — optional, e.g. "October 2025". */
+  datePassed?: string;
+}
+
+/** The sensitivity/belief/gift toggles collected as short follow-up questions. */
+export interface Story2Toggles {
+  /** [DEATH_TYPE] — adjusts Page 4 (the goodbye). */
+  deathType: LetterDeathType;
+  /** [BELIEF_FRAME] — adjusts Page 5. Default "rainbow-bridge". */
+  beliefFrame: LetterBeliefFrame;
+  /** [GIFT_FOR] — adjusts the cover/dedication inscription. */
+  giftFor: GiftFor;
+  /** [NEW_PET] — adjusts the Page 6 closing. */
+  newPet: NewPet;
+}
+
+/**
+ * The in-progress Story-2 order the wizard holds in `localStorage`. Mirrors the
+ * `StoryDraft` shape: every input group is `Partial` because the user fills them
+ * step by step; `id`/`createdAt`/`status` exist from creation onward. Required-
+ * field validation happens at the wizard boundary (feature 18), not in the type.
+ *
+ * Discriminated from `StoryDraft` by `storyType: "story-2"` (literal, not
+ * optional, here — a Story-2 draft always knows it is one).
+ */
+export interface Story2Draft {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-2";
+  pet: Partial<Pet>;
+  owner: Partial<Owner>;
+  memories: Partial<LetterMemories>;
+  toggles: Partial<Story2Toggles>;
+}
+
+/**
+ * A finalized Story-2 order written to `./sessions/[id].json` at Generate time.
+ * Mirrors `StorySession`: all input groups are complete (required fields
+ * present); generation state fills in as illustrations and the PDF are produced.
+ *
+ * Discriminated from `StorySession` by `storyType: "story-2"` (literal, not
+ * optional). A `StorySession` with a missing `storyType` still reads as Story 1
+ * via `?? "story-1"`; a `Story2Session` always carries the literal so the
+ * registry routes it to `resolveStory2`.
+ */
+export interface Story2Session {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-2";
+  pet: Pet;
+  owner: Owner;
+  memories: LetterMemories;
+  toggles: Story2Toggles;
+  /** Per-page generated-illustration manifest (empty until generation runs). */
+  images: GeneratedImage[];
+  /** Path to the rendered PDF under ./output, once produced. */
+  pdfPath?: string;
+}

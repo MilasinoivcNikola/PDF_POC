@@ -38,10 +38,10 @@ export const PLACEHOLDER_PATTERN = /\{([a-zA-Z]+)\}/g;
 // ---------------------------------------------------------------------------
 
 /**
- * Stable id for each book slot. The numeric pages 1–12 use their number in the
- * id so variant code can address them precisely ("page-7" etc.).
+ * Stable id for each Story-1 book slot. The numeric pages 1–12 use their number
+ * in the id so variant code can address them precisely ("page-7" etc.).
  */
-export type PageId =
+export type Story1PageId =
   | "cover"
   | "page-1"
   | "page-2"
@@ -56,6 +56,29 @@ export type PageId =
   | "page-11"
   | "page-12"
   | "back-cover";
+
+/**
+ * Stable id for each Story-2 letter slot ("A Letter from [PET_NAME]"). The
+ * template labels the cover "PAGE 1" and the letter body pages 2–6; the ids use
+ * those numbers so the Story-2 variant code can address them precisely
+ * ("letter-page-4" etc.) without colliding with the Story-1 numeric ids.
+ */
+export type Story2PageId =
+  | "letter-cover"
+  | "letter-page-2"
+  | "letter-page-3"
+  | "letter-page-4"
+  | "letter-page-5"
+  | "letter-page-6";
+
+/**
+ * The stable id for any book slot, across products. Shared, product-agnostic
+ * types key on this — `ResolvedPage.id`, `PageImageMap`, the registry's
+ * `illustrationSlots` — so the union is the sum of every product's slot ids.
+ * (Same generalization shape as `PageLayout` in lib/story/merge.ts, which feature
+ * 14 widened so one renderer can serve more than one product.)
+ */
+export type PageId = Story1PageId | Story2PageId;
 
 // ---------------------------------------------------------------------------
 // Unresolved page model (this module's output, before variants + merge)
