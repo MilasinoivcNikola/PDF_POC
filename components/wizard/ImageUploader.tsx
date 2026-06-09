@@ -15,6 +15,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useWizard } from "@/components/wizard/WizardProvider";
+import { downscaleImage } from "@/components/wizard/downscaleImage";
 
 /** Short edge below this (px) earns the gentle low-res notice. */
 const MIN_SHORT_EDGE = 512;
@@ -113,8 +114,25 @@ export function ImageUploader() {
 
       setUploading(true);
       try {
+        // Downscale in-browser before upload so every downstream gpt-image-2
+        // reference call sends a smaller photo. Runs after the validation above;
+        // an already-small photo is returned untouched. On any decode/encode
+        // failure we fall back to the original file rather than block the upload.
+        let toUpload = file;
+        try {
+          toUpload = await downscaleImage(file);
+          console.log(
+            `[downscale] ${file.name}: ${file.size} → ${toUpload.size} bytes` +
+              (toUpload === file ? " (unchanged — already within cap)" : ""),
+          );
+        } catch {
+          console.log(
+            `[downscale] ${file.name}: skipped (resize failed) — uploading original ${file.size} bytes`,
+          );
+        }
+
         const form = new FormData();
-        form.append("photo", file);
+        form.append("photo", toUpload);
         if (draft?.id) {
           form.append("sessionId", draft.id);
         }
