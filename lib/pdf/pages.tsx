@@ -332,7 +332,7 @@ export function renderPage(page: ResolvedPage, src?: string): ReactElement {
     case "letter-cover":
       return renderLetterCover(page, src);
     case "letter":
-      return renderLetterBody(page);
+      return renderLetterBody(page, src);
   }
 }
 

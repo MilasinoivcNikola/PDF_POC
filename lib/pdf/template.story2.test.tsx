@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { renderStoryHtml } from "@/lib/pdf/template";
+import { renderStoryHtml, type PageImageMap } from "@/lib/pdf/template";
 import { resolveStory2 } from "@/lib/story/story2/variants";
 import { murphySession, story2SessionWith } from "@/lib/story/story2/fixtures";
 
@@ -92,6 +92,78 @@ describe("Story-2 letter — copy on the page", () => {
       resolveStory2(story2SessionWith({ memories: { nicknames: "" } })),
     );
     expect(withoutNick).not.toContain("Murph, Mr. Murph, the worst dog");
+  });
+});
+
+describe("Story-2 letter — belief-frame wash image (feature-17 regression)", () => {
+  // Regression for the feature-17 gap: the belief-frame wash image (letter-page-5)
+  // was generated + mapped to a data URL but the `case "letter":` path dropped the
+  // `src` entirely, so it never rendered. These guard that a supplied wash src now
+  // lands ONLY on letter-page-5 (wrapped in .letter-page__wash), the cover portrait
+  // lands ONLY on letter-cover, and neither leaks onto a text-only body page.
+
+  // Distinct, recognizable sentinel data URLs — a unique base64 tail per image so
+  // a match is unambiguous about which slot it came from. Not real PNGs; we only
+  // assert on their presence/placement in the HTML string.
+  const COVER_SRC = "data:image/png;base64,COVERSENTINEL0001==";
+  const WASH_SRC = "data:image/png;base64,WASHSENTINEL0002==";
+
+  // Slice the HTML to just the section for `pageId`: from its `data-page="<id>"`
+  // marker up to the next `data-page=` boundary (or end of document for the last
+  // page). Lets us assert a src lands inside one specific page, not merely "somewhere".
+  function sectionFor(html: string, pageId: string): string {
+    const start = html.indexOf(`data-page="${pageId}"`);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const rest = html.indexOf("data-page=", start + 1);
+    return rest === -1 ? html.slice(start) : html.slice(start, rest);
+  }
+
+  function imageMap(): PageImageMap {
+    return { "letter-cover": COVER_SRC, "letter-page-5": WASH_SRC };
+  }
+
+  // (1) The wash src appears within the letter-page-5 section, wrapped in
+  // .letter-page__wash.
+  it("renders the wash src inside letter-page-5, wrapped in .letter-page__wash", () => {
+    const html = renderStoryHtml(resolveStory2(murphySession()), imageMap());
+    const page5 = sectionFor(html, "letter-page-5");
+    expect(page5).toContain('class="letter-page__wash"');
+    expect(page5).toContain(`src="${WASH_SRC}"`);
+  });
+
+  // (2) The wash src does NOT appear on a text-only body page (letter-page-4) —
+  // that page stays text-only.
+  it("does not render the wash src on a text-only body page (letter-page-4)", () => {
+    const html = renderStoryHtml(resolveStory2(murphySession()), imageMap());
+    const page4 = sectionFor(html, "letter-page-4");
+    expect(page4).not.toContain(WASH_SRC);
+    expect(page4).not.toContain('class="letter-page__wash"');
+  });
+
+  // (3) The cover src appears in the letter-cover section and does not leak into
+  // letter-page-5.
+  it("renders the cover src in letter-cover and not in letter-page-5", () => {
+    const html = renderStoryHtml(resolveStory2(murphySession()), imageMap());
+    const cover = sectionFor(html, "letter-cover");
+    const page5 = sectionFor(html, "letter-page-5");
+    expect(cover).toContain(`src="${COVER_SRC}"`);
+    expect(page5).not.toContain(COVER_SRC);
+  });
+
+  // (4) Graceful degradation: with an empty image map, NO .letter-page__wash
+  // ELEMENT is rendered. The inlined <head> stylesheet always contains the
+  // `.letter-page__wash { ... }` CSS rule, so `html.includes("letter-page__wash")`
+  // is a false positive. We dodge it by slicing off the <head> (so the <style>
+  // block is excluded) before asserting the wash class is absent from the body.
+  it("renders no .letter-page__wash element when the image map is empty", () => {
+    const html = renderStoryHtml(resolveStory2(murphySession()), {});
+    const bodyStart = html.indexOf("<body>");
+    expect(bodyStart).toBeGreaterThanOrEqual(0);
+    const body = html.slice(bodyStart);
+    expect(body).not.toContain("letter-page__wash");
+    // And the belief-wash page itself carries no wash element / image.
+    const page5 = sectionFor(html, "letter-page-5");
+    expect(page5).not.toContain("<img");
   });
 });
 

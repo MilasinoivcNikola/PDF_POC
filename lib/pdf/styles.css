@@ -834,20 +834,34 @@ em {
   text-align: center;
 }
 
+/* The cover art slot. Sized as a proper keepsake-cover portrait (feature 17's
+   real watercolor) — generous, but still leaving the cover's "book of poems"
+   white space above the title. The bare placeholder paw print (no real art)
+   keeps its smaller intrinsic size via the :not(:has(img)) rule below, so the
+   placeholder cover doesn't blow up to portrait size. */
 .letter-cover__mark {
-  width: 1in;
-  height: 1in;
+  width: 2.6in;
+  height: 2.6in;
   color: var(--rose);
-  margin-bottom: var(--s-16);
+  margin-bottom: var(--s-12);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Placeholder-only cover (inline paw-print SVG, no <img>): keep it small and
+   understated, the way feature 16 sized it. */
+.letter-cover__mark:not(:has(img)) {
+  width: 1in;
+  height: 1in;
+  margin-bottom: var(--s-16);
 }
 
 .letter-cover__mark img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  border-radius: 2px;
 }
 
 .letter-cover__title {
@@ -897,6 +911,43 @@ em {
 
 .letter-page__para + .letter-page__para {
   margin-top: var(--s-6);
+}
+
+/* --- Belief-frame wash (Page 5 only, Premium) ------------------------------
+   A soft, abstract watercolor band the prose sits above — reverent, not a
+   dominant photo (master template Page-5 brief + "white space is the design").
+   Sits below the prose with generous breathing room; height is clamped so it
+   can never crowd the text off the page or force a 7th page. Slightly reduced
+   opacity + a feathered edge keep it reading as a wash, not a hard-edged image.
+   Rendered only when a real wash src is present, so there is never an empty
+   slot on a Basic (no-wash) book. */
+.letter-page__wash {
+  margin-top: var(--s-12);
+  width: 100%;
+  height: 2.4in;
+  overflow: hidden;
+  flex-shrink: 0;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+}
+
+.letter-page__wash img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.88;
 }
 
 /* --- Signature block (Page 6 only) --- */

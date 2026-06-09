@@ -21,12 +21,17 @@ import { getStory } from "@/lib/story/registry";
 import type { StorySession } from "@/lib/session/types";
 
 /**
- * reference + every scene = the full set of images a book produces. The scene
- * slots come from the session's story definition (the registry), so the count is
- * product-specific; for Story 1 this is the existing 13 scenes + 1 reference = 14.
+ * The full set of images a book produces — the count the progress UI polls
+ * against. The slots come from the session's story definition (the registry), so
+ * the count is product-specific. Story 1 also writes a separate `reference.png`
+ * anchor that is not one of its slots, so it is `slots + 1` (13 scenes + 1 = 14);
+ * Story 2's two slots ARE the images (no separate reference), so it is exactly
+ * `slots` (= 2). The `+ 1` is gated on the story actually having that anchor.
  */
 function totalImages(session: StorySession): number {
-  return getStory(session.storyType ?? "story-1").illustrationSlots.length + 1;
+  const storyType = session.storyType ?? "story-1";
+  const slots = getStory(storyType).illustrationSlots.length;
+  return storyType === "story-1" ? slots + 1 : slots;
 }
 
 /** Live status of a generation run. "error" lives here, never on the session. */

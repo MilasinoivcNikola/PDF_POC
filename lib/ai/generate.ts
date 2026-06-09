@@ -26,10 +26,16 @@ import type {
   GeneratedImage,
   IllustrationStyle,
   StorySession,
+  Story2Session,
 } from "@/lib/session/types";
-import type { PageId } from "@/lib/story/master-text";
+import type { PageId, Story2PageId } from "@/lib/story/master-text";
 import { getOpenAI, photoToFile } from "@/lib/ai/client";
 import { buildScenePrompts, SCENE_PAGE_IDS } from "@/lib/ai/prompts";
+import {
+  buildStory2SlotPrompts,
+  type Story2SlotPrompt,
+} from "@/lib/ai/story2-prompts";
+import { getStory } from "@/lib/story/registry";
 import {
   findCachedImage,
   hashPrompt,
@@ -181,6 +187,38 @@ export async function generateSceneIllustration(
   const b64 = result.data?.[0]?.b64_json;
   if (!b64) {
     throw new Error("OpenAI returned no image data for the scene illustration.");
+  }
+  return Buffer.from(b64, "base64");
+}
+
+/**
+ * Generate one illustration from a PROMPT ONLY — no reference image. Used for
+ * Story 2's belief-frame wash (feature 17): an abstract sunlit-meadow / quiet-
+ * object wash with no pet figure, so there is nothing to anchor and no reference
+ * to pass. The SDK's prompt-only path is `images.generate` (`images.edit`
+ * requires an `image`); GPT image models always return base64, decoded here.
+ *
+ * @param prompt  The wash prompt (built by lib/ai/story2-prompts.ts).
+ * @param quality Cost tier; defaults to "low" (the project default).
+ */
+export async function generateImageFromPrompt(
+  prompt: string,
+  quality: Quality = "low",
+): Promise<Buffer> {
+  const openai = getOpenAI();
+  const result = await withRetry(() =>
+    openai.images.generate({
+      model: IMAGE_MODEL,
+      prompt,
+      size: "1024x1024",
+      quality,
+      n: 1,
+    }),
+  );
+
+  const b64 = result.data?.[0]?.b64_json;
+  if (!b64) {
+    throw new Error("OpenAI returned no image data for the prompt-only illustration.");
   }
   return Buffer.from(b64, "base64");
 }
@@ -349,6 +387,14 @@ export async function generateAllIllustrations(
   session: StorySession,
   options: GenerateOptions = {},
 ): Promise<GeneratedImage[]> {
+  // Dispatch on the product. The slot list is the registry's (per storyType), not
+  // a hardcoded Story-1 constant — the seam that lets a second product define its
+  // own illustration plan. Story 1 keeps its existing reference-then-scenes flow
+  // below, unchanged; Story 2 (feature 17) has its own minimal two-slot flow.
+  if ((session.storyType ?? "story-1") === "story-2") {
+    return generateStory2Illustrations(session as unknown as Story2Session, options);
+  }
+
   const approach = options.approach ?? "A";
   const sceneQuality = options.sceneQuality ?? "low";
   const referenceQuality = options.referenceQuality ?? "low";
@@ -447,6 +493,82 @@ export async function generateAllIllustrations(
   return [referenceEntry, ...sceneEntries];
 }
 
+// ---------------------------------------------------------------------------
+// Story 2 — minimal Premium imagery (cover portrait + belief wash)
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate (or reuse from cache) one Story-2 slot, save it, and return its
+ * manifest entry. The cover portrait passes the uploaded photo as a reference
+ * (pet consistency, via `images.edit`); the belief wash passes NO reference (an
+ * abstract, photo-free wash, via `images.generate`). Same cache contract as the
+ * Story-1 scenes — same page + prompt hash + reference hash + file on disk ⇒ a
+ * pure lookup, zero spend. The reference hash for the photo-free wash is the hash
+ * of an empty reference set, so it is still part of the key.
+ */
+async function generateAndSaveStory2Slot(
+  session: Story2Session,
+  slot: Story2PageId,
+  slotPrompt: Story2SlotPrompt,
+  photoBytes: Buffer,
+  quality: Quality,
+): Promise<GeneratedImage> {
+  const references = slotPrompt.useReference ? [photoBytes] : [];
+  const promptHash = hashPrompt(slotPrompt.prompt);
+  const referenceHash = hashReferenceSet(references);
+
+  const cached = await findCachedImage(session.images, slot, promptHash, referenceHash);
+  if (cached) {
+    return cached;
+  }
+
+  const bytes = slotPrompt.useReference
+    ? await generateSceneIllustration(references, slotPrompt.prompt, quality)
+    : await generateImageFromPrompt(slotPrompt.prompt, quality);
+  const path = await saveImage(session.id, `${slot}.png`, bytes);
+  return { page: slot, path, promptHash, referenceHash };
+}
+
+/**
+ * Generate Story 2's Premium imagery: the cover portrait + the belief-frame wash
+ * (two images, not thirteen). The slot list comes from the registry
+ * (`getStory("story-2").illustrationSlots`), so adding/removing a Story-2 slot is
+ * a registry change, not an orchestrator change. Each slot's prompt + reference
+ * flag come from `buildStory2SlotPrompts`. The two slots are independent ⇒
+ * generated through the bounded worker pool (the same rate-limit guard the
+ * Story-1 path uses), and every write goes through the traversal guards.
+ *
+ * Unlike Story 1, there is no separate "reference" anchor slot — `letter-cover`
+ * IS the portrait — so the returned manifest is exactly the registry's slots.
+ */
+async function generateStory2Illustrations(
+  session: Story2Session,
+  options: GenerateOptions,
+): Promise<GeneratedImage[]> {
+  const quality = options.sceneQuality ?? "low";
+
+  if (!isSafeSessionId(session.id)) {
+    throw new Error(`Unsafe session id: ${session.id}`);
+  }
+
+  const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+  if (!photoPath) {
+    throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+  }
+  const photoBytes = await readImage(photoPath);
+
+  const slots = getStory("story-2").illustrationSlots as readonly Story2PageId[];
+  const prompts = buildStory2SlotPrompts(session);
+
+  return mapWithConcurrency(slots, DEFAULT_CONCURRENCY, async (slot) => {
+    const slotPrompt = prompts[slot];
+    if (!slotPrompt) {
+      throw new Error(`No Story-2 prompt builder for slot: ${slot}`);
+    }
+    return generateAndSaveStory2Slot(session, slot, slotPrompt, photoBytes, quality);
+  });
+}
+
 /**
  * Regenerate a SINGLE page's illustration, re-using the reference illustration
  * already on disk (no second reference generation). Feeds feature 10's
@@ -465,11 +587,25 @@ export async function regenerateSceneIllustration(
   if (!isSafeSessionId(session.id)) {
     throw new Error(`Unsafe session id: ${session.id}`);
   }
-  if (!SCENE_PAGE_IDS.includes(page)) {
+
+  // The illustrated-slot allowlist is the session's product (the registry), not a
+  // hardcoded Story-1 constant. For Story 1 this set is identical to SCENE_PAGE_IDS,
+  // so the behavior is unchanged; Story 2 gates on its own two slots.
+  const storyType = session.storyType ?? "story-1";
+  const slots = getStory(storyType).illustrationSlots;
+  if (!slots.includes(page)) {
     throw new Error(`Page ${page} is not an illustrated scene.`);
   }
 
   const sceneQuality = options.sceneQuality ?? "low";
+
+  if (storyType === "story-2") {
+    return regenerateStory2Slot(
+      session as unknown as Story2Session,
+      page as Story2PageId,
+      sceneQuality,
+    );
+  }
 
   const referenceManifest = session.images.find((image) => image.page === "reference");
   if (!referenceManifest) {
@@ -494,6 +630,41 @@ export async function regenerateSceneIllustration(
   return { page, path, promptHash, referenceHash };
 }
 
+/**
+ * Regenerate a SINGLE Story-2 slot (the cover portrait or the belief wash),
+ * bypassing the cache (an explicit fresh render). The cover references the photo;
+ * the belief wash is photo-free — so the references / API path follow the slot's
+ * `useReference` flag, exactly as the full Story-2 run does. Saves over the old
+ * PNG and returns the updated manifest entry for the caller to splice.
+ */
+async function regenerateStory2Slot(
+  session: Story2Session,
+  slot: Story2PageId,
+  quality: Quality,
+): Promise<GeneratedImage> {
+  const slotPrompt = buildStory2SlotPrompts(session)[slot];
+  if (!slotPrompt) {
+    throw new Error(`No Story-2 prompt builder for slot: ${slot}`);
+  }
+
+  const references: Buffer[] = [];
+  if (slotPrompt.useReference) {
+    const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+    if (!photoPath) {
+      throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+    }
+    references.push(await readImage(photoPath));
+  }
+
+  const promptHash = hashPrompt(slotPrompt.prompt);
+  const referenceHash = hashReferenceSet(references);
+  const bytes = slotPrompt.useReference
+    ? await generateSceneIllustration(references, slotPrompt.prompt, quality)
+    : await generateImageFromPrompt(slotPrompt.prompt, quality);
+  const path = await saveImage(session.id, `${slot}.png`, bytes);
+  return { page: slot, path, promptHash, referenceHash };
+}
+
 // ---------------------------------------------------------------------------
 // Manifest → renderer input
 // ---------------------------------------------------------------------------
@@ -502,18 +673,24 @@ export async function regenerateSceneIllustration(
  * Turn a generated-images manifest into the `PageImageMap` the PDF template /
  * preview consume: page id → a self-contained `data:image/png;base64,…` URL the
  * renderer needs no base path to resolve (matching how render.ts inlines all
- * assets). The "reference" slot is dropped — it is the anchor, not a book page.
- * Reads each saved PNG back from disk; missing files are skipped so the template
- * falls back to its placeholder art for that page.
+ * assets). Only ILLUSTRATED slots map through — the set is the union of every
+ * product's `illustrationSlots` (the registry), so the Story-1 anchor "reference"
+ * and the writing-only "back-cover" are both excluded (neither is an illustration
+ * slot), while Story-2's `letter-cover`/`letter-page-5` pass through. Reads each
+ * saved PNG back from disk; missing files are skipped so the template falls back
+ * to its placeholder art for that page.
  */
 export async function manifestToImageMap(
   manifest: readonly GeneratedImage[],
 ): Promise<Partial<Record<PageId, string>>> {
   const map: Partial<Record<PageId, string>> = {};
-  const scenePages = new Set<string>(SCENE_PAGE_IDS);
+  const illustratedSlots = new Set<string>([
+    ...getStory("story-1").illustrationSlots,
+    ...getStory("story-2").illustrationSlots,
+  ]);
   await Promise.all(
     manifest
-      .filter((image) => scenePages.has(image.page))
+      .filter((image) => illustratedSlots.has(image.page))
       .map(async (image) => {
         try {
           const bytes = await readImage(image.path);

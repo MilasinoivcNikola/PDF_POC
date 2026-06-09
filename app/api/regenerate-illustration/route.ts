@@ -22,13 +22,18 @@ import { getStory } from "@/lib/story/registry";
 import type { PageId } from "@/lib/story/master-text";
 import type { GeneratedImage, StorySession } from "@/lib/session/types";
 
-// The illustrated scene slots, sourced through the registry rather than importing
-// the Story-1 list directly. This is a structural allowlist (reject arbitrary page
-// strings before any disk access), so it uses the Story-1 definition: the session
-// — and therefore its storyType — isn't read until after this guard, and Story 1
-// is the only registered product today. The set is identical to the previous
-// `SCENE_PAGE_IDS` import, so the validation behavior is unchanged.
-const SCENE_SLOTS: readonly PageId[] = getStory("story-1").illustrationSlots;
+// The illustrated scene slots across every registered product, sourced through
+// the registry rather than importing a Story-1 list directly. This is a
+// structural allowlist (reject arbitrary page strings before any disk access),
+// applied BEFORE the session — and therefore its storyType — is read. It is the
+// UNION of all products' slots because the storyType isn't known yet; the precise
+// per-story gate ("is this page a slot of THIS session's product?") is enforced
+// inside `regenerateSceneIllustration` after the read. For a Story-1 page the set
+// still contains every Story-1 slot, so Story-1 validation behavior is unchanged.
+const SCENE_SLOTS: readonly PageId[] = [
+  ...getStory("story-1").illustrationSlots,
+  ...getStory("story-2").illustrationSlots,
+];
 
 /** Read `{ id, page }` from the request body, with the page narrowed to a scene. */
 function readArgs(body: unknown): { id: string; page: PageId } | null {

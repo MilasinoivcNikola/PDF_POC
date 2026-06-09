@@ -1847,20 +1847,29 @@ p {
   text-align: center;
 }
 
+/* Cover art slot — keepsake-cover portrait (feature 17). Mirrors the print
+   2.6in slot; the bare placeholder paw print stays small via :not(:has(img)). */
 .letter-cover__mark {
-  width: 1in;
-  height: 1in;
+  width: 2.6in;
+  height: 2.6in;
   color: var(--rose);
-  margin-bottom: var(--s-16);
+  margin-bottom: var(--s-12);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.letter-cover__mark:not(:has(img)) {
+  width: 1in;
+  height: 1in;
+  margin-bottom: var(--s-16);
 }
 
 .letter-cover__mark img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  border-radius: 2px;
 }
 
 .letter-cover__title {
@@ -1908,6 +1917,38 @@ p {
 
 .letter-page__para + .letter-page__para {
   margin-top: var(--s-6);
+}
+
+/* Belief-frame wash (Page 5 only) — SCREEN mirror of the print rule. Responsive
+   height here; the .preview-page block below pins it to the print 2.4in. The
+   feathered mask + softened opacity match print so the wash reads identically. */
+.letter-page__wash {
+  margin-top: var(--s-12);
+  width: 100%;
+  height: clamp(1.6in, 22vw, 2.4in);
+  overflow: hidden;
+  flex-shrink: 0;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+}
+
+.letter-page__wash img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.88;
 }
 
 .letter-signature {
@@ -2108,6 +2149,11 @@ p {
 .preview-page .letter-signature__signoff,
 .preview-page .letter-signature__name {
   font-size: 1.05rem;
+}
+
+/* The belief wash at the print inch height so the preview is a true scale model. */
+.preview-page .letter-page__wash {
+  height: 2.4in;
 }
 
 /* --------------------------------------------------------------
