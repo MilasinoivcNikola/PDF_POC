@@ -16,7 +16,7 @@ import puppeteer from "puppeteer";
 import type { PageImageMap } from "@/lib/pdf/template";
 import { renderStoryHtml } from "@/lib/pdf/template";
 import type { StorySession } from "@/lib/session/types";
-import { resolveStory } from "@/lib/story/variants";
+import { getStory } from "@/lib/story/registry";
 
 // ---------------------------------------------------------------------------
 // Filename
@@ -99,7 +99,8 @@ export async function renderStoryPdf(
   session: StorySession,
   images: PageImageMap = {},
 ): Promise<Buffer> {
-  const html = renderStoryHtml(resolveStory(session), images);
+  const story = getStory(session.storyType ?? "story-1").resolve(session);
+  const html = renderStoryHtml(story, images);
 
   // TODO(feature 10): containerized/CI runs will likely need launch args —
   // `{ args: ["--no-sandbox"] }` and a resolved executable path. Local dev uses

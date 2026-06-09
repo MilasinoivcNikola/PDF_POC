@@ -18,7 +18,8 @@ import { NextResponse } from "next/server";
 import { readSession } from "@/lib/session/disk";
 import { isSafeSessionId } from "@/lib/ai/paths";
 import { manifestToImageMap } from "@/lib/ai/generate";
-import { renderStoryPdf, storyPdfFilename } from "@/lib/pdf/render";
+import { renderStoryPdf } from "@/lib/pdf/render";
+import { getStory } from "@/lib/story/registry";
 import { MergeError } from "@/lib/story/merge";
 
 /** Pull a string id from `{ id }` or `{ sessionId }` request bodies. */
@@ -75,7 +76,7 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const filename = storyPdfFilename(session.pet.name);
+  const filename = getStory(session.storyType ?? "story-1").pdfFilename(session);
 
   // Stream the bytes as a download. `new Uint8Array(pdf)` gives the Response a
   // plain ArrayBuffer view (a Node Buffer is a valid BodyInit, but the typed

@@ -34,6 +34,19 @@ export type OtherPetsInHome = "yes" | "no";
 /** Lifecycle of a session as it moves from wizard to generated book. */
 export type SessionStatus = "draft" | "generating" | "ready";
 
+/**
+ * Which product a session is for. Story 1 is the children's storybook ("Saying
+ * Goodbye to [PET_NAME]"); "story-2" is the adult letter (added by feature 15).
+ * The registry (lib/story/registry.ts) maps each value to its resolver,
+ * illustration plan, and PDF-filename builder.
+ *
+ * Back-compat: drafts/sessions written before this field existed have no
+ * `storyType`, so every reader treats a missing value as Story 1 via
+ * `session.storyType ?? "story-1"`. That is what makes the field zero-migration
+ * for on-disk `./sessions/*.json`.
+ */
+export type StoryType = "story-1" | "story-2";
+
 // ---------------------------------------------------------------------------
 // Input groups (collected by the wizard)
 // ---------------------------------------------------------------------------
@@ -125,6 +138,12 @@ export interface StoryDraft {
   id: string;
   createdAt: string;
   status: SessionStatus;
+  /**
+   * Which product this draft is for. Optional so drafts written before the field
+   * existed (no `storyType`) read back cleanly; readers default to "story-1" via
+   * `draft.storyType ?? "story-1"`.
+   */
+  storyType?: StoryType;
   pet: Partial<Pet>;
   child: Partial<Child>;
   memories: Partial<Memories>;
@@ -140,6 +159,12 @@ export interface StorySession {
   id: string;
   createdAt: string;
   status: SessionStatus;
+  /**
+   * Which product this session is for. Optional so sessions written before the
+   * field existed (no `storyType`) read back cleanly; readers default to
+   * "story-1" via `session.storyType ?? "story-1"` — no migration of on-disk JSON.
+   */
+  storyType?: StoryType;
   pet: Pet;
   child: Child;
   memories: Memories;

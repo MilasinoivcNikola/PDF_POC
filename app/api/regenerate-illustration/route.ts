@@ -18,9 +18,17 @@ import { promises as fs } from "node:fs";
 import { readSession, writeSession } from "@/lib/session/disk";
 import { isSafeSessionId } from "@/lib/ai/paths";
 import { regenerateSceneIllustration } from "@/lib/ai/generate";
-import { SCENE_PAGE_IDS } from "@/lib/ai/prompts";
+import { getStory } from "@/lib/story/registry";
 import type { PageId } from "@/lib/story/master-text";
 import type { GeneratedImage, StorySession } from "@/lib/session/types";
+
+// The illustrated scene slots, sourced through the registry rather than importing
+// the Story-1 list directly. This is a structural allowlist (reject arbitrary page
+// strings before any disk access), so it uses the Story-1 definition: the session
+// — and therefore its storyType — isn't read until after this guard, and Story 1
+// is the only registered product today. The set is identical to the previous
+// `SCENE_PAGE_IDS` import, so the validation behavior is unchanged.
+const SCENE_SLOTS: readonly PageId[] = getStory("story-1").illustrationSlots;
 
 /** Read `{ id, page }` from the request body, with the page narrowed to a scene. */
 function readArgs(body: unknown): { id: string; page: PageId } | null {
@@ -33,7 +41,7 @@ function readArgs(body: unknown): { id: string; page: PageId } | null {
   if (typeof id !== "string" || typeof page !== "string") {
     return null;
   }
-  if (!(SCENE_PAGE_IDS as readonly string[]).includes(page)) {
+  if (!(SCENE_SLOTS as readonly string[]).includes(page)) {
     return null;
   }
   return { id, page: page as PageId };

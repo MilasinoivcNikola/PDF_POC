@@ -288,30 +288,33 @@ function BackCoverPage({ page }: { page: ResolvedPage }) {
 }
 
 /**
- * Dispatch a resolved page to its treatment. Pages 2-6 and 8-9 and 11 use the
- * shared narrative layout (art + centered body); the cover, dedication, gentle
- * truth (7), love-stays (10), closing (12) and back cover get bespoke ones, to
- * match the prototype spreads.
+ * Dispatch a resolved page to its treatment by its `layout` tag — NOT by a
+ * literal page id. Dispatching on `layout` is the seam that lets this one
+ * renderer serve more than one product: a non-storybook product (the Story-2
+ * letter) declares its own layout and gets its own case, instead of silently
+ * falling through to the children's-book narrative treatment. For Story 1 the
+ * layout→component mapping is identical to the previous per-id dispatch (the
+ * narrative layout covers pages 2-6, 8, 9, 11), so the rendered markup is
+ * byte-identical.
  *
  * This is the single per-page renderer both the PDF document and the in-browser
  * preview call, so the two targets can never drift in structure or copy.
  */
 export function renderPage(page: ResolvedPage, src?: string): ReactElement {
-  switch (page.id) {
+  switch (page.layout) {
     case "cover":
       return <CoverPage key={page.id} page={page} src={src} />;
-    case "page-1":
+    case "dedication":
       return <DedicationPage key={page.id} page={page} />;
-    case "page-7":
+    case "truth":
       return <TruthPage key={page.id} page={page} src={src} />;
-    case "page-10":
+    case "love":
       return <LovePage key={page.id} page={page} />;
-    case "page-12":
+    case "closing":
       return <ClosingPage key={page.id} page={page} src={src} />;
     case "back-cover":
       return <BackCoverPage key={page.id} page={page} />;
-    default:
-      // pages 2,3,4,5,6,8,9,11 — the standard narrative layout.
+    case "narrative":
       return (
         <NarrativePage
           key={page.id}
