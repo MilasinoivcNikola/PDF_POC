@@ -31,6 +31,8 @@ Build them roughly in number order — each feature lists what it depends on.
 | 09 | [Generation progress & orchestration API](09-generation-progress-and-orchestration.md) | 4 | 3 + 2 · `nextjs-ui-builder` / `ai-image-specialist` | 07, 08 |
 | 10 | [In-browser preview & PDF download](10-preview-and-pdf-download.md) | 5 | 3 + 1 · `nextjs-ui-builder` / `pdf-render-specialist` | 05, 09 |
 | 11 | [Polish & iteration](11-polish-and-iteration.md) | 6 | mixed | 10 |
+| 12 | [Input photo downscale](12-input-photo-downscale.md) | 6 (polish) | 2 · `ai-image-specialist` | 06, 07, 10 |
+| 13 | [Switch scene generation to Low tier](13-low-tier-images.md) | 6 (polish) | 2 · `ai-image-specialist` | 07, 09 |
 
 ## Milestone map (from the plan)
 
