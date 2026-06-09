@@ -29,12 +29,35 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
+ * The render layout a resolved page uses, decoupled from its (product-specific)
+ * page id. The PDF/preview renderer (lib/pdf/pages.tsx) dispatches on this, NOT
+ * on literal ids, so one renderer can serve more than one product: a Story-2
+ * letter page declares its own layout and never falls through to the
+ * children's-book narrative treatment.
+ *
+ * Story-1 uses every value below. The union is intentionally extensible — when
+ * Story 2 (feature 15) adds letter layouts, they extend this union and the
+ * renderer grows a case, with no change to the Story-1 mapping.
+ */
+export type PageLayout =
+  | "cover"
+  | "dedication"
+  | "narrative"
+  | "truth"
+  | "love"
+  | "closing"
+  | "back-cover";
+
+/**
  * One fully-resolved book page: same shape as `MasterPage`, but every
- * `{placeholder}` has been substituted, so all strings are final printed copy.
- * The optional `dedication` (Page 1 only) appears here only when provided.
+ * `{placeholder}` has been substituted, so all strings are final printed copy,
+ * plus a `layout` tag the renderer dispatches on. The optional `dedication`
+ * (Page 1 only) appears here only when provided.
  */
 export interface ResolvedPage {
   id: PageId;
+  /** Which render treatment this page uses (renderer dispatches on this). */
+  layout: PageLayout;
   /** Printed page number for numbered pages; null for cover/back cover. */
   pageNumber: number | null;
   /** Resolved heading copy, where the page has one. */
@@ -161,6 +184,30 @@ function substitute(
   });
 }
 
+/**
+ * The render layout each Story-1 page uses. This mirrors exactly the per-id
+ * dispatch the renderer used before it switched to dispatching on `layout`:
+ * cover/dedication/truth(7)/love(10)/closing(12)/back-cover get bespoke
+ * treatments; every other numbered page (2-6, 8, 9, 11) is "narrative". Kept
+ * here (beside the merge) because the layout is a property of the resolved page.
+ */
+const STORY_1_LAYOUT: Record<PageId, PageLayout> = {
+  cover: "cover",
+  "page-1": "dedication",
+  "page-2": "narrative",
+  "page-3": "narrative",
+  "page-4": "narrative",
+  "page-5": "narrative",
+  "page-6": "narrative",
+  "page-7": "truth",
+  "page-8": "narrative",
+  "page-9": "narrative",
+  "page-10": "love",
+  "page-11": "narrative",
+  "page-12": "closing",
+  "back-cover": "back-cover",
+};
+
 /** Resolve one master page's strings, recording any missing keys. */
 function resolvePage(
   page: MasterPage,
@@ -169,6 +216,7 @@ function resolvePage(
 ): ResolvedPage {
   const resolved: ResolvedPage = {
     id: page.id,
+    layout: STORY_1_LAYOUT[page.id],
     pageNumber: page.pageNumber,
     body: page.body.map((p) => substitute(p, values, missing)),
     illustrationBrief: substitute(page.illustrationBrief, values, missing),

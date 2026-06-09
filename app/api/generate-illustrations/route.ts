@@ -17,11 +17,17 @@ import { NextResponse } from "next/server";
 import { readSession, writeSession } from "@/lib/session/disk";
 import { isSafeSessionId, resolveUnder } from "@/lib/ai/paths";
 import { generateAllIllustrations } from "@/lib/ai/generate";
-import { SCENE_PAGE_IDS } from "@/lib/ai/prompts";
+import { getStory } from "@/lib/story/registry";
 import type { StorySession } from "@/lib/session/types";
 
-/** reference + every scene = the full set of images a book produces. */
-const TOTAL_IMAGES = SCENE_PAGE_IDS.length + 1;
+/**
+ * reference + every scene = the full set of images a book produces. The scene
+ * slots come from the session's story definition (the registry), so the count is
+ * product-specific; for Story 1 this is the existing 13 scenes + 1 reference = 14.
+ */
+function totalImages(session: StorySession): number {
+  return getStory(session.storyType ?? "story-1").illustrationSlots.length + 1;
+}
 
 /** Live status of a generation run. "error" lives here, never on the session. */
 type JobStatus = "generating" | "ready" | "error";
@@ -141,7 +147,7 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({
       ok: true,
       status: "generating",
-      total: TOTAL_IMAGES,
+      total: totalImages(session),
     });
   }
   jobs.set(id, { status: "generating" });
@@ -158,7 +164,11 @@ export async function POST(request: Request): Promise<Response> {
 
   startGeneration(generating);
 
-  return NextResponse.json({ ok: true, status: "generating", total: TOTAL_IMAGES });
+  return NextResponse.json({
+    ok: true,
+    status: "generating",
+    total: totalImages(session),
+  });
 }
 
 /**
@@ -190,6 +200,7 @@ export async function GET(request: Request): Promise<Response> {
 
   const donePages = await listDonePages(id);
   const done = donePages.length;
+  const total = totalImages(session);
 
   const job = jobs.get(id);
   let status: JobStatus;
@@ -201,14 +212,14 @@ export async function GET(request: Request): Promise<Response> {
     // No live job (server restart, cache-hit resume) and the session isn't marked
     // ready yet: report what's on disk. Treat a complete disk set as ready so a
     // resumed run that already finished its writes can still advance.
-    status = done >= TOTAL_IMAGES ? "ready" : "generating";
+    status = done >= total ? "ready" : "generating";
   }
 
   return NextResponse.json({
     ok: true,
     status,
     done,
-    total: TOTAL_IMAGES,
+    total,
     donePages,
     ...(job?.error ? { error: job.error } : {}),
   });

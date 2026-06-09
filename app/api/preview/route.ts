@@ -21,7 +21,7 @@ import { NextResponse } from "next/server";
 import { readSession } from "@/lib/session/disk";
 import { isSafeSessionId } from "@/lib/ai/paths";
 import { manifestToImageMap } from "@/lib/ai/generate";
-import { resolveStory } from "@/lib/story/variants";
+import { getStory } from "@/lib/story/registry";
 import { MergeError } from "@/lib/story/merge";
 import {
   EDITABLE_FIELDS,
@@ -48,7 +48,7 @@ export async function GET(request: Request): Promise<Response> {
 
   let pages;
   try {
-    pages = resolveStory(session);
+    pages = getStory(session.storyType ?? "story-1").resolve(session);
   } catch (error) {
     // A session that can't resolve (missing merge field) shouldn't reach preview,
     // but report it cleanly rather than 500-ing with a stack trace.

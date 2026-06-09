@@ -8,6 +8,8 @@ import { mergeStory, MergeError } from "@/lib/story/merge";
 // resolveStory (compose variants → merge) is the single public entry point and
 // lives in variants.ts; aliased to `_resolveStory` here for brevity.
 import { resolveStory as _resolveStory } from "@/lib/story/variants";
+import type { PageLayout } from "@/lib/story/merge";
+import type { PageId } from "@/lib/story/master-text";
 import type { Pronoun } from "@/lib/session/types";
 import {
   otisSession,
@@ -52,6 +54,79 @@ describe("no placeholder survives a complete merge", () => {
     const cover = pageById(_resolveStory(otisSession()), "cover");
     expect(cover.title).toBe("Saying Goodbye to Otis");
     expect(cover.subtitle).toBe("A story for Emma");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Resolved page layout tag (feature 14 — the renderer dispatches on this)
+// ---------------------------------------------------------------------------
+
+describe("every resolved page carries its render layout", () => {
+  // The expected id → layout mapping the multi-story refactor established. The
+  // renderer (lib/pdf/pages.tsx) dispatches on `layout` instead of literal ids;
+  // for Story 1 this must mirror the old per-id dispatch exactly so output is
+  // byte-identical. Cover/dedication/truth(7)/love(10)/closing(12)/back-cover get
+  // bespoke treatments; every other numbered page is "narrative".
+  const expectedLayout: Record<PageId, PageLayout> = {
+    cover: "cover",
+    "page-1": "dedication",
+    "page-2": "narrative",
+    "page-3": "narrative",
+    "page-4": "narrative",
+    "page-5": "narrative",
+    "page-6": "narrative",
+    "page-7": "truth",
+    "page-8": "narrative",
+    "page-9": "narrative",
+    "page-10": "love",
+    "page-11": "narrative",
+    "page-12": "closing",
+    "back-cover": "back-cover",
+  };
+
+  it("resolves all 14 pages, each with the correct layout", () => {
+    const story = _resolveStory(otisSession());
+    expect(story).toHaveLength(14);
+    for (const page of story) {
+      expect(
+        page.layout,
+        `page ${page.id} should have layout "${expectedLayout[page.id]}"`,
+      ).toBe(expectedLayout[page.id]);
+    }
+  });
+
+  it("tags exactly the bespoke pages (cover, dedication, truth, love, closing, back-cover)", () => {
+    const story = _resolveStory(otisSession());
+    expect(pageById(story, "cover").layout).toBe("cover");
+    expect(pageById(story, "page-1").layout).toBe("dedication");
+    expect(pageById(story, "page-7").layout).toBe("truth");
+    expect(pageById(story, "page-10").layout).toBe("love");
+    expect(pageById(story, "page-12").layout).toBe("closing");
+    expect(pageById(story, "back-cover").layout).toBe("back-cover");
+  });
+
+  it('tags the remaining numbered pages (2-6, 8, 9, 11) as "narrative"', () => {
+    const story = _resolveStory(otisSession());
+    const narrativeIds: PageId[] = [
+      "page-2",
+      "page-3",
+      "page-4",
+      "page-5",
+      "page-6",
+      "page-8",
+      "page-9",
+      "page-11",
+    ];
+    for (const id of narrativeIds) {
+      expect(pageById(story, id).layout, `page ${id}`).toBe("narrative");
+    }
+  });
+
+  it("keeps page ids stable (cache/manifest/regenerate keys unaffected)", () => {
+    // The refactor adds `layout` but must NOT rename ids — the image manifest,
+    // cache, and regenerate paths key on these.
+    const ids = _resolveStory(otisSession()).map((p) => p.id);
+    expect(ids).toEqual(Object.keys(expectedLayout));
   });
 });
 
