@@ -131,9 +131,10 @@ These three areas have rules that general web code doesn't.
 - Model: `gpt-image-2-2026-04-21`. Verify the exact param names
   (`reference_images`, `quality`, `size`) against the live SDK at build time — the
   Images API has renamed params before.
-- **Cost tiers are a hard rule:** `low` while iterating on prompts, `medium` for real
-  book runs, `high` only for final/cover renders. Default new code to the cheapest
-  tier that fits.
+- **Cost tiers are a hard rule:** `low` is the default — for iterating on prompts **and**
+  for real book runs (scene generation defaults to `low`); `medium`/`high` are deliberate
+  opt-in overrides for higher fidelity (e.g. final/cover renders). Default new code to the
+  cheapest tier that fits.
 - **Cache by `hash(prompt + reference images)`.** Regenerating one page must re-call
   the API for that page only — never the whole book.
 - Pet consistency is the central craft problem (Approach A → B in the plan). Prompt

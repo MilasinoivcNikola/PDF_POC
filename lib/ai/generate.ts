@@ -193,7 +193,7 @@ export async function generateSceneIllustration(
 export interface GenerateOptions {
   /** Pet-consistency strategy. Default "A" (photo + reference per scene). */
   approach?: ConsistencyApproach;
-  /** Quality tier for the scene pages. Default "medium" (a real book run). */
+  /** Quality tier for the scene pages. Default "low" (the project default for real book runs). */
   sceneQuality?: Quality;
   /**
    * Quality tier for the locked reference illustration. Default "low" — the
@@ -343,14 +343,14 @@ async function generateAndSaveScene(
  * renderer (see `manifestToImageMap`).
  *
  * @param session The finalized story session (pet photo path on `pet.photo`).
- * @param options Approach + quality tiers. Defaults: A, scenes "medium".
+ * @param options Approach + quality tiers. Defaults: A, scenes "low".
  */
 export async function generateAllIllustrations(
   session: StorySession,
   options: GenerateOptions = {},
 ): Promise<GeneratedImage[]> {
   const approach = options.approach ?? "A";
-  const sceneQuality = options.sceneQuality ?? "medium";
+  const sceneQuality = options.sceneQuality ?? "low";
   const referenceQuality = options.referenceQuality ?? "low";
 
   if (!isSafeSessionId(session.id)) {
@@ -469,7 +469,7 @@ export async function regenerateSceneIllustration(
     throw new Error(`Page ${page} is not an illustrated scene.`);
   }
 
-  const sceneQuality = options.sceneQuality ?? "medium";
+  const sceneQuality = options.sceneQuality ?? "low";
 
   const referenceManifest = session.images.find((image) => image.page === "reference");
   if (!referenceManifest) {

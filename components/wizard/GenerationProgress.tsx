@@ -190,9 +190,9 @@ export function GenerationProgress({
 
       <footer className="site-footer">
         <p className="label">
-          Using gpt-image-2-2026-04-21 · Medium quality
+          Using gpt-image-2-2026-04-21 · Low quality
         </p>
-        <p className="label">~$0.58 per book · From your own credits</p>
+        <p className="label">~$0.07 per book · From your own credits</p>
       </footer>
     </div>
   );
