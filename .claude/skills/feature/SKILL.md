@@ -33,7 +33,7 @@ Execute the requested action: $ARGUMENTS
 | `start`    | Create branch, dispatch implementation agent(s)           | one of the 3 specialists |
 | `test`     | Unit-test server actions and utilities (`npm run test:run`)| `test-author`           |
 | `qa`       | Drive the running app to verify UI changes                | `qa-verifier` → `/verify`|
-| `review`   | Check goals met + code quality + context-doc freshness    | `code-reviewer` → `/code-review`, `context-auditor` |
+| `review`   | Check goals met + code quality + security + context-doc freshness | `code-reviewer` → `/code-review`, `context-auditor`, `commerce-security-reviewer` → `/security-review` (commerce diffs) |
 | `explain`  | Document what changed and why                             | — (main thread)          |
 | `complete` | Commit, merge, delete branch, log history, reset          | — (main thread)          |
 
@@ -56,6 +56,10 @@ Implementation specialists — `start` dispatches by Craft Area (see
 Workflow agents — back the verification steps and **delegate to built-in skills**:
 
 - **code-reviewer** → `/code-review` (never `ultra`).
+- **commerce-security-reviewer** → `/security-review`, dispatched **only** when the
+  diff touches the commerce surface (orders, Supabase, payment / webhook /
+  delivery / admin-auth); applies the spend-guard / webhook / RLS / IDOR / PII
+  threat model.
 - **context-auditor** → audits the diff against the standing context docs
   (`CLAUDE.md`, `context/*.md`, commerce roadmap, masterstories) for drift;
   read-only, recommends a fix direction.

@@ -10,8 +10,14 @@ After the feature builds and `test` / `qa` are green — the last gate before
 
 ## Steps
 
-Dispatch both review agents **in parallel** (two Agent calls in one message) —
-they read the same diff but judge different things, so there's no dependency.
+First, **decide scope**: does this feature's diff touch the **commerce surface** —
+`lib/order/`, `lib/supabase/`, `supabase/migrations/`, `lib/catalog/`, or any
+payment / webhook / checkout / delivery / admin-auth route? If yes, the
+`commerce-security-reviewer` joins this run (step 3). If no (a POC-only change —
+typography, preview, wizard, the engine), skip it.
+
+Dispatch the review agents **in parallel** (all Agent calls in one message) — they
+read the same diff but judge different things, so there's no dependency.
 
 1. **Dispatch the `code-reviewer` agent** via the Agent tool
    (`subagent_type: code-reviewer`). Brief it with the feature Goals/Notes. It
@@ -34,10 +40,26 @@ they read the same diff but judge different things, so there's no dependency.
    roadmap supersedes the old plan's "out of scope" lines) and returns
    **IN SYNC** or **DRIFT FOUND** with a recommended resolution *direction* per
    finding. It is read-only — it does not rewrite the docs.
-3. **Relay both verdicts** to Nikola:
+3. **Dispatch the `commerce-security-reviewer` agent** — *only if the scope check
+   above flagged a commerce-surface change* (`subagent_type:
+   commerce-security-reviewer`). Brief it with the feature Goals/Notes. It will:
+   - Delegate to the built-in **`/security-review`** skill over the pending diff.
+   - Apply the commerce threat model the generic reviewer doesn't carry: the order
+     state machine's **spend guard** (no generation on an unpaid order, no
+     double-spend race), Lemon Squeezy **webhook** signature + idempotency, the
+     Supabase **service-role / RLS boundary** (server-only key, default-deny),
+     **IDOR** on order / photo / PDF / delivery-token lookups, and **PII / secret**
+     handling.
+   - Return **PASS** or **CHANGES NEEDED**. For a POC-only feature it is not
+     dispatched at all.
+4. **Relay the verdicts** to Nikola:
    - Code review: **PASS** or **CHANGES NEEDED**, blocking issues first (with
      `file:line`), then nice-to-haves. Frame the call in business/user terms where
      it matters (e.g. "this blocks the preview moment for the parent persona").
+   - Commerce security *(only when it ran)*: **PASS** or **CHANGES NEEDED**,
+     blocking issues first (with `file:line` + the money/data impact in plain
+     terms — e.g. "this lets an unpaid order reach generation" or "this PDF is
+     reachable by guessing an order id"). Omit this line for POC-only features.
    - Context audit: **IN SYNC** or **DRIFT FOUND**, with each drift as
      `doc:line` → says / reality / recommended direction. For drift, **lead with a
      recommendation** (update which doc, or fix the code) — these are
@@ -45,9 +67,11 @@ they read the same diff but judge different things, so there's no dependency.
 
 ## Guardrails
 
-- Both agents are read-only. If `code-reviewer` finds blocking issues, loop back
-  to `start` / the specialist to fix, then re-review — don't `complete` over open
-  blockers.
+- All review agents are read-only. If `code-reviewer` **or**
+  `commerce-security-reviewer` finds blocking issues, loop back to `start` / the
+  specialist to fix, then re-review — don't `complete` over open blockers. A
+  commerce-security blocker is **hard-gating**: never `complete` a feature that can
+  spend on an unpaid order, leak a customer's data, or trust an unverified webhook.
 - **Resolve doc drift on this branch, before `complete`.** Per
   `context/coding-standards.md` ("fix the code or fix this doc in the same PR —
   never let them drift"), a **DRIFT FOUND** verdict is a soft gate: apply the
