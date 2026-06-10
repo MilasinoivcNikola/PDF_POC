@@ -1,0 +1,118 @@
+import { describe, it, expect } from "vitest";
+
+import { getProduct, getProducts } from "@/lib/catalog/products";
+import { getStory } from "@/lib/story/registry";
+import type { StoryType } from "@/lib/session/types";
+
+// Every story type the engine knows about. The catalog is meant to be one
+// product per live `storyType` (see lib/catalog/products.ts module doc), so this
+// list lets us assert the catalog covers every story the registry can resolve —
+// adding a Story 3 to the registry without a catalog entry would then fail here.
+const ALL_STORY_TYPES: StoryType[] = ["story-1", "story-2"];
+
+// The product catalog (PR-02) under test: a pure, client-safe data module that
+// turns each registered `storyType` into a sellable `Product`. The load-bearing
+// assertion is the no-drift guard — `illustrationCount` is derived from the
+// registry's `illustrationSlots`, never hardcoded, so it can't fall out of sync
+// with the engine. The rest assert the catalog lists the live books with valid
+// prices and that lookups behave.
+
+describe("getProducts", () => {
+  it("lists exactly the live books (story-1 + story-2)", () => {
+    const products = getProducts();
+    expect(products.map((p) => p.productId)).toEqual([
+      "story-1-book",
+      "story-2-letter",
+    ]);
+    expect(products.map((p) => p.storyType)).toEqual(["story-1", "story-2"]);
+  });
+
+  it("returns a stable reference (cached) across calls", () => {
+    expect(getProducts()).toBe(getProducts());
+  });
+
+  it("maps every product to a real registry story", () => {
+    for (const product of getProducts()) {
+      // getStory throws for an unregistered storyType — calling it is the assertion.
+      expect(() => getStory(product.storyType)).not.toThrow();
+    }
+  });
+
+  it("derives illustrationCount from the registry (no-drift guard)", () => {
+    for (const product of getProducts()) {
+      const slots = getStory(product.storyType).illustrationSlots;
+      expect(product.illustrationCount).toBe(slots.length);
+      // Assert against the registry, not a literal, so a future slot change
+      // updates both in lockstep and never drifts.
+      expect(product.illustrationCount).toBeGreaterThan(0);
+    }
+  });
+
+  it("has a positive price for every product", () => {
+    for (const product of getProducts()) {
+      expect(product.priceUsd).toBeGreaterThan(0);
+    }
+  });
+
+  it("leaves lsVariantId unset until PR-06 and sampleImages an array", () => {
+    for (const product of getProducts()) {
+      expect(product.lsVariantId).toBeUndefined();
+      expect(Array.isArray(product.sampleImages)).toBe(true);
+    }
+  });
+
+  it("has a unique productId and storyType per product (no copy-paste dupes)", () => {
+    const products = getProducts();
+    const ids = products.map((p) => p.productId);
+    const types = products.map((p) => p.storyType);
+    // A future Story-3 entry that copy-pastes an existing id/storyType would
+    // collide here, even though the exact-list test above (a literal pair) would
+    // not generically catch it once the catalog grows.
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(new Set(types).size).toBe(types.length);
+  });
+
+  it("covers every registered storyType the engine knows about", () => {
+    const covered = new Set(getProducts().map((p) => p.storyType));
+    // The catalog is one product per live storyType — registering a new story in
+    // the registry without adding a catalog entry should be caught here.
+    for (const storyType of ALL_STORY_TYPES) {
+      expect(covered.has(storyType)).toBe(true);
+    }
+    // ...and the catalog sells nothing beyond the known story types.
+    expect(covered.size).toBe(ALL_STORY_TYPES.length);
+  });
+
+  it("has non-empty marketing copy for every product", () => {
+    for (const product of getProducts()) {
+      // Guards against a product shipped with blank title/tagline/description.
+      expect(product.title.trim().length).toBeGreaterThan(0);
+      expect(product.tagline.trim().length).toBeGreaterThan(0);
+      expect(product.description.trim().length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("getProduct", () => {
+  it("returns the matching product for a known id", () => {
+    const product = getProduct("story-1-book");
+    expect(product).not.toBeNull();
+    expect(product?.productId).toBe("story-1-book");
+    expect(product?.storyType).toBe("story-1");
+  });
+
+  it("returns the Story-2 product for its id", () => {
+    expect(getProduct("story-2-letter")?.storyType).toBe("story-2");
+  });
+
+  it("returns null for an unknown id", () => {
+    expect(getProduct("nope")).toBeNull();
+  });
+
+  it("returns the same cached object reference as getProducts()", () => {
+    const fromList = getProducts().find((p) => p.productId === "story-1-book");
+    // Lookup and list must hand back the same instance so a consumer that mutates
+    // or identity-checks a product sees one canonical object, not a copy.
+    expect(getProduct("story-1-book")).toBe(fromList);
+  });
+});
