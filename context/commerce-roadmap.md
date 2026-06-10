@@ -90,11 +90,32 @@ generate. Supabase holds only the order row, the input photo, and the final PDF.
 
 ## Order state machine (the backbone)
 
-`paid` → `queued` → `generating` → `awaiting_review` → `approved` → `delivered`
-&nbsp;&nbsp;&nbsp;&nbsp;(plus `failed` → operator attention, `refunded` / `cancelled`)
+Orders are **created in `pending_payment`** and move forward only on the paid webhook:
 
-- Generation only ever starts on the **paid** Lemon Squeezy webhook (no spending on unpaid orders).
+`pending_payment` → `paid` → `queued` → `generating` → `awaiting_review` → `approved` → `delivered`
+
+The full transition table is implemented in `lib/order/state.ts` (**the single source of
+truth** — `ALLOWED_TRANSITIONS` / `canTransition` / `assertTransition`), mirrored as a
+`CHECK` constraint in `supabase/migrations/0001_orders.sql`, and enforced **before any DB
+write** (an illegal move throws and never touches Postgres):
+
+| From | → Allowed |
+|------|-----------|
+| `pending_payment` | `paid`, `cancelled` |
+| `paid` | `queued`, `refunded`, `cancelled` |
+| `queued` | `generating`, `failed`, `cancelled` |
+| `generating` | `awaiting_review`, `failed` |
+| `awaiting_review` | `approved`, `failed` |
+| `approved` | `delivered`, `failed` |
+| `failed` | `queued` (retry), `refunded`, `cancelled` |
+| `delivered` / `refunded` / `cancelled` | — (terminal) |
+
+- Generation only ever starts on the **paid** Lemon Squeezy webhook (no spending on unpaid
+  orders): the only edge into `generating` is `queued → generating`, and the only edges into
+  `queued` are `paid → queued` and the `failed → queued` retry — there is no shortcut from
+  `pending_payment`.
 - `awaiting_review` is the operator's queue; `approved` triggers final PDF render + delivery.
+  `failed` is recoverable (operator retries via `failed → queued`).
 - Grows out of the existing session `status` (`generating`/`ready`) + feature-09 job
   registry, but moves from local JSON into the shared Supabase store.
 

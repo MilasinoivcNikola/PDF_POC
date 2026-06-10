@@ -21,6 +21,14 @@ Do not add dependencies, state libraries (Zustand/Jotai), a database, or a test
 framework beyond this list without approval. The plan in
 [local-prototype-plan.md](./local-prototype-plan.md) deliberately keeps the surface small.
 
+> **Commerce exception (approved).** [commerce-roadmap.md](./commerce-roadmap.md) is the
+> standing approval for graduating past the POC surface — it adds **Supabase**
+> (Postgres + Storage) via the **`@supabase/supabase-js`** dependency as the persisted
+> order store (the CLI is not a runtime dep; migrations run via the dashboard/`psql`).
+> This coexists with the JSON-session store — see *Files, IO, and persistence* below.
+> Later commerce PRs add Lemon Squeezy and Resend per the roadmap; those are pre-approved
+> there too, not here. Anything *outside* the roadmap still needs sign-off.
+
 ---
 
 ## TypeScript
@@ -82,10 +90,25 @@ framework beyond this list without approval. The plan in
 
 - Runtime data dirs — `uploads/ generated/ sessions/ output/` — are gitignored and
   ESLint-ignored. Code may create/read files there; never commit their contents.
-- No database. Sessions are JSON files (`./sessions/[id].json`); images are files
-  under `./generated/[session-id]/`. Keep this — it's a deliberate scope choice.
-- Secrets come from `.env.local` (`OPENAI_API_KEY`). Never hardcode keys; never log
-  them. Keep `.env.local.example` in sync when a new env var is introduced.
+- **Two stores, by design.** The local POC **engine** persists to JSON files
+  (`./sessions/[id].json`) + images under `./generated/[session-id]/` — keep this for
+  the engine's inputs/artifacts. The **commerce layer** persists **orders** to
+  **Supabase** (Postgres + Storage), per [commerce-roadmap.md](./commerce-roadmap.md)
+  (the standing approval — see *Stack* above). They coexist: JSON = local generation
+  inputs/outputs; Supabase = the durable order record + uploaded photo + final PDF.
+- **Commerce data layer** (`lib/order/` + `lib/supabase/` + `supabase/migrations/`):
+  `lib/order/types.ts` owns the `Order` / `OrderStatus` contract every later commerce PR
+  imports; `lib/order/state.ts` is the **single source of truth** for legal status
+  transitions (mirror it in the migration's `CHECK` constraint, never fork it).
+  `lib/supabase/` holds the server-only client (`server.ts`), the `isSafeOrderId` guard
+  (`ids.ts`), and Storage helpers (`storage.ts`). The service-role client is
+  **server-only** — same `lib/session/disk.ts` discipline — and must never reach a
+  client/public bundle; RLS is defence-in-depth on top.
+- Secrets come from `.env.local` (`OPENAI_API_KEY`; the commerce `SUPABASE_SERVICE_ROLE_KEY`).
+  Never hardcode keys; never log them. The Supabase **service-role** key is server-only —
+  never expose it to the browser or a `NEXT_PUBLIC_*` var (the anon key is the only
+  client-safe one, and only behind RLS). Keep `.env.local.example` in sync when a new env
+  var is introduced.
 
 ---
 
