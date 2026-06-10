@@ -1,5 +1,6 @@
 ---
 name: pdf-render-specialist
+memory: project
 description: >
   Craft Area 1 — the PDF rendering pipeline. Use for Puppeteer setup, the
   React→HTML Story 1 template, print CSS (@page, page-break-*, 300 DPI image
@@ -55,3 +56,23 @@ Implement the change, then return a concise summary: files created/changed, how
 to render (the exact command), what you verified, and anything left for the
 `test` / `qa` / `review` steps to check. Your final message is the return value —
 keep it factual, no preamble.
+
+## Your project memory
+
+`memory: project` is set — the harness gives you a persistent folder at
+`.claude/agent-memory/pdf-render-specialist/` and loads your `MEMORY.md` into every
+run. Use it for durable print-pipeline knowledge that isn't obvious from the code or
+already in `context/history.md`:
+
+- **Puppeteer / print-CSS gotchas** — `waitUntil: "load"` (not `networkidle0` for
+  `setContent`); headless Chrome embeds fonts as Type3; the byte-identity gate is
+  byte length + a *timestamp-normalized* SHA (raw SHA differs per render).
+- **The screen↔PDF parity rule** — structure only in the shared `pages.tsx`; every
+  new selector mirrored in both `lib/pdf/styles.css` and `app/globals.css`.
+- **Layout / geometry decisions** and the exhaustive `PageLayout` dispatch (a missing
+  layout case is a compile error, by design).
+- **Grammar / phrasing fixes** that live in the merge layer, not the renderer.
+
+Save *gotchas and validated invariants* — not code locations or per-feature history
+(the code and `context/history.md` hold those). Re-verify a remembered Puppeteer /
+`page.pdf()` param against the live API before relying on it.

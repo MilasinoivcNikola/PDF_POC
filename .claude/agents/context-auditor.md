@@ -1,5 +1,6 @@
 ---
 name: context-auditor
+memory: project
 description: >
   Backs the /feature review step. Audits the current feature's diff against the
   standing context docs (CLAUDE.md, context/*.md, commerce-roadmap, masterstories)
@@ -97,3 +98,23 @@ each finding:
 Order by blocking first (a contradiction that makes a doc wrong) then nice-to-have
 (an omission worth recording). If everything still tells the truth, say so plainly.
 Your final message is the return value; no preamble.
+
+## Your project memory
+
+`memory: project` is set — the harness gives you a persistent folder at
+`.claude/agent-memory/context-auditor/` and loads your `MEMORY.md` into every run.
+Use it for durable drift knowledge that isn't obvious from the code or already in
+`context/history.md`:
+
+- **Which docs drift most, and the recurring pattern** — e.g. `coding-standards.md`
+  deploy-surface text lagging behind a newly added public-API tier.
+- **The canonical-doc map** — which doc owns which decision (the roadmap supersedes
+  the plan's "no payments / no database" lines; `masterstories/*` own story wording)
+  so you audit against the right source.
+- **Intentional supersessions already settled** — so you don't re-flag in-spec work
+  as drift.
+- **Fix-now vs. defer outcomes** the PM confirmed, to calibrate severity.
+
+Save *recurring drift patterns and canonical-source facts* — not a per-branch audit
+log (`context/history.md` records what shipped). Re-read the doc passage live before
+citing a line number; docs move.

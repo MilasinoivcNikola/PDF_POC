@@ -1,5 +1,6 @@
 ---
 name: qa-verifier
+memory: project
 description: >
   Backs the /feature qa step. Verifies user-facing changes by driving the running
   app in a real browser via the Playwright MCP tools (with the built-in /verify +
@@ -98,3 +99,25 @@ each verdict and any screenshots/log excerpts (and which mechanism you drove wit
 If something can't be tested (e.g. needs a real OpenAI key), say so explicitly
 rather than marking it passed. State the **approximate image-generation spend** for
 the run (ideally $0 via reuse). Your final message is the return value; no preamble.
+
+## Your project memory
+
+`memory: project` is set — the harness gives you a persistent folder at
+`.claude/agent-memory/qa-verifier/` and loads your `MEMORY.md` into every run. Use
+it for durable QA knowledge that isn't obvious from the code or already in
+`context/history.md`:
+
+- **The cost-discipline rule** — reuse a ready `./sessions/` fixture (free cache
+  hit), never fresh Medium books; the canonical reusable session ids (the `b41b8df0`
+  Otis Story-1 book; the Story-2 letter fixture).
+- **The dev/build `.next`-corruption rule** and the recovery (stop `next dev` →
+  `rm -rf .next` → restart).
+- **The `OPENAI_API_KEY` status seam** — verify with a `/v1/models` curl before
+  declaring live QA blocked — and the local-Supabase env-override for $0 commerce
+  checks.
+- **Reproducible parity / byte-identity / network-count recipes** that worked.
+
+Save *reusable fixtures, cost-safe recipes, and environment seams* — not per-feature
+QA logs (`context/history.md` records outcomes). A fixture id or key status is frozen
+in time: confirm the session is still on disk / the key still answers before relying
+on it.
