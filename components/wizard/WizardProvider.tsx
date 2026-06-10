@@ -71,6 +71,13 @@ interface WizardContextValue {
   updateDraft: (patch: DraftPatch) => void;
   /** Discard the draft (used after a successful Generate / to start fresh). */
   resetDraft: () => void;
+  /**
+   * Replace the whole draft with the given one and persist it. Used when an entry
+   * point needs a fresh draft of a specific product (e.g. the public order form
+   * seeding the chosen book's shape), the same way the landing picker seeds a
+   * draft into localStorage before /create — but for an already-mounted provider.
+   */
+  replaceDraft: (next: WizardDraft) => void;
 }
 
 const WizardContext = createContext<WizardContextValue | null>(null);
@@ -144,9 +151,22 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
     setSavedAt(fresh.createdAt);
   }, []);
 
+  const replaceDraft = useCallback((next: WizardDraft) => {
+    saveDraft(next);
+    setDraft(next);
+    setSavedAt(next.createdAt);
+  }, []);
+
   const value = useMemo<WizardContextValue>(
-    () => ({ draft, hydrated, savedAt, updateDraft, resetDraft }),
-    [draft, hydrated, savedAt, updateDraft, resetDraft],
+    () => ({
+      draft,
+      hydrated,
+      savedAt,
+      updateDraft,
+      resetDraft,
+      replaceDraft,
+    }),
+    [draft, hydrated, savedAt, updateDraft, resetDraft, replaceDraft],
   );
 
   return (

@@ -38,8 +38,19 @@ const PUBLIC_ENTRIES = [
   "app/(public)/books/page.tsx",
   "app/(public)/books/[productId]/page.tsx",
   "app/(public)/order/[productId]/page.tsx",
+  "app/(public)/order/[productId]/layout.tsx",
   "app/(public)/policies/page.tsx",
 ];
+
+// The public API routes — server-side handlers that ship on the public Vercel
+// surface. Unlike public PAGES (above), these MAY hold the service-role Supabase
+// key in a server route: the public host writes the order row + uploads the photo
+// to Supabase (the commerce roadmap's diagram). So `lib/supabase/server` and the
+// `@supabase/supabase-js` package are ALLOWED here — but the ENGINE is still
+// forbidden (no OpenAI/Puppeteer/local-disk session IO). PR-05 added the first
+// public API route: /api/order. Walked separately from PUBLIC_ENTRIES so the page
+// guard isn't wrongly tripped by the route's legitimate service-role import.
+const PUBLIC_API_ENTRIES = ["app/(public)/api/order/route.ts"];
 
 // Forbidden LOCAL modules — engine source the public graph must never import.
 // Matched as a path substring against each resolved module's repo-relative path.
@@ -219,6 +230,69 @@ describe("public/operator boundary", () => {
     expect(
       leaked,
       "public graph transitively imports engine package(s)",
+    ).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Public API routes — engine-free, but service-role Supabase is allowed.
+// ---------------------------------------------------------------------------
+
+// A public API route runs on the always-on Vercel surface. It legitimately holds
+// the service-role Supabase key (to write the order row + upload the photo), so
+// `lib/supabase/server` + `@supabase/supabase-js` are NOT forbidden here — but the
+// generation engine still is (no OpenAI key path, no Puppeteer, no local-disk
+// session IO from the public host). These are FORBIDDEN_LOCAL / FORBIDDEN_PACKAGES
+// minus the Supabase entries.
+const FORBIDDEN_LOCAL_PUBLIC_API = FORBIDDEN_LOCAL.filter(
+  (m) => m !== "lib/supabase/server",
+);
+const FORBIDDEN_PACKAGES_PUBLIC_API = FORBIDDEN_PACKAGES.filter(
+  (p) => p !== "@supabase/supabase-js",
+);
+
+describe("public API route boundary", () => {
+  const closure = importClosure(PUBLIC_API_ENTRIES);
+
+  it("resolves a non-trivial public-API import closure", () => {
+    // Sanity: the walker reached the order route and the commerce data layer it
+    // legitimately imports, so the engine-free checks below aren't vacuous.
+    expect(closure.modules.has("app/(public)/api/order/route.ts")).toBe(true);
+    expect(closure.modules.has("lib/order/store.ts")).toBe(true);
+    expect(closure.modules.has("lib/supabase/storage.ts")).toBe(true);
+  });
+
+  it("imports the service-role Supabase client (allowed for a public API route)", () => {
+    // The whole point: a public API route MAY reach the service-role client. If
+    // this ever stops being true the route can't write orders — assert it holds so
+    // a future refactor doesn't silently break intake while still passing the
+    // engine-free checks.
+    expect(closure.modules.has("lib/supabase/server.ts")).toBe(true);
+    expect(closure.packages.has("@supabase/supabase-js")).toBe(true);
+  });
+
+  it("never imports an engine source module", () => {
+    const leaked: string[] = [];
+    for (const mod of closure.modules) {
+      for (const forbidden of FORBIDDEN_LOCAL_PUBLIC_API) {
+        if (mod.includes(forbidden)) {
+          leaked.push(`${mod} (matches "${forbidden}")`);
+        }
+      }
+    }
+    expect(
+      leaked,
+      "public API route transitively imports engine module(s)",
+    ).toEqual([]);
+  });
+
+  it("never pulls in an engine package", () => {
+    const leaked = FORBIDDEN_PACKAGES_PUBLIC_API.filter((pkg) =>
+      closure.packages.has(pkg),
+    );
+    expect(
+      leaked,
+      "public API route transitively imports engine package(s)",
     ).toEqual([]);
   });
 });

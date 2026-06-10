@@ -5,10 +5,17 @@
 //      decide whether to surface a gentle "this might not work well" notice for
 //      small photos (short edge under ~512px, or a tiny byte size) — non-blocking,
 //      the family can proceed anyway (the plan's low-quality-photo handling);
-//   2. POSTs the file to /api/upload with the current draft id as `sessionId`, so
-//      the photo lands under ./uploads/[draft.id]/ and ties to the session the
-//      Generate step will write under that same id;
-//   3. stores the returned server path as `pet.photo` in the draft.
+//   2. downscales the photo in-browser (downscaleImage), then:
+//      - DEFAULT (operator wizard): POSTs the file to /api/upload with the current
+//        draft id as `sessionId`, so the photo lands under ./uploads/[draft.id]/
+//        and ties to the session the Generate step writes under the same id, and
+//        stores the returned server path as `pet.photo` in the draft;
+//      - DEFERRED (`onUpload` provided — the public order form): does NOT POST. The
+//        photo must reach Supabase with the final /api/order submit, not the local
+//        ./uploads/ engine path, so the parent holds the downscaled File and only
+//        sends it on submit. The uploader writes the file NAME into `pet.photo` as
+//        a non-empty marker (so the required-field gate passes; the real bytes are
+//        the order POST's `photo` part) and hands the File to `onUpload`.
 //
 // The uploaded-photo card mirrors the prototype's `.photo-preview`, with a
 // "replace" affordance that re-opens the file picker.
@@ -68,7 +75,19 @@ function readDimensions(
   });
 }
 
-export function ImageUploader() {
+interface ImageUploaderProps {
+  /**
+   * When provided, the uploader DEFERS the upload: it downscales the chosen photo
+   * and hands the resulting File to this callback (the public order form holds it
+   * and sends it to Supabase with the final /api/order submit) instead of POSTing
+   * to the operator /api/upload. `pet.photo` is set to the file name as a non-empty
+   * marker so the required-field gate still passes. Omit for the operator wizard's
+   * existing behavior (POST to /api/upload, store the returned server path).
+   */
+  onUpload?: (file: File) => void;
+}
+
+export function ImageUploader({ onUpload }: ImageUploaderProps = {}) {
   const { draft, updateDraft } = useWizard();
   const inputRef = useRef<HTMLInputElement>(null);
   const [meta, setMeta] = useState<PhotoMeta | null>(null);
@@ -131,6 +150,15 @@ export function ImageUploader() {
           );
         }
 
+        if (onUpload) {
+          // Deferred (public order form): don't POST. Hand the downscaled file to
+          // the parent (it ships to Supabase with the order submit) and mark
+          // pet.photo with the file name so the required-field gate passes.
+          updateDraft({ pet: { photo: toUpload.name } });
+          onUpload(toUpload);
+          return;
+        }
+
         const form = new FormData();
         form.append("photo", toUpload);
         if (draft?.id) {
@@ -151,7 +179,7 @@ export function ImageUploader() {
         setUploading(false);
       }
     },
-    [draft?.id, updateDraft],
+    [draft?.id, updateDraft, onUpload],
   );
 
   const onInputChange = useCallback(

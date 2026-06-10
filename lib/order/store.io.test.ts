@@ -160,6 +160,34 @@ describe("createOrder", () => {
     expect(order.inputs).toEqual(SAMPLE_INPUTS);
   });
 
+  it("uses a caller-supplied id when given (so photoKey can be keyed at it atomically)", async () => {
+    const explicitId = "11112222-3333-4444-5555-666677778888";
+    builder._results.single.push({
+      data: rowWith({ id: explicitId, status: "pending_payment" }),
+      error: null,
+    });
+
+    const order = await createOrder({ ...newOrderInput(), id: explicitId });
+
+    const insertedRow = builder.insert.mock.calls[0][0] as OrderRow;
+    expect(insertedRow.id).toBe(explicitId);
+    expect(order.id).toBe(explicitId);
+  });
+
+  it("mints a fresh id when none is supplied", async () => {
+    builder._results.single.push({
+      data: rowWith({ status: "pending_payment" }),
+      error: null,
+    });
+
+    await createOrder(newOrderInput());
+
+    const insertedRow = builder.insert.mock.calls[0][0] as OrderRow;
+    expect(insertedRow.id).toBeTruthy();
+    // A UUID-shaped fresh id (not one we passed in).
+    expect(insertedRow.id).toMatch(/^[A-Za-z0-9-]{8,}$/);
+  });
+
   it("throws a readable error when the insert fails", async () => {
     builder._results.single.push({
       data: null,
