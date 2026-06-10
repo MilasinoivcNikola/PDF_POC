@@ -13,8 +13,11 @@ any visible flow. Skip for pure backend/library features (those rely on `test`).
 1. **Dispatch the `qa-verifier` agent** via the Agent tool
    (`subagent_type: qa-verifier`). Brief it with the feature Goals — each
    user-facing goal is an acceptance check. It will:
-   - Delegate to the built-in **`/verify`** skill (and **`/run`** to launch the
-     app) to exercise the flow in a real browser.
+   - Drive the running app in a real browser via the **Playwright MCP** tools
+     (`browser_navigate` / `snapshot` / `click` / `file_upload` / `evaluate` /
+     `network_requests` / `take_screenshot` …); fall back to the built-in
+     **`/verify`** + **`/run`** skills only if the Playwright MCP server isn't
+     connected.
    - Test the happy path plus the obvious edge the spec cares about (missing
      photo, refresh mid-wizard preserving localStorage, sparse free-text).
    - Capture concrete evidence (observations, screenshots, logs).
