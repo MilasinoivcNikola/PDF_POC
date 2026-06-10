@@ -15,6 +15,7 @@
 Read the following to get the full context of teh project:
 
 - @context/local-prototype-plan.md
+- @context/commerce-roadmap.md (current direction — supersedes the "out of scope: payments / accounts / database / deployment / email" lines in the plan above)
 - @context/coding-standards.md
 - @context/ai-interaction.md
 - @context/current-feature.md
