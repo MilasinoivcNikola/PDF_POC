@@ -2,15 +2,20 @@
 //
 // This is a thin wrapper, NOT a reimplementation: it re-exposes the EXISTING
 // Story-1 functions — `resolveStory` (variants.ts, feature 03), `SCENE_PAGE_IDS`
-// (ai/prompts.ts, feature 07), and `storyPdfFilename` (pdf/render.ts, feature 05) —
-// with no logic change, so Story-1 output is unaffected. Keeping the wrapper here
-// (rather than inline in registry.ts) keeps the registry purely a lookup table and
-// gives feature 15's Story 2 an obvious sibling module to mirror.
+// (lib/story/scenes.ts), and `storyPdfFilename` (pdf/filename.ts) — with no logic
+// change, so Story-1 output is unaffected. Keeping the wrapper here (rather than
+// inline in registry.ts) keeps the registry purely a lookup table and gives
+// feature 15's Story 2 an obvious sibling module to mirror.
+//
+// `SCENE_PAGE_IDS` is imported from the neutral lib/story/scenes.ts (not
+// lib/ai/prompts) so this registry chain — reached by the client-safe catalog +
+// public storefront — never touches a `lib/ai/*` engine module (PR-04 keeps the
+// public/operator boundary's `lib/ai/*` ban intact). Same constant, same value.
 
 import type { StorySession } from "@/lib/session/types";
 import { resolveStory } from "@/lib/story/variants";
 import type { ResolvedStory } from "@/lib/story/merge";
-import { SCENE_PAGE_IDS } from "@/lib/ai/prompts";
+import { SCENE_PAGE_IDS } from "@/lib/story/scenes";
 import { storyPdfFilename } from "@/lib/pdf/filename";
 import type {
   EditableFieldsContract,

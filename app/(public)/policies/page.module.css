@@ -1,0 +1,56 @@
+/* Page-specific styles for the policy stubs (/policies).
+   Shared tokens/components live in app/globals.css. */
+
+.policies {
+  max-width: 680px;
+  margin: 0 auto;
+  flex: 1;
+  width: 100%;
+}
+
+.intro {
+  text-align: center;
+  margin-bottom: var(--s-16);
+}
+
+.introTitle {
+  margin: var(--s-4) 0 var(--s-4);
+}
+
+.draftNote {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--ink-muted);
+  font-size: var(--t-sm);
+  max-width: 30em;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-12);
+}
+
+.section {
+  border-top: 1px solid var(--border-hairline);
+  padding-top: var(--s-8);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+  font-weight: 300;
+  font-size: var(--t-2xl);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: var(--s-4);
+}
+
+.section p {
+  font-family: var(--font-body);
+  font-size: var(--t-base);
+  line-height: 1.8;
+  color: var(--ink-soft);
+}

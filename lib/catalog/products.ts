@@ -45,9 +45,10 @@ export interface Product {
    */
   lsVariantId?: string;
   /**
-   * Sample / reference art paths for the storefront. No sample art is committed
-   * in this POC yet, so this is an empty array until the storefront (PR-04)
-   * supplies real samples. (Placeholder choice — see module notes.)
+   * Public web paths to sample/reference art for the storefront (served from
+   * `public/samples/<productId>/`). A few real generated pages, web-optimized
+   * (~800px JPEG) — see PR-04. Plain string paths only, so this module stays
+   * pure and client-safe.
    */
   sampleImages: string[];
   /**
@@ -85,7 +86,7 @@ const PLACEHOLDER_STORY_2_PRICE_USD = 2900;
 function buildProduct(
   productId: string,
   storyType: StoryType,
-  meta: Pick<Product, "title" | "tagline" | "description"> & {
+  meta: Pick<Product, "title" | "tagline" | "description" | "sampleImages"> & {
     priceUsd: number;
   },
 ): Product {
@@ -97,7 +98,7 @@ function buildProduct(
     description: meta.description,
     priceUsd: meta.priceUsd,
     lsVariantId: undefined,
-    sampleImages: [],
+    sampleImages: meta.sampleImages,
     illustrationCount: getStory(storyType).illustrationSlots.length,
   };
 }
@@ -122,6 +123,11 @@ function buildCatalog(): Product[] {
         "love — because the best way to help a child through grief is to walk " +
         "them through it, not around it.",
       priceUsd: PLACEHOLDER_STORY_1_PRICE_USD,
+      sampleImages: [
+        "/samples/story-1-book/cover.jpg",
+        "/samples/story-1-book/page-4.jpg",
+        "/samples/story-1-book/page-10.jpg",
+      ],
     }),
     buildProduct("story-2-letter", "story-2", {
       title: "A Letter from Your Pet",
@@ -134,6 +140,10 @@ function buildCatalog(): Product[] {
         "themselves, one for someone who needs it. Written with care by people " +
         "who have been on the other side of this.",
       priceUsd: PLACEHOLDER_STORY_2_PRICE_USD,
+      sampleImages: [
+        "/samples/story-2-letter/letter-cover.jpg",
+        "/samples/story-2-letter/letter-page-5.jpg",
+      ],
     }),
   ];
 }

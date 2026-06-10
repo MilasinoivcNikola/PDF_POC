@@ -28,9 +28,17 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 // renders. The root layout (app/layout.tsx) wraps every route, so it is in the
 // public graph too. Everything reachable from these (following only local source
 // imports) is the public closure.
+//
+// Every public route page must be listed here so the guard actually walks it.
+// PR-04 added the storefront routes: the product grid, the product detail and
+// (stubbed) order dynamic routes, and the policy stubs.
 const PUBLIC_ENTRIES = [
   "app/layout.tsx",
   "app/(public)/page.tsx",
+  "app/(public)/books/page.tsx",
+  "app/(public)/books/[productId]/page.tsx",
+  "app/(public)/order/[productId]/page.tsx",
+  "app/(public)/policies/page.tsx",
 ];
 
 // Forbidden LOCAL modules — engine source the public graph must never import.
@@ -181,11 +189,15 @@ describe("public/operator boundary", () => {
   it("resolves a non-trivial public import closure", () => {
     // Sanity check the walker actually traversed past the entries (so a silent
     // resolution failure can't make the forbidden-import checks vacuously pass).
+    // Anchored on modules genuinely reachable from the storefront routes: the
+    // landing entry itself, the catalog the /books grid renders, and the registry
+    // chain it pulls in. (PR-04 reframed the landing to link to /books instead of
+    // seeding a wizard draft, so the old StoryStartButton / lib/session/storage
+    // anchors are no longer in the public closure — these replace them.)
     expect(closure.modules.has("app/(public)/page.tsx")).toBe(true);
-    expect(closure.modules.has("components/wizard/StoryStartButton.tsx")).toBe(
-      true,
-    );
-    expect(closure.modules.has("lib/session/storage.ts")).toBe(true);
+    expect(closure.modules.has("app/(public)/books/page.tsx")).toBe(true);
+    expect(closure.modules.has("lib/catalog/products.ts")).toBe(true);
+    expect(closure.modules.has("lib/story/registry.ts")).toBe(true);
   });
 
   it("never imports an engine source module", () => {
