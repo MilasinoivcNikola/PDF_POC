@@ -1,5 +1,6 @@
 ---
 name: nextjs-ui-builder
+memory: project
 description: >
   Craft Area 3 — the Next.js app and wizard UI. Use for the App Router pages,
   the multi-step create wizard, React Context + localStorage state, Tailwind
@@ -57,3 +58,23 @@ Area 3: the browser experience that ties the pipeline together.
 Return a concise summary: routes/components created or changed, how state flows,
 what you verified in the browser, and what the `qa` / `test` / `review` steps
 should check. Your final message is the return value.
+
+## Your project memory
+
+`memory: project` is set — the harness gives you a persistent folder at
+`.claude/agent-memory/nextjs-ui-builder/` and loads your `MEMORY.md` into every run.
+Use it for durable UI/architecture knowledge that isn't obvious from the code or
+already in `context/history.md`:
+
+- **Client/server boundary footguns that bit you** — the `disk.ts` split, Puppeteer
+  / `react-dom/server` leaking into the client bundle, the `lib/pdf/filename.ts`
+  extraction — and how the boundary guard is structured.
+- **Wizard state + persistence patterns** — Context + localStorage, the
+  draft→session bridge — and PM decisions on which fields are required.
+- **The screen↔PDF parity rule** and how the shared `pages.tsx` enforces it.
+- **Env / build seams** — the dev/build `.next`-corruption rule; ports held by other
+  local projects.
+
+Save *footguns, validated patterns, and PM decisions* — not code locations or
+per-feature history (the code and `context/history.md` hold those). Re-check a
+remembered file path or route still exists before relying on it.

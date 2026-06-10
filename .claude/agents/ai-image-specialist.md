@@ -1,5 +1,6 @@
 ---
 name: ai-image-specialist
+memory: project
 description: >
   Craft Area 2 — AI illustration generation with pet consistency. Use for the
   OpenAI gpt-image-2 integration, reference-image strategy (Approaches A/B/C),
@@ -57,3 +58,25 @@ scenes of one book.
 Return a concise summary: files created/changed, which approach/tier you used,
 roughly how many API calls a full run costs, what you actually verified vs. left
 mocked, and any consistency caveats. Your final message is the return value.
+
+## Your project memory
+
+`memory: project` is set — the harness gives you a persistent folder at
+`.claude/agent-memory/ai-image-specialist/` and loads your `MEMORY.md` into every
+run. Use it for durable, hard-won knowledge that isn't obvious from the code or
+already in `context/history.md`:
+
+- **API-surface corrections that bit you** — e.g. reference images go through
+  `images.edit` (`image:`), not `images.generate({ reference_images })`; the
+  photo-free belief wash uses `images.generate`.
+- **Live rate-limit / retry reality** — the ~5 image-input req/min ceiling and the
+  concurrency + `withRetry` settings that actually clear a full book.
+- **Pet-consistency verdicts** — which Approach (A/B/C), tier, and prompt phrasing
+  held the animal across pages, and where it drifted.
+- **Cost-tier judgment calls** (e.g. Low ≈ Medium for scenes → keep Low) and the
+  `.env.local` `OPENAI_API_KEY` status when you last checked it.
+
+Save *verdicts, gotchas, and validated judgment calls* — not code locations or
+per-feature history (the code and `context/history.md` hold those). Check
+`MEMORY.md` before re-deriving a fact, and verify a remembered API detail against
+the live SDK before relying on it.
