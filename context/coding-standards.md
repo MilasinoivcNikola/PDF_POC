@@ -55,8 +55,12 @@ framework beyond this list without approval. The plan in
   much as possible stays server-rendered.
 - One default-exported component per `page.tsx` / `layout.tsx`. Shared UI goes in
   `components/{wizard,preview}/` as named exports.
-- Route handlers live in `app/api/*/route.ts` and export named HTTP verbs
-  (`export async function POST()`).
+- Route handlers live under a **deploy-surface route group** and export named HTTP
+  verbs (`export async function POST()`): engine/operator routes at
+  `app/(operator)/api/*/route.ts`, public routes at `app/(public)/api/*/route.ts`.
+  Route groups are URL-transparent, so the path is still `/api/*`. **Every operator
+  route handler must call `assertOperator()` as the first statement of each verb**
+  (returns 404 under a public build) — see the *deploy-surface boundary* below.
 - File/dir naming: routes and folders are lowercase (`create/pet/page.tsx`);
   React components are `PascalCase.tsx` (`ImageUploader.tsx`).
 
@@ -111,11 +115,32 @@ framework beyond this list without approval. The plan in
   to `lib/supabase/`): it imports only the registry's pure parts, so a stray transitive
   engine/Puppeteer import would break the public storefront's static build. Prices are
   placeholder config until set with the PM before PR-06.
+- **Deploy-surface boundary** (`lib/runtime/surface.ts` + the `app/(public)`/`app/(operator)`
+  route groups): the single most important security boundary in the build (PR-03). One
+  codebase, two run modes via `DEPLOY_TARGET` (`public` | `operator`, default `operator`):
+  the **operator** surface runs locally and holds the engine (OpenAI key + Puppeteer +
+  the generation graph + the service-role Supabase client); the **public** surface is the
+  always-on Vercel storefront and must never generate. `surface.ts` exports
+  `deployTarget()` / `isOperator()` / `isPublic()` / `assertOperator()`. Operator API
+  routes call `assertOperator()` (404 under public); the `app/(operator)/layout.tsx`
+  `notFound()`s the whole operator page group under public, and is `export const dynamic =
+  "force-dynamic"` so that page gate is evaluated **per-request** (build-env-independent),
+  not baked at prerender time — so `(operator)` pages are dynamic (`ƒ`) while the `(public)`
+  landing stays static (`○`). The load-bearing guard is the
+  build-time assertion (`lib/runtime/surface.boundary.test.ts`) that **no `(public)` route
+  transitively imports the engine** — same discipline as "no Puppeteer/fs in the client
+  bundle" and the `lib/catalog/` client-safe rule above. (Note: under a public Vercel build
+  the operator routes still *ship* as gated 404 functions — the guarantee is that the
+  public route *graph* never imports the engine and the keys are never set on that deploy,
+  not that the engine code is build-excluded.)
 - Secrets come from `.env.local` (`OPENAI_API_KEY`; the commerce `SUPABASE_SERVICE_ROLE_KEY`).
   Never hardcode keys; never log them. The Supabase **service-role** key is server-only —
   never expose it to the browser or a `NEXT_PUBLIC_*` var (the anon key is the only
   client-safe one, and only behind RLS). Keep `.env.local.example` in sync when a new env
   var is introduced.
+- `DEPLOY_TARGET` (`public` | `operator`) is **non-secret** runtime config, not a key:
+  it selects the deploy surface (see *Deploy-surface boundary* above). Default `operator`
+  (full local app); the Vercel build sets `public` via `vercel.json`. Fine to commit.
 
 ---
 

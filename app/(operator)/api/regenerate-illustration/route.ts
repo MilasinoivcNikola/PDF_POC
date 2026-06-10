@@ -19,6 +19,7 @@ import { readSession, writeSession } from "@/lib/session/disk";
 import { isSafeSessionId } from "@/lib/ai/paths";
 import { regenerateSceneIllustration } from "@/lib/ai/generate";
 import { getStory } from "@/lib/story/registry";
+import { assertOperator } from "@/lib/runtime/surface";
 import type { PageId } from "@/lib/story/master-text";
 import type { GeneratedImage, StorySession } from "@/lib/session/types";
 
@@ -63,6 +64,9 @@ function spliceManifest(
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const gate = assertOperator();
+  if (gate) return gate;
+
   let body: unknown;
   try {
     body = await request.json();

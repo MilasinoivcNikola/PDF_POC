@@ -17,6 +17,7 @@
 import { NextResponse } from "next/server";
 import { writeSession, type AnySession } from "@/lib/session/disk";
 import { isSafeSessionId } from "@/lib/ai/paths";
+import { assertOperator } from "@/lib/runtime/surface";
 import type { StorySession, Story2Session } from "@/lib/session/types";
 
 /** Whether a value is a non-empty trimmed string. */
@@ -90,6 +91,9 @@ function validateStory1(session: Partial<StorySession>): string | null {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const gate = assertOperator();
+  if (gate) return gate;
+
   let body: unknown;
   try {
     body = await request.json();

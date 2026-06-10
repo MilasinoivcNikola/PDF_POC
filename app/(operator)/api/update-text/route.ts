@@ -21,6 +21,7 @@ import { isSafeSessionId } from "@/lib/ai/paths";
 import { getStory } from "@/lib/story/registry";
 import { MergeError } from "@/lib/story/merge";
 import { isBlankAfterClean } from "@/lib/story/editable-fields";
+import { assertOperator } from "@/lib/runtime/surface";
 
 /** Read `{ id, field, value }` as strings — field is NOT narrowed to an editable
  *  field here: the per-story allowlist isn't known until the session is read. */
@@ -45,6 +46,9 @@ function readArgs(
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const gate = assertOperator();
+  if (gate) return gate;
+
   let body: unknown;
   try {
     body = await request.json();

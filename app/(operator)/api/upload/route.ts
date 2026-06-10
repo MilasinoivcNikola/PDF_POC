@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server";
 import { createSessionId } from "@/lib/session/storage";
 import { isSafeSessionId } from "@/lib/ai/paths";
+import { assertOperator } from "@/lib/runtime/surface";
 
 /** Accepted upload MIME types. */
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
@@ -23,6 +24,9 @@ const EXTENSION_BY_TYPE: Record<string, string> = {
 const MAX_BYTES = 10 * 1024 * 1024;
 
 export async function POST(request: Request): Promise<Response> {
+  const gate = assertOperator();
+  if (gate) return gate;
+
   let form: FormData;
   try {
     form = await request.formData();
