@@ -104,6 +104,13 @@ framework beyond this list without approval. The plan in
   (`ids.ts`), and Storage helpers (`storage.ts`). The service-role client is
   **server-only** — same `lib/session/disk.ts` discipline — and must never reach a
   client/public bundle; RLS is defence-in-depth on top.
+- **Commerce catalog** (`lib/catalog/`): `lib/catalog/products.ts` owns the `Product`
+  catalog contract the storefront (PR-04) and checkout (PR-06) import — one `Product`
+  per registered `storyType`, with `illustrationCount` **derived** from the registry's
+  `illustrationSlots` (never forked). It is **pure and client-safe** (opposite discipline
+  to `lib/supabase/`): it imports only the registry's pure parts, so a stray transitive
+  engine/Puppeteer import would break the public storefront's static build. Prices are
+  placeholder config until set with the PM before PR-06.
 - Secrets come from `.env.local` (`OPENAI_API_KEY`; the commerce `SUPABASE_SERVICE_ROLE_KEY`).
   Never hardcode keys; never log them. The Supabase **service-role** key is server-only —
   never expose it to the browser or a `NEXT_PUBLIC_*` var (the anon key is the only
