@@ -12,12 +12,49 @@
 // definition wraps its own existing functions (see lib/story/story-1.ts and
 // lib/story/story-2.ts).
 
-import type { StorySession, StoryType } from "@/lib/session/types";
+import type {
+  StorySession,
+  Story2Session,
+  StoryType,
+} from "@/lib/session/types";
 import type { PageId } from "@/lib/story/master-text";
 import type { ResolvedStory } from "@/lib/story/merge";
 import type { WizardConfig } from "@/lib/story/wizard-config";
 import { story1Definition } from "@/lib/story/story-1";
 import { story2Definition } from "@/lib/story/story-2";
+
+/**
+ * The "edit your own words" contract for the in-browser preview (feature 19),
+ * per story. The route + preview components stay generic by typing fields as
+ * `string` at this boundary; each product's implementation
+ * (lib/story/{editable-fields,story2/editable-fields}.ts) narrows internally.
+ * `setSessionField`/`getSessionFieldValue` take the `StorySession | Story2Session`
+ * union and each impl narrows with a `storyType`-guarded cast at the registry seam
+ * — exactly the pattern lib/ai/generate.ts uses for Story 2.
+ */
+export interface EditableFieldsContract {
+  /** Every editable field key, for membership checks at the API boundary. */
+  EDITABLE_FIELDS: readonly string[];
+  /** The editable fields exposed on one page (empty when the page has none). */
+  editableFieldsForPage(page: PageId): readonly string[];
+  /** Whether `field` is a known editable field for this product. */
+  isEditableField(field: string): boolean;
+  /** Whether a field is required (rejected if blanked) for this product. */
+  isRequiredField(field: string): boolean;
+  /** Per-field inline-editor copy (label + hint). */
+  fieldCopy: Record<string, { label: string; hint: string }>;
+  /** Return a NEW session with the cleaned value written into the right group. */
+  setSessionField(
+    session: StorySession | Story2Session,
+    field: string,
+    value: string,
+  ): StorySession | Story2Session;
+  /** The current raw value of an editable field (what the editor pre-fills). */
+  getSessionFieldValue(
+    session: StorySession | Story2Session,
+    field: string,
+  ): string;
+}
 
 /**
  * Everything the render + API pipeline needs from a story product, in one place.
@@ -30,6 +67,7 @@ import { story2Definition } from "@/lib/story/story-2";
  * - `wizard` is the per-story wizard configuration (feature 18): the ordered
  *   steps, the step count, and the generation-progress checklist slots. It maps a
  *   `storyType` to its wizard exactly as the other fields map it to its renderer.
+ * - `editable` is the per-story "edit your own words" preview contract (feature 19).
  */
 export interface StoryDefinition {
   /** Resolve a finalized session into its ordered, merged, laid-out pages. */
@@ -40,6 +78,8 @@ export interface StoryDefinition {
   pdfFilename(session: StorySession): string;
   /** The wizard steps, step count, and progress checklist for this product. */
   wizard: WizardConfig;
+  /** The "edit your own words" preview contract for this product. */
+  editable: EditableFieldsContract;
 }
 
 /** Each known product's definition, keyed by `StoryType`. */

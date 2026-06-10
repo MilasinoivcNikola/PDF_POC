@@ -23,11 +23,6 @@ import { isSafeSessionId } from "@/lib/ai/paths";
 import { manifestToImageMap } from "@/lib/ai/generate";
 import { getStory } from "@/lib/story/registry";
 import { MergeError } from "@/lib/story/merge";
-import {
-  EDITABLE_FIELDS,
-  type EditableField,
-  getSessionFieldValue,
-} from "@/lib/story/editable-fields";
 
 export async function GET(request: Request): Promise<Response> {
   const id = new URL(request.url).searchParams.get("id");
@@ -46,9 +41,12 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
+  const storyType = session.storyType ?? "story-1";
+  const story = getStory(storyType);
+
   let pages;
   try {
-    pages = getStory(session.storyType ?? "story-1").resolve(session);
+    pages = story.resolve(session);
   } catch (error) {
     // A session that can't resolve (missing merge field) shouldn't reach preview,
     // but report it cleanly rather than 500-ing with a stack trace.
@@ -69,18 +67,27 @@ export async function GET(request: Request): Promise<Response> {
 
   const images = await manifestToImageMap(session.images);
 
-  // The current raw value of every editable field, so the inline editors on the
-  // preview pre-fill with what the parent actually typed.
+  // The current raw value of every editable field (per story), so the inline
+  // editors on the preview pre-fill with what the parent/owner actually typed.
+  const { editable } = story;
   const fields = Object.fromEntries(
-    EDITABLE_FIELDS.map((field) => [field, getSessionFieldValue(session, field)]),
-  ) as Record<EditableField, string>;
+    editable.EDITABLE_FIELDS.map((field) => [
+      field,
+      editable.getSessionFieldValue(session, field),
+    ]),
+  ) as Record<string, string>;
+
+  // Story 1 is written for a child; Story 2 (the letter) has no `child` group.
+  // Never read `.child` on a Story-2 session — return "" for it instead.
+  const childName = storyType === "story-1" ? session.child.name : "";
 
   return NextResponse.json({
     ok: true,
+    storyType,
     pages,
     images,
     petName: session.pet.name,
-    childName: session.child.name,
+    childName,
     fields,
   });
 }

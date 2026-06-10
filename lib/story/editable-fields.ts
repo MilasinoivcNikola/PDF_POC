@@ -86,6 +86,46 @@ export function editableFieldsForPage(page: PageId): readonly EditableField[] {
 }
 
 // ---------------------------------------------------------------------------
+// UI copy
+// ---------------------------------------------------------------------------
+
+/**
+ * A gentle, human label + hint for each editable field's inline editor, owned
+ * here so this module is the single home for Story 1's preview UI copy (the
+ * sibling `FIELD_COPY` in lib/story/story2/editable-fields.ts owns Story 2's).
+ */
+export const FIELD_COPY: Record<EditableField, { label: string; hint: string }> = {
+  petName: {
+    label: "Their name",
+    hint: "The name you used when calling them home.",
+  },
+  childName: {
+    label: "Your child's name",
+    hint: "Who the book is written for.",
+  },
+  parentDedication: {
+    label: "A dedication, if you'd like one",
+    hint: "An optional few words, printed on the dedication page. Leave blank to omit it.",
+  },
+  breedColor: {
+    label: "A few words to describe them",
+    hint: "The kind of detail you'd mention to a stranger.",
+  },
+  favoriteActivity: {
+    label: "Their favorite thing to do",
+    hint: "What they loved most in the world.",
+  },
+  sleepingSpot: {
+    label: "Where they liked to sleep",
+    hint: "Their favorite warm, safe place.",
+  },
+  favoriteMemory: {
+    label: "A favorite memory",
+    hint: "One or two sentences about a day to remember.",
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Validation helpers
 // ---------------------------------------------------------------------------
 
