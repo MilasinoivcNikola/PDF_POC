@@ -49,13 +49,14 @@
   max-width: 22em;
 }
 
-/* Story chooser — two product cards (Story 1 / Story 2) */
+/* Story chooser — two product cards (Story 1 / Story 2), each linking to its
+   product detail page. */
 .chooser {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--s-6);
   max-width: 52em;
-  margin-top: var(--s-4);
+  margin-top: var(--s-12);
 }
 
 @media (max-width: 720px) {
@@ -72,6 +73,16 @@
   background: var(--paper);
   border: 1px solid var(--border);
   border-radius: 2px;
+  color: var(--ink);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.chooserCard:hover {
+  border-color: var(--rose);
+  box-shadow: 0 12px 32px rgba(60, 45, 30, 0.1);
+  transform: translateY(-2px);
+  color: var(--ink);
 }
 
 .chooserKicker {
@@ -105,15 +116,21 @@
   flex: 1;
 }
 
-.chooserMeta {
-  font-family: var(--font-body);
-  font-style: italic;
-  color: var(--ink-muted);
+.chooserLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+  font-family: var(--font-mono);
   font-size: var(--t-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.chooserAction {
-  margin-top: var(--s-2);
+.chooserCard:hover .chooserLink {
+  color: var(--rose);
 }
 
 /* Table of contents grid */

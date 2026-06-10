@@ -113,8 +113,13 @@ framework beyond this list without approval. The plan in
   per registered `storyType`, with `illustrationCount` **derived** from the registry's
   `illustrationSlots` (never forked). It is **pure and client-safe** (opposite discipline
   to `lib/supabase/`): it imports only the registry's pure parts, so a stray transitive
-  engine/Puppeteer import would break the public storefront's static build. Prices are
-  placeholder config until set with the PM before PR-06.
+  engine/Puppeteer import would break the public storefront's static build. The chain
+  `products.ts → registry → story-1/story-2` must reach scene identity via the neutral
+  `lib/story/scenes.ts` (see *AI illustration* below), **never** through `lib/ai/*` — the
+  boundary guard bans all of `lib/ai/*` from the public graph, so a registry helper that
+  imported a prompt builder would reintroduce the break PR-04 fixed. Prices are placeholder
+  config until set with the PM before PR-06; per-product `sampleImages` are the storefront's
+  web-optimized sample art under `public/samples/`, populated in PR-04.
 - **Deploy-surface boundary** (`lib/runtime/surface.ts` + the `app/(public)`/`app/(operator)`
   route groups): the single most important security boundary in the build (PR-03). One
   codebase, two run modes via `DEPLOY_TARGET` (`public` | `operator`, default `operator`):
@@ -126,7 +131,9 @@ framework beyond this list without approval. The plan in
   `notFound()`s the whole operator page group under public, and is `export const dynamic =
   "force-dynamic"` so that page gate is evaluated **per-request** (build-env-independent),
   not baked at prerender time — so `(operator)` pages are dynamic (`ƒ`) while the `(public)`
-  landing stays static (`○`). The load-bearing guard is the
+  landing + storefront (`/books`, `/books/[productId]`, `/order/[productId]`, `/policies`)
+  stay static/SSG (`○`/`●`; PR-04 added them to the guard's `PUBLIC_ENTRIES`). The
+  load-bearing guard is the
   build-time assertion (`lib/runtime/surface.boundary.test.ts`) that **no `(public)` route
   transitively imports the engine** — same discipline as "no Puppeteer/fs in the client
   bundle" and the `lib/catalog/` client-safe rule above. (Note: under a public Vercel build
@@ -195,6 +202,12 @@ These three areas have rules that general web code doesn't.
 - Pet consistency is the central craft problem (Approach A → B in the plan). Prompt
   builders live in `lib/ai/prompts.ts`, one per scene; orchestration in `generate.ts`.
   Pass references as base64 data URLs.
+- **Scene identity is single-sourced in `lib/story/scenes.ts`** (`SCENE_PAGE_IDS` /
+  `SceneId`), not in `lib/ai/`. `lib/ai/prompts.ts` re-exports it for back-compat, but the
+  constant lives in a neutral module so the **client-safe** registry/catalog chain
+  (`lib/catalog/products.ts` → registry → `story-1`) can reach scene identity without
+  importing `lib/ai/*` — which the public boundary guard bans outright. Extracted in PR-04;
+  do not move it back into `lib/ai/`.
 
 ### Story text (`lib/story/`)
 - The master templates in `context/masterstories/` are the source of truth for

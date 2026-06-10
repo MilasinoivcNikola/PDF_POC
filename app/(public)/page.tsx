@@ -1,5 +1,5 @@
+import Link from "next/link";
 import styles from "./page.module.css";
-import { StoryStartButton } from "@/components/wizard/StoryStartButton";
 
 const tocEntries: { num: string; page: string; title: React.ReactNode }[] = [
   { num: "i", page: "01", title: "Cover & dedication" },
@@ -34,7 +34,9 @@ export default function Home() {
           </svg>
           Quietly Kept
         </div>
-        <div className="label">Two keepsakes · Prototype</div>
+        <Link href="/books" className="label">
+          The keepsakes
+        </Link>
       </header>
 
       <main className={styles.landing}>
@@ -62,14 +64,31 @@ export default function Home() {
           </h1>
 
           <p className={`lede ${styles.landingLede} fade-in fade-in-3`}>
-            Two ways to keep a beloved pet close — a story to read with your
-            child, or a letter in their own voice, for you. Written with care.
-            Illustrated with your pet at its heart.
+            Personalized pet-memorial keepsakes, illustrated from a photo of
+            your own pet and written with care. A story to read with your child,
+            or a letter in your pet&apos;s own voice — made by hand, for you.
           </p>
 
+          <div className={`${styles.landingCta} fade-in fade-in-3`}>
+            <Link href="/books" className="btn btn--primary">
+              See the keepsakes
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+                <path
+                  d="M1 6h16m0 0L12 1m5 5l-5 5"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </Link>
+            <p className={styles.landingCtaMeta}>
+              Two books, each made to order. Delivered as a print-quality PDF.
+            </p>
+          </div>
+
           <div className={`${styles.chooser} fade-in fade-in-4`}>
-            <div className={styles.chooserCard}>
-              <span className={styles.chooserKicker}>Story One</span>
+            <Link href="/books/story-1-book" className={styles.chooserCard}>
+              <span className={styles.chooserKicker}>For a child</span>
               <h2 className={styles.chooserTitle}>
                 A story for <em>your child</em>.
               </h2>
@@ -78,18 +97,21 @@ export default function Home() {
                 grieve the loss of a pet — gentle, honest, and read aloud
                 together.
               </p>
-              <p className={styles.chooserMeta}>
-                Twelve pages · About five minutes of gentle questions.
-              </p>
-              <div className={styles.chooserAction}>
-                <StoryStartButton storyType="story-1">
-                  Begin the story
-                </StoryStartButton>
-              </div>
-            </div>
+              <span className={styles.chooserLink}>
+                See the book
+                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
+                  <path
+                    d="M1 6h16m0 0L12 1m5 5l-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            </Link>
 
-            <div className={styles.chooserCard}>
-              <span className={styles.chooserKicker}>Story Two</span>
+            <Link href="/books/story-2-letter" className={styles.chooserCard}>
+              <span className={styles.chooserKicker}>For you</span>
               <h2 className={styles.chooserTitle}>
                 A letter, in <em>their voice</em>.
               </h2>
@@ -97,22 +119,25 @@ export default function Home() {
                 A keepsake letter written from your pet&apos;s perspective,
                 addressed to you by name. Made to be printed, framed, and kept.
               </p>
-              <p className={styles.chooserMeta}>
-                Six pages · For the grieving owner, or as a sympathy gift.
-              </p>
-              <div className={styles.chooserAction}>
-                <StoryStartButton storyType="story-2" className="btn btn--ghost">
-                  Begin the letter
-                </StoryStartButton>
-              </div>
-            </div>
+              <span className={styles.chooserLink}>
+                See the letter
+                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
+                  <path
+                    d="M1 6h16m0 0L12 1m5 5l-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            </Link>
           </div>
         </section>
 
         <section className={`${styles.toc} fade-in fade-in-5`}>
           <div className={styles.tocHeader}>
             <h2 className={styles.tocTitle}>Inside the story</h2>
-            <span className="label">Story One · A twelve-page book</span>
+            <span className="label">A story for your child · Twelve pages</span>
           </div>
 
           <div className={styles.tocGrid}>
@@ -129,8 +154,10 @@ export default function Home() {
       </main>
 
       <footer className="site-footer">
+        <Link href="/policies" className="label">
+          How it&apos;s made · Policies
+        </Link>
         <p className="label">Made slowly · Made by hand</p>
-        <p className="label">Local prototype · No data leaves your device</p>
       </footer>
     </div>
   );

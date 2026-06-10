@@ -18,40 +18,18 @@ import type { IllustrationStyle, StorySession } from "@/lib/session/types";
 import type { PageId } from "@/lib/story/master-text";
 import { resolveStory } from "@/lib/story/variants";
 import type { ResolvedPage, ResolvedStory } from "@/lib/story/merge";
+import { SCENE_PAGE_IDS } from "@/lib/story/scenes";
 
 // ---------------------------------------------------------------------------
 // Scene identity
 // ---------------------------------------------------------------------------
-
-/**
- * A slot in the generated-image manifest. "reference" is the locked reference
- * illustration (feature 06); the rest map 1:1 to book pages that carry art. The
- * set matches the scene list shown in prototypes/generating.html — every page
- * with an illustration brief except the back cover (a writing page, no scene).
- */
-export type SceneId = "reference" | PageId;
-
-/**
- * The page slots that get a generated scene illustration, in book order. Cover
- * + pages 1–12 — i.e. every illustrated page. The back cover is intentionally
- * excluded: its brief is a decorative border around a writing space, not a pet
- * scene, so the template renders it without AI art.
- */
-export const SCENE_PAGE_IDS: readonly PageId[] = [
-  "cover",
-  "page-1",
-  "page-2",
-  "page-3",
-  "page-4",
-  "page-5",
-  "page-6",
-  "page-7",
-  "page-8",
-  "page-9",
-  "page-10",
-  "page-11",
-  "page-12",
-];
+//
+// `SceneId` + `SCENE_PAGE_IDS` are PURE data shared with the client-safe
+// catalog/registry chain, so they live in lib/story/scenes.ts (a neutral module
+// the public storefront can reach without pulling in a `lib/ai/*` engine module).
+// Re-exported here so every existing `@/lib/ai/prompts` consumer is unchanged.
+export type { SceneId } from "@/lib/story/scenes";
+export { SCENE_PAGE_IDS } from "@/lib/story/scenes";
 
 // ---------------------------------------------------------------------------
 // Style phrasing (kept in step with buildReferencePrompt's STYLE_PHRASE)
