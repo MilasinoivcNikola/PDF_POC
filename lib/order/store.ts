@@ -87,15 +87,17 @@ export function orderToRow(order: Order): OrderRow {
 // ---------------------------------------------------------------------------
 
 /**
- * Insert a new order in `pending_payment` and return the persisted `Order`. The
- * id is a fresh UUID; `createdAt`/`updatedAt` are set to now. Generation never
- * runs for a `pending_payment` order — it only starts once the paid webhook moves
- * it to `paid` → `queued` (see the state machine).
+ * Insert a new order in `pending_payment` and return the persisted `Order`.
+ * `createdAt`/`updatedAt` are set to now. The id is the caller-supplied `input.id`
+ * (so a caller that keyed Storage at the id before the row existed — e.g. intake's
+ * `photoKey: photoKeyFor(id)` — stays atomic), or a fresh UUID when none is given.
+ * Generation never runs for a `pending_payment` order — it only starts once the
+ * paid webhook moves it to `paid` → `queued` (see the state machine).
  */
 export async function createOrder(input: NewOrderInput): Promise<Order> {
   const now = new Date().toISOString();
   const order: Order = {
-    id: createSessionId(),
+    id: input.id ?? createSessionId(),
     productId: input.productId,
     storyType: input.storyType,
     status: "pending_payment",

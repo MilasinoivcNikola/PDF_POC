@@ -87,12 +87,18 @@ export interface Order {
 }
 
 /**
- * The fields a caller supplies to create an order. `id`, `status`, `createdAt`,
- * and `updatedAt` are assigned by the store; the rest are provided. Optional
- * fields default to absent.
+ * The fields a caller supplies to create an order. `status`, `createdAt`, and
+ * `updatedAt` are assigned by the store; the rest are provided. Optional fields
+ * default to absent.
+ *
+ * `id` is optional: callers that key Storage at the order id BEFORE the row
+ * exists (e.g. the intake route uploads the photo to `order-photos/<id>/photo`,
+ * then writes `photoKey: photoKeyFor(id)`) supply the id they already minted so
+ * `photoKey === photoKeyFor(id)` is atomic — no blank-then-patch. Callers with no
+ * such ordering constraint omit it and the store mints a fresh one.
  */
 export type NewOrderInput = Pick<
   Order,
   "productId" | "storyType" | "customerEmail" | "inputs" | "photoKey"
 > &
-  Partial<Pick<Order, "lsOrderId" | "deliveryToken">>;
+  Partial<Pick<Order, "id" | "lsOrderId" | "deliveryToken">>;

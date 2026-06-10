@@ -107,7 +107,13 @@ framework beyond this list without approval. The plan in
   `lib/supabase/` holds the server-only client (`server.ts`), the `isSafeOrderId` guard
   (`ids.ts`), and Storage helpers (`storage.ts`). The service-role client is
   **server-only** — same `lib/session/disk.ts` discipline — and must never reach a
-  client/public bundle; RLS is defence-in-depth on top.
+  **client/browser** bundle; RLS is defence-in-depth on top. *"Server-only" is not
+  "operator-only":* a **public** server-side API route may hold it too (PR-05's
+  `app/(public)/api/order/route.ts` is the first such consumer — it writes the order row
+  + photo on the public Vercel host). The invariant that bites is *no client bundle*, not
+  *operator-only* — see the three-tier *Deploy-surface boundary* below. `createOrder`
+  accepts an optional caller-minted `id` so intake can mint the order id once, key the
+  photo at `order-photos/<id>/photo`, and write `photoKey` atomically (no blank-then-patch).
 - **Commerce catalog** (`lib/catalog/`): `lib/catalog/products.ts` owns the `Product`
   catalog contract the storefront (PR-04) and checkout (PR-06) import — one `Product`
   per registered `storyType`, with `illustrationCount` **derived** from the registry's
@@ -123,9 +129,11 @@ framework beyond this list without approval. The plan in
 - **Deploy-surface boundary** (`lib/runtime/surface.ts` + the `app/(public)`/`app/(operator)`
   route groups): the single most important security boundary in the build (PR-03). One
   codebase, two run modes via `DEPLOY_TARGET` (`public` | `operator`, default `operator`):
-  the **operator** surface runs locally and holds the engine (OpenAI key + Puppeteer +
-  the generation graph + the service-role Supabase client); the **public** surface is the
-  always-on Vercel storefront and must never generate. `surface.ts` exports
+  the **operator** surface runs locally and holds the **engine** (OpenAI key + Puppeteer +
+  the generation graph); the **public** surface is the always-on Vercel storefront and must
+  never **generate** — but it *may persist intent*: a public server-side API route writes
+  the `pending_payment` order row + uploaded photo to Supabase (PR-05), so the public
+  deploy holds the **service-role** key too — never the engine. `surface.ts` exports
   `deployTarget()` / `isOperator()` / `isPublic()` / `assertOperator()`. Operator API
   routes call `assertOperator()` (404 under public); the `app/(operator)/layout.tsx`
   `notFound()`s the whole operator page group under public, and is `export const dynamic =
@@ -133,10 +141,17 @@ framework beyond this list without approval. The plan in
   not baked at prerender time — so `(operator)` pages are dynamic (`ƒ`) while the `(public)`
   landing + storefront (`/books`, `/books/[productId]`, `/order/[productId]`, `/policies`)
   stay static/SSG (`○`/`●`; PR-04 added them to the guard's `PUBLIC_ENTRIES`). The
-  load-bearing guard is the
-  build-time assertion (`lib/runtime/surface.boundary.test.ts`) that **no `(public)` route
-  transitively imports the engine** — same discipline as "no Puppeteer/fs in the client
-  bundle" and the `lib/catalog/` client-safe rule above. (Note: under a public Vercel build
+  load-bearing guard (`lib/runtime/surface.boundary.test.ts`) is **two-tier** since PR-05
+  added the first public *API* route (`app/(public)/api/order/route.ts`): **public pages**
+  (`PUBLIC_ENTRIES`) must be fully client-safe — no engine **and** no `lib/supabase/server`;
+  **public API routes** (`PUBLIC_API_ENTRIES`) may import the service-role Supabase client
+  (`lib/supabase/server` + `@supabase/supabase-js`) but still must be **engine-free** (no
+  `lib/ai/*` / `lib/pdf/render` / Puppeteer / `lib/session/disk`). Public API routes do
+  **not** call `assertOperator()` (they run on the public host). Net of all three tiers —
+  public page (client-safe) · public API route (service-role OK, engine banned) · operator
+  (everything) — **no `(public)` route transitively imports the engine** — same discipline
+  as "no Puppeteer/fs in the client bundle" and the `lib/catalog/` client-safe rule above.
+  (Note: under a public Vercel build
   the operator routes still *ship* as gated 404 functions — the guarantee is that the
   public route *graph* never imports the engine and the keys are never set on that deploy,
   not that the engine code is build-excluded.)
