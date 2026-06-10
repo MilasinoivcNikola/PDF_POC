@@ -18,6 +18,7 @@ import { readSession, writeSession } from "@/lib/session/disk";
 import { isSafeSessionId, resolveUnder } from "@/lib/ai/paths";
 import { generateAllIllustrations } from "@/lib/ai/generate";
 import { getStory } from "@/lib/story/registry";
+import { assertOperator } from "@/lib/runtime/surface";
 import type { StorySession } from "@/lib/session/types";
 
 /**
@@ -118,6 +119,9 @@ function startGeneration(session: StorySession): void {
  * Errors: `{ ok: false, error: "snake_case" }` with the matching status code.
  */
 export async function POST(request: Request): Promise<Response> {
+  const gate = assertOperator();
+  if (gate) return gate;
+
   let body: unknown;
   try {
     body = await request.json();
@@ -187,6 +191,9 @@ export async function POST(request: Request): Promise<Response> {
  * Errors: `{ ok: false, error: "snake_case" }`.
  */
 export async function GET(request: Request): Promise<Response> {
+  const gate = assertOperator();
+  if (gate) return gate;
+
   const id = new URL(request.url).searchParams.get("id");
   if (!id || !isSafeSessionId(id)) {
     return NextResponse.json(

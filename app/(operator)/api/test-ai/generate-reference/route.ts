@@ -13,11 +13,17 @@ import { NextResponse } from "next/server";
 import type { IllustrationStyle } from "@/lib/session/types";
 import { generateReferenceIllustration, type Quality } from "@/lib/ai/generate";
 import { isSafeSessionId, resolveUnder } from "@/lib/ai/paths";
+import { assertOperator } from "@/lib/runtime/surface";
 
 const STYLES: readonly IllustrationStyle[] = ["watercolor", "storybook", "pencil"];
 const QUALITIES: readonly Quality[] = ["low", "medium", "high"];
 
 export async function POST(request: Request): Promise<Response> {
+  // Operator-surface guard (PR-03) layered ahead of the existing dev-only gate:
+  // 404 under a public deploy, then 404 in any production build.
+  const gate = assertOperator();
+  if (gate) return gate;
+
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json(
       { ok: false, error: "not_available_in_production" },

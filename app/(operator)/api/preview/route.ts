@@ -23,8 +23,12 @@ import { isSafeSessionId } from "@/lib/ai/paths";
 import { manifestToImageMap } from "@/lib/ai/generate";
 import { getStory } from "@/lib/story/registry";
 import { MergeError } from "@/lib/story/merge";
+import { assertOperator } from "@/lib/runtime/surface";
 
 export async function GET(request: Request): Promise<Response> {
+  const gate = assertOperator();
+  if (gate) return gate;
+
   const id = new URL(request.url).searchParams.get("id");
   if (!id || !isSafeSessionId(id)) {
     return NextResponse.json(

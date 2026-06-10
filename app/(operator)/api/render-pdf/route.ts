@@ -21,6 +21,7 @@ import { manifestToImageMap } from "@/lib/ai/generate";
 import { renderStoryPdf } from "@/lib/pdf/render";
 import { getStory } from "@/lib/story/registry";
 import { MergeError } from "@/lib/story/merge";
+import { assertOperator } from "@/lib/runtime/surface";
 
 /** Pull a string id from `{ id }` or `{ sessionId }` request bodies. */
 function readId(body: unknown): string | null {
@@ -33,6 +34,9 @@ function readId(body: unknown): string | null {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const gate = assertOperator();
+  if (gate) return gate;
+
   let body: unknown;
   try {
     body = await request.json();

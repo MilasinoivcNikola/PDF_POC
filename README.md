@@ -35,18 +35,26 @@ cp .env.local.example .env.local   # then add your OPENAI_API_KEY
 
 ```
 app/
-  page.tsx              Landing page
-  layout.tsx            Root layout (fonts + global CSS)
+  layout.tsx            Root layout (fonts + global CSS) — the single <html>/<body>
   globals.css           Design system (ported from prototypes/styles.css)
   fonts.ts              next/font setup (Fraunces, Lora, JetBrains Mono)
-  create/<step>/        Wizard steps (upload, pet, child, …, download)
-  api/                  Route handlers (upload, session, generate, render-pdf)
+  (public)/             PUBLIC surface — landing + (soon) storefront/delivery
+    page.tsx            Landing page  →  served at /
+  (operator)/           OPERATOR surface — engine + wizard (404s under a public deploy)
+    layout.tsx          Route-group gate: force-dynamic, notFound() when DEPLOY_TARGET=public
+    create/<step>/      Wizard steps  →  served at /create/<step> (URL unchanged), dynamic (ƒ)
+    api/                Route handlers →  served at /api/… (upload, session,
+                        generate-illustrations, render-pdf, preview, update-text, …)
+    test-ai/            Dev-only AI scaffold
 lib/
-  ai/  pdf/  story/  session/   Domain logic (stubbed for now)
+  runtime/  ai/  pdf/  story/  session/  order/  supabase/  catalog/   Domain logic
 components/
-  wizard/  preview/             UI components (stubbed for now)
+  wizard/  preview/             UI components
 uploads/ generated/ sessions/ output/   Gitignored runtime artifacts
 ```
+
+Route groups `(public)` / `(operator)` are **URL-transparent** — they do not appear
+in the path. The split is the public/operator security boundary (see Deploy below).
 
 ## Design system
 
@@ -55,4 +63,34 @@ Fraunces/Lora/JetBrains Mono typography, component classes). The same token
 values are mirrored into `tailwind.config.ts` `theme.extend`, so UI can use
 either CSS custom properties (e.g. `var(--rose)`) or Tailwind utilities
 (e.g. `text-rose`). Keep the two in sync — one source of values.
-```
+
+## Deploy — public vs. operator surface
+
+One codebase runs as **two surfaces**, switched by the `DEPLOY_TARGET` env var
+(see `context/commerce-roadmap.md`, "two deployments of one codebase"):
+
+| `DEPLOY_TARGET` | Surface | What runs |
+| --------------- | ------- | --------- |
+| `operator` (default, unset = this) | **Local** | The full app — wizard, generation engine (OpenAI key + Puppeteer), preview, PDF render, admin. |
+| `public` | **Vercel** | The always-on storefront. Operator API routes 404; the `(operator)` pages 404; the engine never loads. |
+
+- **Local dev:** leave `DEPLOY_TARGET` unset (or `operator`) — `npm run dev` gives
+  today's full app. The default is `operator` so a forgotten env can never *widen*
+  the public surface's exposure.
+- **Vercel:** `vercel.json` sets `DEPLOY_TARGET=public` for the build and runtime.
+  The public route graph (`app/layout.tsx` + `app/(public)/…`) never imports the
+  engine — enforced by the build-time guard in
+  `lib/runtime/surface.boundary.test.ts`, so the `OPENAI_API_KEY` /
+  `SUPABASE_SERVICE_ROLE_KEY` paths can't reach a public deploy.
+- The gate lives in `lib/runtime/surface.ts` (`assertOperator()` for API routes,
+  `isPublic()` for the `(operator)` layout). Generation is **local only** — the
+  public host takes orders and serves finished files, but cannot generate.
+- **Both gates hold at runtime, build-env-independent.** The `(operator)` layout is
+  `force-dynamic`, so its `isPublic()` / `notFound()` decision is evaluated **per
+  request** rather than baked in at build time — an app built in operator mode but
+  served with `DEPLOY_TARGET=public` at runtime still 404s the wizard pages. (Without
+  `force-dynamic` the wizard pages would prerender, and a runtime env flip could not
+  un-bake the static shell.) Consequence for the build output: the public landing `/`
+  prerenders **static** (`○`), while the `(operator)` pages (`/create/*`) are now
+  **dynamic** (`ƒ`) — rendered per-request. Functionally identical for the
+  client-driven wizard.
