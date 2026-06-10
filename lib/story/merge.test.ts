@@ -9,7 +9,7 @@ import { mergeStory, MergeError } from "@/lib/story/merge";
 // lives in variants.ts; aliased to `_resolveStory` here for brevity.
 import { resolveStory as _resolveStory } from "@/lib/story/variants";
 import type { PageLayout } from "@/lib/story/merge";
-import type { PageId } from "@/lib/story/master-text";
+import type { PageId, Story1PageId } from "@/lib/story/master-text";
 import type { Pronoun } from "@/lib/session/types";
 import {
   otisSession,
@@ -67,7 +67,7 @@ describe("every resolved page carries its render layout", () => {
   // for Story 1 this must mirror the old per-id dispatch exactly so output is
   // byte-identical. Cover/dedication/truth(7)/love(10)/closing(12)/back-cover get
   // bespoke treatments; every other numbered page is "narrative".
-  const expectedLayout: Record<PageId, PageLayout> = {
+  const expectedLayout: Record<Story1PageId, PageLayout> = {
     cover: "cover",
     "page-1": "dedication",
     "page-2": "narrative",
@@ -88,10 +88,12 @@ describe("every resolved page carries its render layout", () => {
     const story = _resolveStory(otisSession());
     expect(story).toHaveLength(14);
     for (const page of story) {
+      // The Otis story is all Story-1 pages, so each id keys the map.
+      const id = page.id as Story1PageId;
       expect(
         page.layout,
-        `page ${page.id} should have layout "${expectedLayout[page.id]}"`,
-      ).toBe(expectedLayout[page.id]);
+        `page ${page.id} should have layout "${expectedLayout[id]}"`,
+      ).toBe(expectedLayout[id]);
     }
   });
 

@@ -14,10 +14,53 @@
 import type { StorySession, Story2Session } from "@/lib/session/types";
 import type { PageId } from "@/lib/story/master-text";
 import type { ResolvedStory } from "@/lib/story/merge";
-import type { StoryDefinition } from "@/lib/story/registry";
+import type {
+  EditableFieldsContract,
+  StoryDefinition,
+} from "@/lib/story/registry";
 import { resolveStory2 } from "@/lib/story/story2/variants";
-import { letterPdfFilename } from "@/lib/pdf/render";
+import { letterPdfFilename } from "@/lib/pdf/filename";
 import { getWizardConfig } from "@/lib/story/wizard-config";
+import {
+  EDITABLE_FIELDS,
+  editableFieldsForPage,
+  FIELD_COPY,
+  getSessionFieldValue,
+  isEditableField,
+  isRequiredField,
+  setSessionField,
+  type EditableField,
+} from "@/lib/story/story2/editable-fields";
+
+/**
+ * The Story-2 "edit your own words" preview contract. The sibling of Story 1's:
+ * wraps this product's own editable-fields module, narrowing the cross-product
+ * union session param to `Story2Session` at the registry seam (the same guarded
+ * cast `resolve` uses above — `getStory("story-2")` is only ever reached with a
+ * `Story2Session`). `field` is narrowed back to `EditableField` only after the
+ * route's `isEditableField` allowlist check, so the casts are sound.
+ */
+const story2Editable: EditableFieldsContract = {
+  EDITABLE_FIELDS,
+  editableFieldsForPage,
+  isEditableField,
+  isRequiredField: (field: string): boolean =>
+    isEditableField(field) && isRequiredField(field),
+  fieldCopy: FIELD_COPY,
+  setSessionField(session, field, value) {
+    return setSessionField(
+      session as unknown as Story2Session,
+      field as EditableField,
+      value,
+    );
+  },
+  getSessionFieldValue(session, field) {
+    return getSessionFieldValue(
+      session as unknown as Story2Session,
+      field as EditableField,
+    );
+  },
+};
 
 /**
  * The Story-2 illustrated page slots, in book order. The letter is text-first
@@ -47,4 +90,5 @@ export const story2Definition: StoryDefinition = {
     return letterPdfFilename(session.pet.name);
   },
   wizard: getWizardConfig("story-2"),
+  editable: story2Editable,
 };

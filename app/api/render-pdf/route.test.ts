@@ -1,20 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { StorySession } from "@/lib/session/types";
+import { murphySession } from "@/lib/story/story2/fixtures";
 
 // The /api/render-pdf boundary: validate the id (it gates a disk read), 404 a
 // missing session, then stream the rendered bytes with the right headers
-// (application/pdf, attachment + the template's filename, Content-Length). The
+// (application/pdf, attachment + the registry's filename, Content-Length). The
 // heavy deps are mocked so NO Chrome launches and NO disk is read here:
 //   - @/lib/session/disk → a stubbed readSession
-//   - @/lib/pdf/render    → a stubbed renderStoryPdf + the REAL storyPdfFilename
-//     contract (we stub it to a fixed name and assert the header carries it)
+//   - @/lib/pdf/render    → a stubbed renderStoryPdf (no Puppeteer)
+//   - @/lib/pdf/filename  → the REAL filename contract is reached through the
+//     registry's `pdfFilename` (getStory(...).pdfFilename → @/lib/pdf/filename);
+//     we stub the builders to fixed names and assert the header carries them.
 //   - @/lib/ai/generate   → a stubbed manifestToImageMap (no PNG reads)
-// isSafeSessionId stays real — it is the pure path guard under test.
+// isSafeSessionId + the registry stay real — the route picks the filename per
+// storyType through them.
 
 const readSessionMock = vi.fn();
 const renderStoryPdfMock = vi.fn();
 const storyPdfFilenameMock = vi.fn();
+const letterPdfFilenameMock = vi.fn();
 const manifestToImageMapMock = vi.fn();
 
 vi.mock("@/lib/session/disk", () => ({
@@ -24,7 +29,13 @@ vi.mock("@/lib/session/disk", () => ({
 vi.mock("@/lib/pdf/render", () => ({
   renderStoryPdf: (session: StorySession, images: unknown) =>
     renderStoryPdfMock(session, images),
+}));
+
+// The filename builders moved to their own pure module; the registry's
+// `pdfFilename` reaches them here, so spy on @/lib/pdf/filename (not render.ts).
+vi.mock("@/lib/pdf/filename", () => ({
   storyPdfFilename: (petName: string) => storyPdfFilenameMock(petName),
+  letterPdfFilename: (petName: string) => letterPdfFilenameMock(petName),
 }));
 
 vi.mock("@/lib/ai/generate", () => ({
@@ -77,9 +88,11 @@ beforeEach(() => {
   readSessionMock.mockReset();
   renderStoryPdfMock.mockReset();
   storyPdfFilenameMock.mockReset();
+  letterPdfFilenameMock.mockReset();
   manifestToImageMapMock.mockReset();
   manifestToImageMapMock.mockResolvedValue({});
   storyPdfFilenameMock.mockReturnValue("Saying-Goodbye-to-Otis.pdf");
+  letterPdfFilenameMock.mockReturnValue("Letter-from-Murphy.pdf");
 });
 
 // ---------------------------------------------------------------------------
@@ -163,6 +176,31 @@ describe("POST /api/render-pdf — streaming", () => {
     expect(storyPdfFilenameMock).toHaveBeenCalledWith("Otis");
 
     // The body is exactly the rendered bytes.
+    const buf = Buffer.from(await res.arrayBuffer());
+    expect(buf.equals(pdfBytes)).toBe(true);
+  });
+
+  it("streams a Story-2 letter named via the registry (Letter-from-[PET_NAME].pdf)", async () => {
+    // A Story-2 session must route to letterPdfFilename through the registry, NOT
+    // storyPdfFilename. renderStoryPdf is mocked so no Puppeteer runs.
+    const session = murphySession() as unknown as StorySession;
+    const pdfBytes = Buffer.from("%PDF-1.4 a letter for Sarah");
+    readSessionMock.mockResolvedValue(session);
+    renderStoryPdfMock.mockResolvedValue(pdfBytes);
+
+    const res = await POST(jsonRequest({ id: "session-id-abc123" }));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("application/pdf");
+    expect(res.headers.get("Content-Disposition")).toBe(
+      'attachment; filename="Letter-from-Murphy.pdf"',
+    );
+    expect(res.headers.get("Content-Length")).toBe(String(pdfBytes.length));
+
+    // The Story-2 filename builder was used, with the pet name — not the Story-1 one.
+    expect(letterPdfFilenameMock).toHaveBeenCalledWith("Murphy");
+    expect(storyPdfFilenameMock).not.toHaveBeenCalled();
+
     const buf = Buffer.from(await res.arrayBuffer());
     expect(buf.equals(pdfBytes)).toBe(true);
   });

@@ -1,58 +1,34 @@
 "use client";
 
-// The in-browser book — feature 10's "done". Given a finalized session id, it
-// fetches the resolved story + the generated-illustration data-URL map from
-// /api/preview (server-side reads the session JSON + PNGs), lays the pages out as
-// the facing-page spreads of prototypes/preview.html, and offers:
+// The in-browser book — feature 10's "done", made story-aware in feature 19.
+// Given a finalized session id, it fetches the resolved story + the generated-
+// illustration data-URL map from /api/preview (server-side reads the session JSON
+// + PNGs), lays the pages out — facing-page spreads for Story 1 (the children's
+// book), a single column for Story 2 (a letter reads as single sheets) — and
+// offers:
 //   - a per-page "Regenerate an illustration" control (POST /api/regenerate-
 //     illustration) that re-paints ONE page and swaps it in place, and
 //   - a "Download PDF" button (POST /api/render-pdf) that streams the print-
 //     quality Letter PDF and shows its real filename · size afterwards.
 //
-// The resolved copy comes from the same feature-03 `resolveStory` the PDF uses,
-// and each page renders through the shared per-page template (lib/pdf/pages via
-// PageView), so what the user sees here equals what the PDF contains.
+// The resolved copy comes from the same registry `resolve` the PDF uses, and each
+// page renders through the shared per-page template (lib/pdf/pages via PageView),
+// so what the user sees here equals what the PDF contains — for either product.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 import { PageView } from "@/components/preview/PageView";
 import type { PageId } from "@/lib/story/master-text";
+import type { StoryType } from "@/lib/session/types";
 import { clean, type ResolvedStory } from "@/lib/story/merge";
-import {
-  EDITABLE_FIELDS,
-  type EditableField,
-  editableFieldsForPage,
-} from "@/lib/story/editable-fields";
-
-/** Page slots that carry a regenerate-able illustration (back cover is text). */
-const ILLUSTRATED_PAGES = new Set<PageId>([
-  "cover",
-  "page-1",
-  "page-2",
-  "page-3",
-  "page-4",
-  "page-5",
-  "page-6",
-  "page-7",
-  "page-8",
-  "page-9",
-  "page-10",
-  "page-11",
-  "page-12",
-]);
+import { getStory } from "@/lib/story/registry";
 
 type ImageMap = Partial<Record<PageId, string>>;
-type FieldValues = Record<EditableField, string>;
-
-/** A blank value for every editable field, so the editors always have a string. */
-function emptyFieldValues(): FieldValues {
-  return Object.fromEntries(
-    EDITABLE_FIELDS.map((field) => [field, ""]),
-  ) as FieldValues;
-}
+type FieldValues = Record<string, string>;
 
 interface PreviewData {
+  storyType: StoryType;
   pages: ResolvedStory;
   images: ImageMap;
   petName: string;
@@ -62,6 +38,7 @@ interface PreviewData {
 
 interface PreviewResponse {
   ok: boolean;
+  storyType?: StoryType;
   pages?: ResolvedStory;
   images?: ImageMap;
   petName?: string;
@@ -133,12 +110,22 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
           );
           return;
         }
+        const storyType = body.storyType ?? "story-1";
+        // Seed a blank string for every editable field so the editors always have
+        // one, then overlay the server's raw values (skipping any undefined).
+        const fields: FieldValues = Object.fromEntries(
+          getStory(storyType).editable.EDITABLE_FIELDS.map((field) => [
+            field,
+            body.fields?.[field] ?? "",
+          ]),
+        );
         setData({
+          storyType,
           pages: body.pages,
           images: body.images ?? {},
           petName: body.petName ?? "your pet",
           childName: body.childName ?? "",
-          fields: { ...emptyFieldValues(), ...(body.fields ?? {}) },
+          fields,
         });
         setImages(body.images ?? {});
       } catch {
@@ -231,7 +218,7 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
   // the header names, and update our raw `fields` so the editor stays in sync.
   // Returns true on success so PageView can keep its editor open on failure.
   async function handleSaveText(
-    field: EditableField,
+    field: string,
     value: string,
   ): Promise<boolean> {
     if (savingText) {
@@ -310,7 +297,7 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
       const blob = await res.blob();
       const filename =
         parseFilename(res.headers.get("Content-Disposition")) ??
-        "Saying-Goodbye.pdf";
+        (data?.storyType === "story-2" ? "Letter.pdf" : "Saying-Goodbye.pdf");
 
       // Trigger the browser download from the streamed bytes.
       const url = URL.createObjectURL(blob);
@@ -358,18 +345,29 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
   }
 
   const petName = data.petName.trim() || "your pet";
+  const isLetter = data.storyType === "story-2";
+
+  // Per-story dispatch: which pages carry a regenerate-able illustration, and the
+  // "edit your own words" contract (editable fields, required check, copy). Both
+  // come from the registry, so the component stays generic across products.
+  const story = getStory(data.storyType);
+  const illustratedPages = new Set<PageId>(story.illustrationSlots);
+  const { editable } = story;
 
   return (
     <main ref={mainRef}>
       <section className="preview-header fade-in">
-        <span className="label label--gold">Your book is ready</span>
+        <span className="label label--gold">
+          {isLetter ? "Your letter is ready" : "Your book is ready"}
+        </span>
         <h1 className="display-md" style={{ marginTop: "var(--s-4)" }}>
-          <em>{petName}&apos;s</em> story is yours to keep.
+          <em>{petName}&apos;s</em>{" "}
+          {isLetter ? "letter is yours to keep." : "story is yours to keep."}
         </h1>
         <p>
-          A first look at all the pages, exactly as they&apos;ll appear in your
-          PDF. Take your time — you can regenerate any illustration that
-          doesn&apos;t feel right.
+          {isLetter
+            ? "A first look at the whole letter, exactly as it will appear in your PDF. Take your time — you can repaint the cover portrait, or correct any of your own words."
+            : "A first look at all the pages, exactly as they'll appear in your PDF. Take your time — you can regenerate any illustration that doesn't feel right."}
         </p>
         <div className="preview-actions">
           <button
@@ -397,40 +395,61 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
         ) : null}
       </section>
 
-      {spreads.map((spread) => {
-        const left = spread[0];
-        const right = spread[1];
-        return (
-          <section className="spread" key={left.id}>
-            <div className="spread__label">
-              {spreadLabel(left.id, right?.id)}
-            </div>
-            {spread.map((page) => {
-              const canRegenerate = ILLUSTRATED_PAGES.has(page.id);
-              return (
-                <PageView
-                  key={page.id}
-                  page={page}
-                  src={images[page.id]}
-                  canRegenerate={canRegenerate}
-                  regenerating={regenerating === page.id}
-                  onRegenerate={() => handleRegenerate(page.id)}
-                  editableFields={editableFieldsForPage(page.id)}
-                  fieldValues={data.fields}
-                  saving={savingText}
-                  onSaveText={handleSaveText}
-                />
-              );
-            })}
-            {/* keep a lone page in the left column of the grid */}
-            {!right ? <div aria-hidden /> : null}
-          </section>
-        );
-      })}
+      {isLetter
+        ? // Story 2 — single column: a letter reads as single sheets, no gutter.
+          data.pages.map((page) => (
+            <section className="preview-single" key={page.id}>
+              <PageView
+                page={page}
+                src={images[page.id]}
+                canRegenerate={illustratedPages.has(page.id)}
+                regenerating={regenerating === page.id}
+                onRegenerate={() => handleRegenerate(page.id)}
+                editableFields={editable.editableFieldsForPage(page.id)}
+                fieldValues={data.fields}
+                fieldCopy={editable.fieldCopy}
+                isFieldRequired={editable.isRequiredField}
+                saving={savingText}
+                onSaveText={handleSaveText}
+              />
+            </section>
+          ))
+        : // Story 1 — facing-page spreads, exactly as before.
+          spreads.map((spread) => {
+            const left = spread[0];
+            const right = spread[1];
+            return (
+              <section className="spread" key={left.id}>
+                <div className="spread__label">
+                  {spreadLabel(left.id, right?.id)}
+                </div>
+                {spread.map((page) => (
+                  <PageView
+                    key={page.id}
+                    page={page}
+                    src={images[page.id]}
+                    canRegenerate={illustratedPages.has(page.id)}
+                    regenerating={regenerating === page.id}
+                    onRegenerate={() => handleRegenerate(page.id)}
+                    editableFields={editable.editableFieldsForPage(page.id)}
+                    fieldValues={data.fields}
+                    fieldCopy={editable.fieldCopy}
+                    isFieldRequired={editable.isRequiredField}
+                    saving={savingText}
+                    onSaveText={handleSaveText}
+                  />
+                ))}
+                {/* keep a lone page in the left column of the grid */}
+                {!right ? <div aria-hidden /> : null}
+              </section>
+            );
+          })}
 
       <section className="download-final" id="download">
         <span className="label label--gold">Take it with you</span>
-        <h2 style={{ marginTop: "var(--s-4)" }}>Your book is ready.</h2>
+        <h2 style={{ marginTop: "var(--s-4)" }}>
+          {isLetter ? "Your letter is ready." : "Your book is ready."}
+        </h2>
         <p>
           A printable PDF, ready to print at home, at a print shop, or kept on
           your device.

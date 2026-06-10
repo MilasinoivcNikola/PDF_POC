@@ -16,6 +16,7 @@ import { BookPreview } from "@/components/preview/BookPreview";
 
 export default function PreviewPage() {
   const { draft, hydrated } = useWizard();
+  const isLetter = draft?.storyType === "story-2";
 
   return (
     <div className="page-wrap">
@@ -34,7 +35,9 @@ export default function PreviewPage() {
           </svg>
           Quietly Kept
         </Link>
-        <div className="label">Preview · Your book</div>
+        <div className="label">
+          Preview · {isLetter ? "Your letter" : "Your book"}
+        </div>
       </header>
 
       {!hydrated ? (

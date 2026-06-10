@@ -14,43 +14,7 @@ import { useState, type ReactNode } from "react";
 
 import { renderPage } from "@/lib/pdf/pages";
 import type { ResolvedPage } from "@/lib/story/merge";
-import {
-  type EditableField,
-  isBlankAfterClean,
-  isRequiredField,
-} from "@/lib/story/editable-fields";
-
-/** A gentle, human label + hint for each editable field's inline editor. */
-const FIELD_COPY: Record<EditableField, { label: string; hint: string }> = {
-  petName: {
-    label: "Their name",
-    hint: "The name you used when calling them home.",
-  },
-  childName: {
-    label: "Your child's name",
-    hint: "Who the book is written for.",
-  },
-  parentDedication: {
-    label: "A dedication, if you'd like one",
-    hint: "An optional few words, printed on the dedication page. Leave blank to omit it.",
-  },
-  breedColor: {
-    label: "A few words to describe them",
-    hint: "The kind of detail you'd mention to a stranger.",
-  },
-  favoriteActivity: {
-    label: "Their favorite thing to do",
-    hint: "What they loved most in the world.",
-  },
-  sleepingSpot: {
-    label: "Where they liked to sleep",
-    hint: "Their favorite warm, safe place.",
-  },
-  favoriteMemory: {
-    label: "A favorite memory",
-    hint: "One or two sentences about a day to remember.",
-  },
-};
+import { isBlankAfterClean } from "@/lib/story/editable-fields";
 
 interface PageViewProps {
   /** The fully-resolved page (copy already merged). */
@@ -64,13 +28,17 @@ interface PageViewProps {
   /** Re-paint just this page's illustration. */
   onRegenerate: () => void;
   /** The editable free-text fields exposed on this page (empty for most pages). */
-  editableFields: readonly EditableField[];
+  editableFields: readonly string[];
   /** Current raw values for every editable field (the editor pre-fills from this). */
-  fieldValues: Record<EditableField, string>;
+  fieldValues: Record<string, string>;
+  /** Per-field inline-editor copy (label + hint), supplied per story. */
+  fieldCopy: Record<string, { label: string; hint: string }>;
+  /** Whether a field is required (blanking it is blocked), supplied per story. */
+  isFieldRequired: (field: string) => boolean;
   /** True while ANY text save is in flight (disables the editors book-wide). */
   saving: boolean;
   /** Persist one edited field; resolves true on success, false on failure. */
-  onSaveText: (field: EditableField, value: string) => Promise<boolean>;
+  onSaveText: (field: string, value: string) => Promise<boolean>;
 }
 
 const regenerateIcon: ReactNode = (
@@ -105,6 +73,8 @@ export function PageView({
   onRegenerate,
   editableFields,
   fieldValues,
+  fieldCopy,
+  isFieldRequired,
   saving,
   onSaveText,
 }: PageViewProps) {
@@ -130,7 +100,7 @@ export function PageView({
 
   // A required field blanked in the editor blocks Save (the server rejects it too).
   const hasBlankRequired = editableFields.some(
-    (field) => isRequiredField(field) && isBlankAfterClean(drafts[field] ?? ""),
+    (field) => isFieldRequired(field) && isBlankAfterClean(drafts[field] ?? ""),
   );
 
   async function handleSaveAll() {
@@ -195,10 +165,10 @@ export function PageView({
       {canEdit && editing ? (
         <div className="preview-page__editor">
           {editableFields.map((field) => {
-            const copy = FIELD_COPY[field];
+            const copy = fieldCopy[field];
             const value = drafts[field] ?? "";
             const blankRequired =
-              isRequiredField(field) && isBlankAfterClean(value);
+              isFieldRequired(field) && isBlankAfterClean(value);
             return (
               <div className="field" key={field}>
                 <label className="field__label" htmlFor={`edit-${page.id}-${field}`}>

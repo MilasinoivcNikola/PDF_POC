@@ -1,13 +1,14 @@
-// POST /api/update-text — let the parent correct THEIR OWN free-text input (or a
-// name) from the preview (the `preview-text-edit` feature, Option A: edit inputs
-// → re-merge). Body: `{ id, field, value }`.
+// POST /api/update-text — let the parent/owner correct THEIR OWN free-text input
+// (or a name) from the preview (the `preview-text-edit` feature, Option A: edit
+// inputs → re-merge). Body: `{ id, field, value }`.
 //
 // This is the regenerate-illustration route MINUS the AI call: validate the id
-// (traversal-guarded) and the field (a known editable field), reject a blanked
-// required field BEFORE writing, write the cleaned value into the session, then
-// re-run `resolveStory` (defense in depth — a MergeError is rejected without a
-// write), persist, and return the freshly re-resolved `pages` so the client can
-// swap its whole book state in place (global name edits propagate book-wide).
+// (traversal-guarded), READ the session (so the product's editable-field allowlist
+// is known — the `field` allowlist is per-story), validate the field + reject a
+// blanked required field BEFORE writing, write the cleaned value into the session,
+// then re-resolve via the registry (defense in depth — a MergeError is rejected
+// without a write), persist, and return the freshly re-resolved `pages` so the
+// client can swap its whole book state in place (global name edits propagate).
 //
 // The next PDF download reflects the edit automatically: /api/render-pdf re-reads
 // the session from disk, so there is no template/render change here. House JSON
@@ -17,20 +18,15 @@ import { NextResponse } from "next/server";
 
 import { readSession, writeSession } from "@/lib/session/disk";
 import { isSafeSessionId } from "@/lib/ai/paths";
-import { resolveStory } from "@/lib/story/variants";
+import { getStory } from "@/lib/story/registry";
 import { MergeError } from "@/lib/story/merge";
-import {
-  type EditableField,
-  isBlankAfterClean,
-  isEditableField,
-  isRequiredField,
-  setSessionField,
-} from "@/lib/story/editable-fields";
+import { isBlankAfterClean } from "@/lib/story/editable-fields";
 
-/** Read `{ id, field, value }`, narrowing `field` to a known editable field. */
+/** Read `{ id, field, value }` as strings — field is NOT narrowed to an editable
+ *  field here: the per-story allowlist isn't known until the session is read. */
 function readArgs(
   body: unknown,
-): { id: string; field: EditableField; value: string } | null {
+): { id: string; field: string; value: string } | null {
   if (typeof body !== "object" || body === null) {
     return null;
   }
@@ -41,8 +37,7 @@ function readArgs(
   if (
     typeof id !== "string" ||
     typeof field !== "string" ||
-    typeof value !== "string" ||
-    !isEditableField(field)
+    typeof value !== "string"
   ) {
     return null;
   }
@@ -65,14 +60,9 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  // A blanked required field would make re-merge throw; reject before any write.
-  if (isRequiredField(args.field) && isBlankAfterClean(args.value)) {
-    return NextResponse.json(
-      { ok: false, error: "field_required" },
-      { status: 400 },
-    );
-  }
-
+  // Read FIRST: the editable-field allowlist + the resolver are per-story, so we
+  // can't validate the field until we know the product. Reading is not a write,
+  // so the "no write on bad input" guarantee still holds.
   const session = await readSession(args.id);
   if (!session) {
     return NextResponse.json(
@@ -81,13 +71,39 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const updated = setSessionField(session, args.field, args.value);
+  const storyType = session.storyType ?? "story-1";
+  const story = getStory(storyType);
+  const { editable } = story;
 
-  // Re-resolve BEFORE writing: a MergeError (defense in depth — the required-field
-  // guard above should already prevent it) must not corrupt the on-disk session.
+  // The field must be one of THIS product's editable fields (the per-story
+  // allowlist — no arbitrary session-field writes).
+  if (!editable.isEditableField(args.field)) {
+    return NextResponse.json(
+      { ok: false, error: "invalid_request" },
+      { status: 400 },
+    );
+  }
+
+  // A blanked required field would make re-merge throw; reject before any write.
+  if (editable.isRequiredField(args.field) && isBlankAfterClean(args.value)) {
+    return NextResponse.json(
+      { ok: false, error: "field_required" },
+      { status: 400 },
+    );
+  }
+
+  // `setSessionField` returns the cross-product union; the impl already narrowed
+  // to the right product internally (via the registry seam). The registry's
+  // `resolve`/`writeSession` are typed on `StorySession` (the back-compat default)
+  // and each impl re-narrows, so we hand them the union as a `StorySession`.
+  const updated = editable.setSessionField(session, args.field, args.value) as typeof session;
+
+  // Re-resolve via the registry BEFORE writing: a MergeError (defense in depth —
+  // the required-field guard above should already prevent it) must not corrupt the
+  // on-disk session.
   let pages;
   try {
-    pages = resolveStory(updated);
+    pages = story.resolve(updated);
   } catch (error) {
     if (error instanceof MergeError) {
       return NextResponse.json(
@@ -109,12 +125,14 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // Return the re-resolved pages + the (cleaned) names so the client refreshes
-  // its whole book state — a name edit changes every page.
+  // its whole book state — a name edit changes every page. Story 2 has no child.
+  const childName = storyType === "story-1" ? updated.child.name : undefined;
+
   return NextResponse.json({
     ok: true,
     field: args.field,
     pages,
     petName: updated.pet.name,
-    childName: updated.child.name,
+    childName,
   });
 }

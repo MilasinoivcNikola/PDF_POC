@@ -11,9 +11,45 @@ import type { StorySession } from "@/lib/session/types";
 import { resolveStory } from "@/lib/story/variants";
 import type { ResolvedStory } from "@/lib/story/merge";
 import { SCENE_PAGE_IDS } from "@/lib/ai/prompts";
-import { storyPdfFilename } from "@/lib/pdf/render";
-import type { StoryDefinition } from "@/lib/story/registry";
+import { storyPdfFilename } from "@/lib/pdf/filename";
+import type {
+  EditableFieldsContract,
+  StoryDefinition,
+} from "@/lib/story/registry";
 import { getWizardConfig } from "@/lib/story/wizard-config";
+import {
+  EDITABLE_FIELDS,
+  editableFieldsForPage,
+  FIELD_COPY,
+  getSessionFieldValue,
+  isEditableField,
+  isRequiredField,
+  setSessionField,
+  type EditableField,
+} from "@/lib/story/editable-fields";
+
+/**
+ * The Story-1 "edit your own words" preview contract. Wraps this product's own
+ * editable-fields module, widening the session param to the cross-product union
+ * (the registry seam has already routed by `storyType`, so a Story-1 session is
+ * what reaches here — the same guarded-cast pattern lib/ai/generate.ts uses).
+ * `field` is narrowed back to `EditableField` only after the route's
+ * `isEditableField` allowlist check, so the casts are sound.
+ */
+const story1Editable: EditableFieldsContract = {
+  EDITABLE_FIELDS,
+  editableFieldsForPage,
+  isEditableField,
+  isRequiredField: (field: string): boolean =>
+    isEditableField(field) && isRequiredField(field),
+  fieldCopy: FIELD_COPY,
+  setSessionField(session, field, value) {
+    return setSessionField(session as StorySession, field as EditableField, value);
+  },
+  getSessionFieldValue(session, field) {
+    return getSessionFieldValue(session as StorySession, field as EditableField);
+  },
+};
 
 /**
  * The Story-1 product definition. `resolve` is the existing `resolveStory`;
@@ -31,4 +67,5 @@ export const story1Definition: StoryDefinition = {
     return storyPdfFilename(session.pet.name);
   },
   wizard: getWizardConfig("story-1"),
+  editable: story1Editable,
 };

@@ -1287,6 +1287,18 @@ p {
   color: var(--gold);
 }
 
+/* Single-column preview (Story 2 — the letter reads as single sheets, so no
+   facing-page gutter). One .preview-page (→ .letter-page) per row, centered,
+   capped so the 8.5×11 page reads at a natural keepsake size rather than full-
+   bleed. The inner .preview-page still measures cellWidth/816 for --preview-scale
+   (the letter is 8.5in wide, same as the storybook), so the true-scale zoom keeps
+   working unchanged. Screen-only preview chrome with no print equivalent — the
+   same precedent as .spread (it too lives only here, not in lib/pdf/styles.css). */
+.preview-single {
+  max-width: 560px;
+  margin: 0 auto var(--s-16);
+}
+
 /* Each preview page wraps a shared .story-page and a screen-only regenerate
    control, positioned over the bottom corner of the page art. */
 .preview-page {

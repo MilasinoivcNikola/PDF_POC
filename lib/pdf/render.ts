@@ -18,44 +18,11 @@ import { renderStoryHtml } from "@/lib/pdf/template";
 import type { StorySession } from "@/lib/session/types";
 import { getStory } from "@/lib/story/registry";
 
-// ---------------------------------------------------------------------------
-// Filename
-// ---------------------------------------------------------------------------
-
-/**
- * Lowercase, hyphenate and strip a pet name to filesystem-safe characters so it
- * can sit in the output filename without surprises (spaces, slashes, accents,
- * emoji). Diacritics are folded to ASCII; any remaining non-alphanumeric run
- * collapses to a single hyphen; leading/trailing hyphens are trimmed.
- */
-function slugify(petName: string): string {
-  return petName
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "") // strip combining diacritical marks
-    .replace(/[^a-zA-Z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-/**
- * The output filename for a rendered book, per the master template's production
- * checklist: `Saying-Goodbye-to-[PET_NAME].pdf`. The pet name is slugified so the
- * result is always a safe single path segment; an empty/symbol-only name falls
- * back to `Pet` so a filename is always produced.
- */
-export function storyPdfFilename(petName: string): string {
-  const slug = slugify(petName) || "Pet";
-  return `Saying-Goodbye-to-${slug}.pdf`;
-}
-
-/**
- * The output filename for a rendered Story-2 letter, per that template's
- * production checklist: `Letter-from-[PET_NAME].pdf`. Same path-safe slugify as
- * `storyPdfFilename`, with the same `Pet` fallback for an empty/symbol-only name.
- */
-export function letterPdfFilename(petName: string): string {
-  const slug = slugify(petName) || "Pet";
-  return `Letter-from-${slug}.pdf`;
-}
+// The download-filename builders live in their own pure module (lib/pdf/filename)
+// so the registry — reached from client components — doesn't transitively pull in
+// this module's `puppeteer` import. Re-exported here so render.ts's existing
+// callers (scripts/render-test.ts, /api/render-pdf) keep importing them from here.
+export { storyPdfFilename, letterPdfFilename } from "@/lib/pdf/filename";
 
 // ---------------------------------------------------------------------------
 // In-page readiness
