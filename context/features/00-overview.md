@@ -58,8 +58,11 @@ fresh paid books. Only PR-07 needs one real Low generation to prove the worker.
   the operator surface (PR-03 establishes the gate; build-time check that no public
   route transitively imports the engine, like the existing "no puppeteer/fs in client
   bundle" guard).
-- The **Supabase service-role key is server/operator-only**; the public site uses only
-  anon-safe access behind RLS.
+- The **Supabase service-role key is server-only** — never in a client bundle, never a
+  `NEXT_PUBLIC_*` var. *"Server-only" is not "operator-only":* a public server-side API
+  route may hold it too (PR-05's order intake and PR-06's paid webhook both write the order
+  row from the public Vercel host). What the public surface must never hold is the
+  **engine**. RLS is default-deny defence-in-depth on top.
 - **Payment is trusted only via the signed Lemon Squeezy webhook**, never a client redirect.
 - Generation only ever runs for a **paid** order.
 

@@ -133,6 +133,7 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
     }
     setSubmitting(true);
     try {
+      // Step 1: create the pending_payment order (PR-05 flow, unchanged).
       const session = draftToSessionForDraft(draft);
       const form = new FormData();
       form.append("productId", productId);
@@ -140,15 +141,44 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
       form.append("inputs", JSON.stringify(session));
       form.append("photo", photoFile);
       const res = await fetch("/api/order", { method: "POST", body: form });
-      const data = (await res.json()) as { ok: boolean; error?: string };
-      if (!res.ok || !data.ok) {
+      const data = (await res.json()) as {
+        ok: boolean;
+        orderId?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || !data.orderId) {
         setErrorMessage(
           "We couldn't save your order just yet. Please try again in a moment.",
         );
         setSubmitting(false);
         return;
       }
-      setSubmitted(true);
+
+      // Step 2: create the Lemon Squeezy hosted checkout for this order and redirect
+      // the browser to it. The order id is carried into the checkout's custom data,
+      // so the verified paid webhook can tie the payment back to this order. The
+      // order stays pending_payment until that webhook fires — the redirect is not
+      // proof of payment.
+      const checkoutRes = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: data.orderId, productId }),
+      });
+      const checkout = (await checkoutRes.json()) as {
+        ok: boolean;
+        url?: string;
+        error?: string;
+      };
+      if (!checkoutRes.ok || !checkout.ok || !checkout.url) {
+        // The order is saved (pending_payment) but checkout couldn't be created.
+        // Tell the customer their details are kept and we'll email a payment link —
+        // matching the saved-order copy. (Checkout may simply be unconfigured yet.)
+        setSubmitted(true);
+        return;
+      }
+
+      // Leave the browser for the hosted checkout. (No further state changes here.)
+      window.location.href = checkout.url;
     } catch {
       setErrorMessage(
         "We couldn't save your order just yet. Please try again in a moment.",
