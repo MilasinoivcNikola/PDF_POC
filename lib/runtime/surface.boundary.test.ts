@@ -40,6 +40,10 @@ const PUBLIC_ENTRIES = [
   "app/(public)/order/[productId]/page.tsx",
   "app/(public)/order/[productId]/layout.tsx",
   "app/(public)/policies/page.tsx",
+  // PR-09: the public tokenized download page. A CLIENT page that only fetches the
+  // download API route — it must stay client-safe (no lib/supabase/server, no
+  // engine), so the DB access lives in the route below, not here.
+  "app/(public)/download/[token]/page.tsx",
 ];
 
 // The public API routes — server-side handlers that ship on the public Vercel
@@ -58,6 +62,10 @@ const PUBLIC_API_ENTRIES = [
   "app/(public)/api/order/route.ts",
   "app/(public)/api/checkout/route.ts",
   "app/(public)/api/webhooks/lemonsqueezy/route.ts",
+  // PR-09: the public download route. Resolves a delivery token → a short-lived
+  // signed PDF URL via the service-role client (allowed for a public API route),
+  // but stays engine-free (no OpenAI/Puppeteer/local-disk session IO).
+  "app/(public)/api/download/[token]/route.ts",
 ];
 
 // Forbidden LOCAL modules — engine source the public graph must never import.

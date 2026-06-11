@@ -4,3 +4,4 @@
 - [Commerce idempotency pattern](commerce-idempotency-pattern.md) — validated raw-body→verify→status-based-no-op→step-by-step-advance shape for order webhooks
 - [Commerce worker review calibration](commerce-worker-review-calibration.md) — PR-07 worker traps: .jpg content-type mismatch + retry-not-$0-cache; cross-process race deferral OK
 - [Commerce admin review calibration](commerce-admin-review-calibration.md) — PR-08: reused-route session-gap is security-posture not a code blocker; approve failure-chain + pdfKey-guarded-patch shape validated
+- [Commerce delivery review calibration](commerce-delivery-review-calibration.md) — PR-09: email-failure-leaves-approved chain ordering validated; refuted token-re-mint/cast/SDK concerns; /policies-placeholder is a PM flag

@@ -3,32 +3,40 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Order } from "@/lib/order/types";
 import type { StorySession } from "@/lib/session/types";
 
-// The /api/admin/approve boundary (commerce PR-08) — the operator's approval gate.
-// Its job: AUTH-gate, then for an `awaiting_review` order read the reviewed book
-// from disk, render the final PDF (no generation — no spend), upload it, and move
-// the order `awaiting_review → approved` while storing its pdfKey. Every external
-// boundary is MOCKED so NO Supabase, NO Chrome, NO disk, NO network:
+// The /api/admin/approve boundary (commerce PR-08, with PR-09 delivery chained on)
+// — the operator's approval gate. Its job: AUTH-gate, then for an `awaiting_review`
+// order read the reviewed book from disk, render the final PDF (no generation — no
+// spend), upload it, move the order `awaiting_review → approved` storing its pdfKey,
+// then DELIVER: mint + persist a token, email the customer, move `approved →
+// delivered`. Every external boundary is MOCKED so NO Supabase, NO Chrome, NO disk,
+// NO Resend, NO network:
 //   - @/lib/supabase/auth   → stubbed getOperatorUserId (the auth gate)
-//   - @/lib/order/store     → stubbed getOrder / updateOrderStatus
+//   - @/lib/order/store     → stubbed getOrder / updateOrderStatus / setOrderDeliveryToken
 //   - @/lib/supabase/storage → stubbed putPdf
 //   - @/lib/session/disk    → stubbed readSession
 //   - @/lib/ai/generate     → stubbed manifestToImageMap (no PNG reads)
 //   - @/lib/pdf/render       → stubbed renderStoryPdf (no Puppeteer)
+//   - @/lib/delivery/token   → stubbed mintDeliveryToken (deterministic in tests)
+//   - @/lib/delivery/email   → stubbed sendDeliveryEmail (no Resend)
 // isSafeOrderId, IllegalTransitionError, MergeError, and assertOperator stay REAL
 // (the actual guards under test). DEPLOY_TARGET defaults to "operator", so
 // assertOperator() passes — the public-build 404 is proven separately in
 // lib/runtime/all-operator-routes-gate.test.ts.
 //
 // The crux on every rejection path: renderStoryPdf / putPdf / updateOrderStatus are
-// NOT called — no spend, no upload, no state write on a bad request.
+// NOT called — no spend, no upload, no state write on a bad request. And the PR-09
+// crux: an email failure LEAVES the order at `approved` (the book is safe).
 
 const getOperatorUserIdMock = vi.fn();
 const getOrderMock = vi.fn();
 const updateOrderStatusMock = vi.fn();
+const setOrderDeliveryTokenMock = vi.fn();
 const putPdfMock = vi.fn();
 const readSessionMock = vi.fn();
 const manifestToImageMapMock = vi.fn();
 const renderStoryPdfMock = vi.fn();
+const mintDeliveryTokenMock = vi.fn();
+const sendDeliveryEmailMock = vi.fn();
 
 vi.mock("@/lib/supabase/auth", () => ({
   getOperatorUserId: () => getOperatorUserIdMock(),
@@ -38,6 +46,8 @@ vi.mock("@/lib/order/store", () => ({
   getOrder: (id: string) => getOrderMock(id),
   updateOrderStatus: (id: string, to: string, options?: unknown) =>
     updateOrderStatusMock(id, to, options),
+  setOrderDeliveryToken: (id: string, token: string) =>
+    setOrderDeliveryTokenMock(id, token),
 }));
 
 vi.mock("@/lib/supabase/storage", () => ({
@@ -55,6 +65,14 @@ vi.mock("@/lib/ai/generate", () => ({
 vi.mock("@/lib/pdf/render", () => ({
   renderStoryPdf: (session: StorySession, images: unknown) =>
     renderStoryPdfMock(session, images),
+}));
+
+vi.mock("@/lib/delivery/token", () => ({
+  mintDeliveryToken: () => mintDeliveryTokenMock(),
+}));
+
+vi.mock("@/lib/delivery/email", () => ({
+  sendDeliveryEmail: (input: unknown) => sendDeliveryEmailMock(input),
 }));
 
 // IllegalTransitionError + MergeError stay real so `instanceof` checks in the
@@ -112,8 +130,11 @@ function orderAt(status: Order["status"], id = "order-abc"): Order {
     storyType: "story-1",
     status,
     customerEmail: "buyer@example.com",
+    // The delivery chain reads `inputs.pet.name` for the email; give it a minimal
+    // valid shape (the engine session is consumed verbatim by the renderer, which
+    // is mocked, so only `pet.name` matters here).
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    inputs: {} as any,
+    inputs: { pet: { name: "Otis" } } as any,
     photoKey: `${id}/photo`,
     createdAt: "2026-06-10T00:00:00.000Z",
     updatedAt: "2026-06-10T00:00:00.000Z",
@@ -127,14 +148,21 @@ function expectNoSideEffects() {
   expect(updateOrderStatusMock).not.toHaveBeenCalled();
 }
 
+const ORIGINAL_ENV = { ...process.env };
+
 beforeEach(() => {
   vi.clearAllMocks();
+  process.env = { ...ORIGINAL_ENV, PUBLIC_SITE_URL: "https://quietlykept.example" };
   // Default: authenticated operator. Each auth-rejection test overrides this.
   getOperatorUserIdMock.mockResolvedValue("operator-user-1");
   manifestToImageMapMock.mockResolvedValue({ cover: "data:image/png;base64,AAA" });
   renderStoryPdfMock.mockResolvedValue(Buffer.from("%PDF-1.4 approved book"));
   putPdfMock.mockResolvedValue("order-abc.pdf");
   updateOrderStatusMock.mockResolvedValue(undefined);
+  // Delivery chain defaults: a deterministic token, a stored token, a sent email.
+  mintDeliveryTokenMock.mockReturnValue("tok-" + "a".repeat(40));
+  setOrderDeliveryTokenMock.mockResolvedValue(undefined);
+  sendDeliveryEmailMock.mockResolvedValue(undefined);
 });
 
 // ---------------------------------------------------------------------------
@@ -243,20 +271,22 @@ describe("POST /api/admin/approve — validation", () => {
 // ---------------------------------------------------------------------------
 
 describe("POST /api/admin/approve — happy path", () => {
-  it("renders the book, uploads the PDF, and approves with the pdfKey", async () => {
+  it("renders, uploads, approves, then delivers (token + email + delivered)", async () => {
     getOrderMock.mockResolvedValue(orderAt("awaiting_review"));
     const session = readySession();
     readSessionMock.mockResolvedValue(session);
     const pdfBytes = Buffer.from("%PDF-1.4 approved book");
     renderStoryPdfMock.mockResolvedValue(pdfBytes);
     putPdfMock.mockResolvedValue("order-abc.pdf");
+    mintDeliveryTokenMock.mockReturnValue("tok-" + "b".repeat(40));
 
     const res = await POST(jsonRequest({ orderId: "order-abc" }));
 
     expect(res.status).toBe(200);
+    // The MVP loop closes: the happy path ends at `delivered`.
     await expect(res.json()).resolves.toEqual({
       ok: true,
-      status: "approved",
+      status: "delivered",
       pdfKey: "order-abc.pdf",
     });
 
@@ -271,11 +301,151 @@ describe("POST /api/admin/approve — happy path", () => {
     expect(putPdfMock).toHaveBeenCalledTimes(1);
     expect(putPdfMock).toHaveBeenCalledWith("order-abc", pdfBytes);
 
-    // The status flip carries the pdfKey returned by putPdf, in one guarded write.
-    expect(updateOrderStatusMock).toHaveBeenCalledTimes(1);
+    // Two guarded status moves: → approved (with pdfKey), then → delivered.
+    expect(updateOrderStatusMock).toHaveBeenCalledTimes(2);
+    expect(updateOrderStatusMock).toHaveBeenNthCalledWith(1, "order-abc", "approved", {
+      pdfKey: "order-abc.pdf",
+    });
+    // The mock wrapper forwards (id, to, options) — options is undefined here.
+    expect(updateOrderStatusMock).toHaveBeenNthCalledWith(
+      2,
+      "order-abc",
+      "delivered",
+      undefined,
+    );
+
+    // The token was minted + persisted BEFORE the email (so the link is valid).
+    const token = "tok-" + "b".repeat(40);
+    expect(setOrderDeliveryTokenMock).toHaveBeenCalledWith("order-abc", token);
+
+    // The email was sent to the customer with the tokenized PUBLIC link built from
+    // PUBLIC_SITE_URL (never a raw storage URL).
+    expect(sendDeliveryEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendDeliveryEmailMock).toHaveBeenCalledWith({
+      to: "buyer@example.com",
+      petName: "Otis",
+      storyType: "story-1",
+      downloadUrl: `https://quietlykept.example/download/${token}`,
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Delivery (PR-09) — a finished book is never stranded
+// ---------------------------------------------------------------------------
+
+describe("POST /api/admin/approve — delivery", () => {
+  it("leaves the order at approved (delivery:failed) when the email send fails", async () => {
+    getOrderMock.mockResolvedValue(orderAt("awaiting_review"));
+    readSessionMock.mockResolvedValue(readySession());
+    sendDeliveryEmailMock.mockRejectedValue(new Error("resend down"));
+
+    const res = await POST(jsonRequest({ orderId: "order-abc" }));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({
+      ok: true,
+      status: "approved",
+      pdfKey: "order-abc.pdf",
+      delivery: "failed",
+    });
+    // The crux: the order is NEVER moved to `delivered` when the email fails — the
+    // finished book stays `approved`, not stranded mid-transition.
+    expect(updateOrderStatusMock).not.toHaveBeenCalledWith(
+      "order-abc",
+      "delivered",
+      expect.anything(),
+    );
+    // The PDF + token are persisted; only the → approved move ran.
+    expect(setOrderDeliveryTokenMock).toHaveBeenCalledTimes(1);
+    expect(updateOrderStatusMock).toHaveBeenCalledTimes(1); // only the → approved move
     expect(updateOrderStatusMock).toHaveBeenCalledWith("order-abc", "approved", {
       pdfKey: "order-abc.pdf",
     });
+    // No PII (the customer email) leaks into the error response body.
+    expect(JSON.stringify(body)).not.toContain("buyer@example.com");
+  });
+
+  it("logs the email failure WITHOUT the customer email (the one PII)", async () => {
+    // The route logs `console.error('Approve: delivery email failed ...', error)`.
+    // It must carry the orderId (fine — not PII) but never the customer email, and
+    // never a secret. Spy on console.error and inspect every argument it received.
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      getOrderMock.mockResolvedValue(orderAt("awaiting_review"));
+      readSessionMock.mockResolvedValue(readySession());
+      sendDeliveryEmailMock.mockRejectedValue(new Error("resend down"));
+
+      await POST(jsonRequest({ orderId: "order-abc" }));
+
+      expect(errorSpy).toHaveBeenCalled();
+      const logged = errorSpy.mock.calls
+        .flat()
+        .map((arg) =>
+          arg instanceof Error ? `${arg.message} ${arg.stack ?? ""}` : String(arg),
+        )
+        .join(" | ");
+      expect(logged).not.toContain("buyer@example.com");
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it("returns delivery:failed when PUBLIC_SITE_URL is not set (no token/email)", async () => {
+    delete process.env.PUBLIC_SITE_URL;
+    getOrderMock.mockResolvedValue(orderAt("awaiting_review"));
+    readSessionMock.mockResolvedValue(readySession());
+
+    const res = await POST(jsonRequest({ orderId: "order-abc" }));
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      status: "approved",
+      pdfKey: "order-abc.pdf",
+      delivery: "failed",
+    });
+    // Without a public base we can't build a usable link — bail before minting.
+    expect(setOrderDeliveryTokenMock).not.toHaveBeenCalled();
+    expect(sendDeliveryEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("returns delivery:failed when persisting the token fails (no email)", async () => {
+    getOrderMock.mockResolvedValue(orderAt("awaiting_review"));
+    readSessionMock.mockResolvedValue(readySession());
+    setOrderDeliveryTokenMock.mockRejectedValue(new Error("db down"));
+
+    const res = await POST(jsonRequest({ orderId: "order-abc" }));
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      ok: true,
+      status: "approved",
+      delivery: "failed",
+    });
+    expect(sendDeliveryEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("reports delivery:sent when the email went out but the delivered move failed", async () => {
+    getOrderMock.mockResolvedValue(orderAt("awaiting_review"));
+    readSessionMock.mockResolvedValue(readySession());
+    // First updateOrderStatus (→ approved) succeeds; the second (→ delivered) fails.
+    updateOrderStatusMock
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("db blip"));
+
+    const res = await POST(jsonRequest({ orderId: "order-abc" }));
+
+    expect(res.status).toBe(200);
+    // The customer already has a working link; the status just didn't advance.
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      status: "approved",
+      pdfKey: "order-abc.pdf",
+      delivery: "sent",
+    });
+    expect(sendDeliveryEmailMock).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -27,8 +27,9 @@ framework beyond this list without approval. The plan in
 > and **`@supabase/ssr`** (PR-08's cookie-based operator-auth session client) as the
 > persisted order store + the admin auth gate (the CLI is not a runtime dep; migrations run
 > via the dashboard/`psql`). This coexists with the JSON-session store — see *Files, IO, and
-> persistence* below. Later commerce PRs add Lemon Squeezy and Resend per the roadmap; those
-> are pre-approved there too, not here. Anything *outside* the roadmap still needs sign-off.
+> persistence* below. **`resend`** is now added too (PR-09's delivery email) — pre-approved by
+> the roadmap. Lemon Squeezy is integrated via direct REST + `node:crypto` HMAC (no SDK dep).
+> Anything *outside* the roadmap still needs sign-off.
 
 ---
 
@@ -139,6 +140,18 @@ framework beyond this list without approval. The plan in
   imported a prompt builder would reintroduce the break PR-04 fixed. Prices are placeholder
   config until set with the PM before PR-06; per-product `sampleImages` are the storefront's
   web-optimized sample art under `public/samples/`, populated in PR-04.
+- **Commerce delivery layer** (`lib/delivery/`, PR-09): closes the MVP loop on Approve.
+  `lib/delivery/token.ts` is **pure** (`node:crypto`) — `mintDeliveryToken()` (256-bit
+  base64url, the order's unguessable download token) + `isWellFormedToken()` (cheap
+  shape/charset reject before any DB hit). `lib/delivery/email.ts` is **server-only and
+  operator-only** (imports the Resend client, reads `RESEND_API_KEY`/`FROM_EMAIL`) — a pure
+  `buildDeliveryEmail()` (subject/html/text, never embeds a raw storage URL) + a thin
+  `sendDeliveryEmail()`; it's chained off `app/(operator)/api/admin/approve/route.ts` after
+  the order reaches `approved`. The token is **persisted** via `setOrderDeliveryToken` and
+  **resolved** via `getOrderByDeliveryToken` (both in `lib/order/store.ts`; the latter is the
+  only lookup the **public** download route reaches — by opaque token, never an order id, so
+  there's no IDOR path). `email.ts` (operator-only) must never enter the public graph;
+  `token.ts` is pure and client-safe.
 - **Deploy-surface boundary** (`lib/runtime/surface.ts` + the `app/(public)`/`app/(operator)`
   route groups): the single most important security boundary in the build (PR-03). One
   codebase, two run modes via `DEPLOY_TARGET` (`public` | `operator`, default `operator`):
@@ -153,12 +166,17 @@ framework beyond this list without approval. The plan in
   "force-dynamic"` so that page gate is evaluated **per-request** (build-env-independent),
   not baked at prerender time — so `(operator)` pages are dynamic (`ƒ`) while the `(public)`
   landing + storefront (`/books`, `/books/[productId]`, `/order/[productId]`, `/policies`)
-  stay static/SSG (`○`/`●`; PR-04 added them to the guard's `PUBLIC_ENTRIES`). The
+  stay static/SSG (`○`/`●`; PR-04 added them to the guard's `PUBLIC_ENTRIES`). PR-09 added
+  the client-safe public **download page** `app/(public)/download/[token]/page.tsx` to
+  `PUBLIC_ENTRIES` — it's dynamic (`ƒ`, a `fetch`-on-mount client page) but holds no
+  service-role/engine import (all DB + signing lives in its API route below). The
   load-bearing guard (`lib/runtime/surface.boundary.test.ts`) is **two-tier** since PR-05
   added the first public *API* route (`app/(public)/api/order/route.ts`; PR-06 added two
   more — `app/(public)/api/checkout/route.ts`, which holds an LS secret but touches no DB,
   and `app/(public)/api/webhooks/lemonsqueezy/route.ts`, which uses the service-role client
-  to advance a paid order): **public pages**
+  to advance a paid order; PR-09 added `app/(public)/api/download/[token]/route.ts`, which
+  holds the service-role key purely to **read + sign** — look an order up by its delivery
+  token and mint a short-lived signed PDF URL): **public pages**
   (`PUBLIC_ENTRIES`) must be fully client-safe — no engine **and** no `lib/supabase/server`;
   **public API routes** (`PUBLIC_API_ENTRIES`) may import the service-role Supabase client
   (`lib/supabase/server` + `@supabase/supabase-js`) but still must be **engine-free** (no
@@ -174,12 +192,18 @@ framework beyond this list without approval. The plan in
 - Secrets come from `.env.local` (`OPENAI_API_KEY`; the commerce `SUPABASE_SERVICE_ROLE_KEY`;
   the Lemon Squeezy `LEMONSQUEEZY_API_KEY` / `LEMONSQUEEZY_STORE_ID` /
   `LEMONSQUEEZY_WEBHOOK_SECRET`, server-only — read on the public host that takes/confirms
-  payment, PR-06). Never hardcode keys; never log them; never echo them in an error body.
+  payment, PR-06; and the Resend `RESEND_API_KEY` + `FROM_EMAIL`, server-only — read on the
+  **operator** surface where the Approve action sends the delivery email, PR-09). Never
+  hardcode keys; never log them; never echo them in an error body.
   The Supabase **service-role** key is server-only — never expose it to the browser or a
   `NEXT_PUBLIC_*` var (the anon key is the only client-safe one, and only behind RLS). The
   per-product LS **variant ids** (`LEMONSQUEEZY_VARIANT_<PRODUCT_ID>`) are **non-secret**
   runtime config (like `DEPLOY_TARGET` below), resolved server-side at checkout — kept out
-  of the client-safe `lib/catalog/` module and never `NEXT_PUBLIC_*`. Keep
+  of the client-safe `lib/catalog/` module and never `NEXT_PUBLIC_*`. `PUBLIC_SITE_URL`
+  (PR-09) is likewise **non-secret** runtime config: the public base for the emailed
+  download link, read on the operator surface (the Approve request runs on localhost and so
+  can't derive the public origin from itself — without it, delivery degrades rather than
+  emailing a `localhost` link). Keep
   `.env.local.example` in sync when a new env var is introduced.
 - `DEPLOY_TARGET` (`public` | `operator`) is **non-secret** runtime config, not a key:
   it selects the deploy surface (see *Deploy-surface boundary* above). Default `operator`

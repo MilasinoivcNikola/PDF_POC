@@ -97,8 +97,13 @@ const {
   getOrder,
   updateOrderStatus,
   setOrderLsId,
+  setOrderDeliveryToken,
+  getOrderByDeliveryToken,
   listOrdersByStatus,
 } = await import("./store");
+
+/** A well-formed delivery token (43-char base64url) for the lookup tests. */
+const VALID_TOKEN = "a".repeat(43);
 
 function rowWith(overrides: Partial<OrderRow> = {}): OrderRow {
   return {
@@ -457,6 +462,104 @@ describe("setOrderLsId", () => {
     });
     await expect(setOrderLsId("order-1", "999001")).rejects.toThrow(
       /failed to set ls_order_id for order order-1: write failed/i,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// setOrderDeliveryToken — persists the delivery token (PR-09), status-agnostic
+// ---------------------------------------------------------------------------
+
+describe("setOrderDeliveryToken", () => {
+  it("patches delivery_token (+ updated_at) and returns the mapped Order", async () => {
+    builder._results.single.push({
+      data: rowWith({ delivery_token: VALID_TOKEN }),
+      error: null,
+    });
+
+    const order = await setOrderDeliveryToken("order-1", VALID_TOKEN);
+
+    expect(builder.update).toHaveBeenCalledTimes(1);
+    const patch = builder.update.mock.calls[0][0] as Partial<OrderRow>;
+    expect(patch.delivery_token).toBe(VALID_TOKEN);
+    expect(patch.updated_at).toBeTruthy();
+    // It does NOT touch status — the token is written while still `approved`.
+    expect(patch.status).toBeUndefined();
+    expect(builder.eq).toHaveBeenCalledWith("id", "order-1");
+    expect(order.deliveryToken).toBe(VALID_TOKEN);
+  });
+
+  it("patches ONLY delivery_token + updated_at (no other column)", async () => {
+    builder._results.single.push({
+      data: rowWith({ delivery_token: VALID_TOKEN }),
+      error: null,
+    });
+    await setOrderDeliveryToken("order-1", VALID_TOKEN);
+    const patch = builder.update.mock.calls[0][0] as Partial<OrderRow>;
+    expect(Object.keys(patch).sort()).toEqual(["delivery_token", "updated_at"]);
+  });
+
+  it("rejects an unsafe id before touching the database", async () => {
+    await expect(
+      setOrderDeliveryToken("../../evil", VALID_TOKEN),
+    ).rejects.toThrow(/invalid order id/i);
+    expect(builder.from).not.toHaveBeenCalled();
+  });
+
+  it("throws a readable error when the write fails", async () => {
+    builder._results.single.push({
+      data: null,
+      error: { message: "write failed" },
+    });
+    await expect(setOrderDeliveryToken("order-1", VALID_TOKEN)).rejects.toThrow(
+      /failed to set delivery_token for order order-1: write failed/i,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getOrderByDeliveryToken — resolve an order from its token (PR-09 download)
+// ---------------------------------------------------------------------------
+
+describe("getOrderByDeliveryToken", () => {
+  it("maps the matching row to an Order, querying by delivery_token", async () => {
+    builder._results.maybeSingle.push({
+      data: rowWith({
+        id: "order-7",
+        delivery_token: VALID_TOKEN,
+        status: "delivered",
+      }),
+      error: null,
+    });
+
+    const order = await getOrderByDeliveryToken(VALID_TOKEN);
+
+    expect(order).not.toBeNull();
+    expect(order!.id).toBe("order-7");
+    expect(order!.deliveryToken).toBe(VALID_TOKEN);
+    expect(builder.eq).toHaveBeenCalledWith("delivery_token", VALID_TOKEN);
+  });
+
+  it("returns null when no row matches the token (drives the soft notice)", async () => {
+    builder._results.maybeSingle.push({ data: null, error: null });
+    expect(await getOrderByDeliveryToken(VALID_TOKEN)).toBeNull();
+  });
+
+  it("returns null for a malformed token WITHOUT touching the database (no enumeration)", async () => {
+    // A garbage token short-circuits to null — same outcome as a no-match, so the
+    // caller can't distinguish "never existed" from "wrong shape".
+    expect(await getOrderByDeliveryToken("../../etc/passwd")).toBeNull();
+    expect(await getOrderByDeliveryToken("")).toBeNull();
+    expect(builder.from).not.toHaveBeenCalled();
+  });
+
+  it("throws a readable error when the read fails", async () => {
+    builder._results.maybeSingle.push({
+      data: null,
+      error: { message: "boom" },
+    });
+    await expect(getOrderByDeliveryToken(VALID_TOKEN)).rejects.toThrow(
+      /failed to read order by delivery token: boom/i,
     );
   });
 });

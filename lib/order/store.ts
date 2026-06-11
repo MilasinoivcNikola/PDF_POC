@@ -8,6 +8,7 @@
 
 import { createSessionId } from "@/lib/session/storage";
 import { isSafeOrderId } from "@/lib/supabase/ids";
+import { isWellFormedToken } from "@/lib/delivery/token";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { assertTransition } from "@/lib/order/state";
 import type { NewOrderInput, Order, OrderStatus } from "@/lib/order/types";
@@ -224,6 +225,70 @@ export async function setOrderLsId(id: string, lsOrderId: string): Promise<Order
     throw new Error(`Failed to set ls_order_id for order ${id}: ${error.message}`);
   }
   return rowToOrder(data as OrderRow);
+}
+
+/**
+ * Persist a delivery token onto an order (PR-09), status-agnostic — mirrors
+ * `setOrderLsId`. The token is written while the order is still `approved` (BEFORE
+ * the `approved → delivered` move), so the emailed download link is valid the
+ * moment it's stored AND an email failure never strands a `delivered` order with no
+ * way to look it up. `deliveryToken` is part of the `Order`/`OrderRow` contract but
+ * not writable via `updateOrderStatus` (which only touches `status`), so it goes
+ * through this dedicated patch. Returns the updated `Order`.
+ */
+export async function setOrderDeliveryToken(
+  id: string,
+  token: string,
+): Promise<Order> {
+  if (!isSafeOrderId(id)) {
+    throw new Error(`Invalid order id: ${id}`);
+  }
+
+  const patch: Partial<OrderRow> = {
+    delivery_token: token,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await getSupabaseAdmin()
+    .from(ORDERS_TABLE)
+    .update(patch)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(
+      `Failed to set delivery_token for order ${id}: ${error.message}`,
+    );
+  }
+  return rowToOrder(data as OrderRow);
+}
+
+/**
+ * Resolve an order from its delivery token (PR-09) — the lookup the public
+ * download route uses. Backed by the unique partial index
+ * `orders_delivery_token_key` (migration 0001). Validates the token SHAPE first
+ * (so a malformed value never reaches the database) and returns `null` on no match,
+ * which drives the download page's soft "invalid or expired" notice. The
+ * invalid-vs-expired distinction is intentionally NOT surfaced to the caller — both
+ * paths map to `null` so the response can't leak which it was (no enumeration).
+ */
+export async function getOrderByDeliveryToken(
+  token: string,
+): Promise<Order | null> {
+  if (!isWellFormedToken(token)) {
+    return null;
+  }
+  const { data, error } = await getSupabaseAdmin()
+    .from(ORDERS_TABLE)
+    .select()
+    .eq("delivery_token", token)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to read order by delivery token: ${error.message}`);
+  }
+  return data ? rowToOrder(data as OrderRow) : null;
 }
 
 /**
