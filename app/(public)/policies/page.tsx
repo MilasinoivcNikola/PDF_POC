@@ -8,12 +8,12 @@ export const metadata: Metadata = {
     "How Quietly Kept books are made, our honesty about AI illustration, and our refund and privacy policies.",
 };
 
-// PLACEHOLDER — PM sign-off before launch.
-// The AI-honesty/disclosure wording in a grief context is a brand decision the
-// commerce plan (context/features/00-overview.md) marks as blocking at PR-04.
-// This is honest placeholder copy, NOT final/legal policy. Refund and privacy
-// wording are likewise stubs to be settled (refund/remake policy is flagged
-// blocking at PR-09). Do not treat any of this as approved.
+// The Refunds & remakes section is FINAL (PM-approved, PR-09 — the deferred
+// decision the commerce plan flagged blocking at delivery; the delivery email +
+// download page link here for it).
+// The other two sections are still PLACEHOLDER — PM sign-off before launch: the
+// AI-honesty/disclosure wording (blocking at PR-04, a grief-context brand call)
+// and the privacy policy. Those two are honest stubs, NOT final/legal copy.
 
 export default function PoliciesPage() {
   return (
@@ -68,10 +68,15 @@ export default function PoliciesPage() {
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Refunds &amp; remakes</h2>
             <p>
-              {/* PLACEHOLDER — PM sign-off before launch */}
-              If the book doesn&apos;t feel right, we want to make it right. Our
-              refund and remake policy is being finalized and will appear here
-              before ordering opens.
+              We make each book to order, from your own photos and words, and
+              every one is looked over by a person before we send it — so it
+              should feel right when it reaches you. If something still
+              isn&apos;t — a detail we got wrong, or an illustration that just
+              doesn&apos;t feel like your pet — tell us within 30 days of
+              delivery and we&apos;ll remake it, at no cost. If we try and still
+              can&apos;t make it something you&apos;re glad to keep, we&apos;ll
+              refund you in full. You don&apos;t have to explain or justify;
+              grief is hard enough.
             </p>
           </section>
 

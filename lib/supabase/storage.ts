@@ -94,19 +94,26 @@ export async function putPdf(orderId: string, body: Buffer): Promise<string> {
 }
 
 /**
- * Mint a short-lived signed URL for an order's PDF so the delivery email (PR-09)
- * can link a private object without making the bucket public. Default lifetime is
- * one hour; pass `expiresIn` (seconds) to override. The id is validated by
- * `pdfKeyFor`.
+ * Mint a short-lived signed URL for an order's PDF so the delivery/download path
+ * (PR-09) can serve a private object without making the bucket public. Default
+ * lifetime is one hour; pass `expiresIn` (seconds) to override. Pass `downloadName`
+ * to set the signed URL's `Content-Disposition` filename so the browser saves the
+ * correctly-named file (e.g. `Saying-Goodbye-to-Otis.pdf`) straight from the link.
+ * The id is validated by `pdfKeyFor`.
  */
 export async function signedPdfUrl(
   orderId: string,
   expiresIn: number = DEFAULT_SIGNED_URL_TTL_SECONDS,
+  downloadName?: string,
 ): Promise<string> {
   const key = pdfKeyFor(orderId);
   const { data, error } = await getSupabaseAdmin()
     .storage.from(PDFS_BUCKET)
-    .createSignedUrl(key, expiresIn);
+    .createSignedUrl(
+      key,
+      expiresIn,
+      downloadName !== undefined ? { download: downloadName } : undefined,
+    );
   if (error || !data) {
     throw new Error(
       `Failed to sign PDF URL for order ${orderId}: ${error?.message ?? "no data"}`,
