@@ -114,6 +114,12 @@ framework beyond this list without approval. The plan in
   *operator-only* — see the three-tier *Deploy-surface boundary* below. `createOrder`
   accepts an optional caller-minted `id` so intake can mint the order id once, key the
   photo at `order-photos/<id>/photo`, and write `photoKey` atomically (no blank-then-patch).
+  `lib/order/worker.ts` (PR-07) is the batch worker's orchestration — the first `lib/order/`
+  member that is **engine-touching and operator-only**: unlike the pure `types.ts` / `state.ts`
+  / `store.ts`, it transitively imports the engine (`lib/ai/generate` + Puppeteer via the PDF
+  path) and the service-role client, so a **public** route must never import it (it's the
+  engine tier of the *Deploy-surface boundary* below — invoked only by the
+  `scripts/process-orders.ts` CLI, never an HTTP route).
 - **Commerce catalog** (`lib/catalog/`): `lib/catalog/products.ts` owns the `Product`
   catalog contract the storefront (PR-04) and checkout (PR-06) import — one `Product`
   per registered `storyType`, with `illustrationCount` **derived** from the registry's

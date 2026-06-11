@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "render:test": "tsx --tsconfig scripts/tsconfig.json scripts/render-test.ts",
+    "process:orders": "tsx --tsconfig scripts/tsconfig.json scripts/process-orders.ts",
     "lint": "eslint .",
     "test": "vitest",
     "test:run": "vitest run"

@@ -72,7 +72,7 @@ payouts as business income — confirm specifics with a Serbian accountant.
    VERCEL (public, always on)            SUPABASE                LOCAL (your machine, batch)
 ┌──────────────────────────────┐   ┌──────────────────┐   ┌──────────────────────────────┐
 │ Storefront + marketing       │   │ Postgres: orders │   │ Worker (batch command):      │
-│ Lemon Squeezy MoR            │──►│ Storage: photo + │◄──│  drain paid orders → engine  │
+│ Lemon Squeezy MoR            │──►│ Storage: photo + │◄──│ drain queued orders → engine │
 │ Order form (wizard-as-order) │   │   final PDF      │   │  → upload result             │
 │ Delivery / download page     │◄──│ Auth: admin gate │──►│ Admin review UI (auth-gated):│
 │  NO OpenAI key, NO engine    │   └──────────────────┘   │  reuse preview + repaint     │
@@ -141,7 +141,8 @@ worker, an admin auth gate, Resend delivery email.
   **then** Lemon Squeezy checkout — inputs-first, our order ID passed via custom checkout
   data so the webhook links payment → order. Generation fires only on the paid webhook.
   Order written as `paid`. Customer told "we're painting it, check your email."
-- **Phase 3 — Local worker + admin queue.** Batch command drains `paid` orders → runs
+- **Phase 3 — Local worker + admin queue.** Batch command drains `queued` orders (the
+  post-paid-webhook state — `paid → queued`, per the state machine above) → runs
   the engine → `awaiting_review`. Local auth-gated admin lists the queue → opens the
   existing preview → repaint → **Approve**.
 - **Phase 4 — Delivery.** Approve renders the final PDF, uploads it, Resend emails a
