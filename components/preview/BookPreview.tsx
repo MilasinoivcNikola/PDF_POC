@@ -15,7 +15,7 @@
 // page renders through the shared per-page template (lib/pdf/pages via PageView),
 // so what the user sees here equals what the PDF contains — for either product.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 
 import { PageView } from "@/components/preview/PageView";
@@ -76,7 +76,21 @@ function formatBytes(bytes: number): string {
  *  at this real size, then `zoom: --preview-scale` shrinks it to its column. */
 const PRINT_PAGE_PX = 816;
 
-export function BookPreview({ sessionId }: { sessionId: string }) {
+interface BookPreviewProps {
+  /** The finalized book to preview — its session id (wizard draft id, or for the
+   *  admin the order id, since the worker keys the on-disk book by order id). */
+  sessionId: string;
+  /**
+   * Optional extra action(s) rendered beside "Download PDF" in the header. The
+   * admin (PR-08) passes an Approve button here. `busy` is true while a repaint,
+   * text save, or download is in flight, so the slot can disable itself and never
+   * act on a mid-repaint book — the same race guard the Download button uses. The
+   * wizard caller omits this prop entirely, so its preview is unchanged.
+   */
+  renderActions?: (state: { busy: boolean }) => ReactNode;
+}
+
+export function BookPreview({ sessionId, renderActions }: BookPreviewProps) {
   const [data, setData] = useState<PreviewData | null>(null);
   const [images, setImages] = useState<ImageMap>({});
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -354,6 +368,11 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
   const illustratedPages = new Set<PageId>(story.illustrationSlots);
   const { editable } = story;
 
+  // True while a repaint / text save / download is in flight — the same condition
+  // the Download button guards on. Shared with the optional extra actions slot so
+  // an Approve there can't capture a mid-repaint book.
+  const busy = downloading || regenerating !== null || savingText;
+
   return (
     <main ref={mainRef}>
       <section className="preview-header fade-in">
@@ -374,7 +393,7 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
             type="button"
             className="btn btn--primary"
             onClick={handleDownload}
-            disabled={downloading || regenerating !== null || savingText}
+            disabled={busy}
           >
             {downloading ? "Building your PDF…" : "Download PDF"}
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
@@ -387,6 +406,7 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
               />
             </svg>
           </button>
+          {renderActions ? renderActions({ busy }) : null}
         </div>
         {actionError ? (
           <p className="notice" style={{ maxWidth: "34em", margin: "var(--s-6) auto 0" }}>
@@ -458,7 +478,7 @@ export function BookPreview({ sessionId }: { sessionId: string }) {
           type="button"
           className="btn btn--primary"
           onClick={handleDownload}
-          disabled={downloading || regenerating !== null || savingText}
+          disabled={busy}
         >
           {downloading ? "Building your PDF…" : "Download PDF"}
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>

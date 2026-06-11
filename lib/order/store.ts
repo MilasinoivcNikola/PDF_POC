@@ -148,15 +148,22 @@ export async function getOrder(id: string): Promise<Order | null> {
 /**
  * Move an order to a new status, enforcing the state machine. Reads the current
  * status, asserts the transition is legal (throws `IllegalTransitionError`
- * otherwise — BEFORE any write), then persists the new status + `updatedAt`. An
- * optional `error` message is stored alongside (used when moving to `failed`).
+ * otherwise — BEFORE any write), then persists the new status + `updatedAt`.
+ *
+ * Optional fields written in the SAME patch (so they're guarded by the same legal
+ * transition and never land on an illegal move):
+ *   - `error`  — a human-readable failure reason (used when moving to `failed`).
+ *   - `pdfKey` — the rendered PDF's Storage key (used when the admin moves
+ *                `awaiting_review → approved`, PR-08): the final PDF and the
+ *                `approved` status are written together, so an order is never
+ *                `approved` without its `pdfKey`.
  *
  * Returns the updated `Order`.
  */
 export async function updateOrderStatus(
   id: string,
   to: OrderStatus,
-  options?: { error?: string },
+  options?: { error?: string; pdfKey?: string },
 ): Promise<Order> {
   const current = await getOrder(id);
   if (!current) {
@@ -170,6 +177,7 @@ export async function updateOrderStatus(
     status: to,
     updated_at: new Date().toISOString(),
     ...(options?.error !== undefined ? { error: options.error } : {}),
+    ...(options?.pdfKey !== undefined ? { pdf_key: options.pdfKey } : {}),
   };
 
   const { data, error } = await getSupabaseAdmin()

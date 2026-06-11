@@ -162,4 +162,8 @@ once or twice a day, not a 24/7 poller. Pairs with the 24–48h promise.
 - **AI-disclosure / honesty stance** in the copy — off-Etsy we're not bound by Etsy
   policy, but it's an ethics + marketing choice in a grief context.
 - **Refund / remake policy** — what happens if a customer is unhappy with the result.
-- **Admin auth method** — Supabase Auth (single operator account) is the default.
+
+> **Resolved (PR-08, 2026-06-11):** **Admin auth method** — **Supabase Auth** (single
+> operator account), the noted default, is now built. The `(operator)/admin` review desk
+> and its mutation routes are gated by a cookie-based session (`@supabase/ssr` anon-key
+> client in `lib/supabase/auth.ts`) on top of the existing `assertOperator()` deploy gate.
