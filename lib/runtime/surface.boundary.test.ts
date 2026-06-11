@@ -49,8 +49,16 @@ const PUBLIC_ENTRIES = [
 // `@supabase/supabase-js` package are ALLOWED here — but the ENGINE is still
 // forbidden (no OpenAI/Puppeteer/local-disk session IO). PR-05 added the first
 // public API route: /api/order. Walked separately from PUBLIC_ENTRIES so the page
-// guard isn't wrongly tripped by the route's legitimate service-role import.
-const PUBLIC_API_ENTRIES = ["app/(public)/api/order/route.ts"];
+// guard isn't wrongly tripped by the route's legitimate service-role import. PR-06
+// adds the Lemon Squeezy checkout-creation route and the signed webhook — both run
+// on the public payment surface and must stay engine-free (the webhook reads/writes
+// the order row via the service-role client; the checkout route holds the
+// LEMONSQUEEZY_API_KEY and only touches the catalog + the pure LS helpers).
+const PUBLIC_API_ENTRIES = [
+  "app/(public)/api/order/route.ts",
+  "app/(public)/api/checkout/route.ts",
+  "app/(public)/api/webhooks/lemonsqueezy/route.ts",
+];
 
 // Forbidden LOCAL modules — engine source the public graph must never import.
 // Matched as a path substring against each resolved module's repo-relative path.

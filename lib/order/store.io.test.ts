@@ -92,8 +92,13 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 // Import the store AFTER the mock is registered.
-const { createOrder, getOrder, updateOrderStatus, listOrdersByStatus } =
-  await import("./store");
+const {
+  createOrder,
+  getOrder,
+  updateOrderStatus,
+  setOrderLsId,
+  listOrdersByStatus,
+} = await import("./store");
 
 function rowWith(overrides: Partial<OrderRow> = {}): OrderRow {
   return {
@@ -335,6 +340,61 @@ describe("updateOrderStatus", () => {
     });
     await expect(updateOrderStatus("order-1", "queued")).rejects.toThrow(
       /failed to update order order-1: write failed/i,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// setOrderLsId — links the Lemon Squeezy order id (PR-06), status-agnostic
+// ---------------------------------------------------------------------------
+
+describe("setOrderLsId", () => {
+  it("patches ls_order_id (+ updated_at) and returns the mapped Order", async () => {
+    builder._results.single.push({
+      data: rowWith({ ls_order_id: "999001" }),
+      error: null,
+    });
+
+    const order = await setOrderLsId("order-1", "999001");
+
+    expect(builder.update).toHaveBeenCalledTimes(1);
+    const patch = builder.update.mock.calls[0][0] as Partial<OrderRow>;
+    expect(patch.ls_order_id).toBe("999001");
+    expect(patch.updated_at).toBeTruthy();
+    // It does NOT touch status (the webhook drives status via updateOrderStatus).
+    expect(patch.status).toBeUndefined();
+    expect(builder.eq).toHaveBeenCalledWith("id", "order-1");
+    expect(order.lsOrderId).toBe("999001");
+  });
+
+  it("patches ONLY ls_order_id + updated_at (does not clobber unrelated columns)", async () => {
+    builder._results.single.push({
+      data: rowWith({ ls_order_id: "999001" }),
+      error: null,
+    });
+
+    await setOrderLsId("order-1", "999001");
+
+    const patch = builder.update.mock.calls[0][0] as Partial<OrderRow>;
+    // The exact write surface: no inputs/photo_key/status/pdf_key/etc. are touched,
+    // so a retried webhook can't accidentally overwrite the captured order data.
+    expect(Object.keys(patch).sort()).toEqual(["ls_order_id", "updated_at"]);
+  });
+
+  it("rejects an unsafe id before touching the database", async () => {
+    await expect(setOrderLsId("../../evil", "999001")).rejects.toThrow(
+      /invalid order id/i,
+    );
+    expect(builder.from).not.toHaveBeenCalled();
+  });
+
+  it("throws a readable error when the write fails", async () => {
+    builder._results.single.push({
+      data: null,
+      error: { message: "write failed" },
+    });
+    await expect(setOrderLsId("order-1", "999001")).rejects.toThrow(
+      /failed to set ls_order_id for order order-1: write failed/i,
     );
   });
 });

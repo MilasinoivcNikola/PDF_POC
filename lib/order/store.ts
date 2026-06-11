@@ -186,6 +186,39 @@ export async function updateOrderStatus(
 }
 
 /**
+ * Link a Lemon Squeezy order id onto an order (PR-06). `lsOrderId` is part of the
+ * `Order`/`OrderRow` contract but not writable via `updateOrderStatus` (which only
+ * touches `status`), so the paid webhook sets it through this dedicated, status-
+ * agnostic patch. Idempotent by construction: writing the same `lsOrderId` again is
+ * a harmless overwrite, so a retried webhook can persist it without a guard. Callers
+ * pass a real (non-empty) id — the webhook skips this write when LS gave none, so a
+ * paid order never persists a blank `ls_order_id`.
+ * Returns the updated `Order`.
+ */
+export async function setOrderLsId(id: string, lsOrderId: string): Promise<Order> {
+  if (!isSafeOrderId(id)) {
+    throw new Error(`Invalid order id: ${id}`);
+  }
+
+  const patch: Partial<OrderRow> = {
+    ls_order_id: lsOrderId,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await getSupabaseAdmin()
+    .from(ORDERS_TABLE)
+    .update(patch)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to set ls_order_id for order ${id}: ${error.message}`);
+  }
+  return rowToOrder(data as OrderRow);
+}
+
+/**
  * List orders in a given status, oldest first (the worker drains `paid`/`queued`
  * and the admin queue reads `awaiting_review`). Backed by the `status` index in
  * the migration.

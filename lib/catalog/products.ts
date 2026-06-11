@@ -40,8 +40,15 @@ export interface Product {
    */
   priceUsd: number;
   /**
-   * Lemon Squeezy variant id this product maps to. Left undefined until PR-06
-   * creates the LS products; checkout fills it in then.
+   * Lemon Squeezy variant id this product maps to. Intentionally NOT stored here
+   * (PR-06): the real variant ids come from a manual LS product setup that hasn't
+   * happened yet, and this module is CLIENT-SAFE (the public storefront's static
+   * build imports it), so it must not read `process.env` — a server-only value
+   * baked into a client bundle would diverge between client and server. Instead the
+   * variant id is a NON-SECRET public identifier resolved SERVER-SIDE at checkout
+   * creation from a per-product env var (`LEMONSQUEEZY_VARIANT_<PRODUCT_ID>`, e.g.
+   * `LEMONSQUEEZY_VARIANT_STORY_1_BOOK`) — see app/(public)/api/checkout/route.ts.
+   * Kept as an optional field for the contract; always `undefined` in the catalog.
    */
   lsVariantId?: string;
   /**
@@ -62,9 +69,11 @@ export interface Product {
 // Pricing placeholders (config, NOT content)
 // ---------------------------------------------------------------------------
 //
-// DEFERRED PRICING DECISION: these are placeholder cent prices. Final numbers are
-// set with the PM before PR-06 (the Lemon Squeezy product creation). Do not treat
-// them as locked.
+// DEFERRED PRICING DECISION: these are placeholder cent prices used as the
+// storefront DISPLAY price. The amount actually charged is configured on the Lemon
+// Squeezy variant during the manual product setup (PR-06) — these constants and the
+// LS variant price must be kept in agreement (confirm the final number with the PM
+// before going live). Do not treat them as locked.
 //
 // - Story 1 (children's storybook) has no pricing table in its master template;
 //   2900 ($29) is a sensible made-to-order placeholder (the plan's $20-40 range).

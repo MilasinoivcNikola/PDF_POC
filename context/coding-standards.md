@@ -142,7 +142,10 @@ framework beyond this list without approval. The plan in
   landing + storefront (`/books`, `/books/[productId]`, `/order/[productId]`, `/policies`)
   stay static/SSG (`○`/`●`; PR-04 added them to the guard's `PUBLIC_ENTRIES`). The
   load-bearing guard (`lib/runtime/surface.boundary.test.ts`) is **two-tier** since PR-05
-  added the first public *API* route (`app/(public)/api/order/route.ts`): **public pages**
+  added the first public *API* route (`app/(public)/api/order/route.ts`; PR-06 added two
+  more — `app/(public)/api/checkout/route.ts`, which holds an LS secret but touches no DB,
+  and `app/(public)/api/webhooks/lemonsqueezy/route.ts`, which uses the service-role client
+  to advance a paid order): **public pages**
   (`PUBLIC_ENTRIES`) must be fully client-safe — no engine **and** no `lib/supabase/server`;
   **public API routes** (`PUBLIC_API_ENTRIES`) may import the service-role Supabase client
   (`lib/supabase/server` + `@supabase/supabase-js`) but still must be **engine-free** (no
@@ -155,11 +158,16 @@ framework beyond this list without approval. The plan in
   the operator routes still *ship* as gated 404 functions — the guarantee is that the
   public route *graph* never imports the engine and the keys are never set on that deploy,
   not that the engine code is build-excluded.)
-- Secrets come from `.env.local` (`OPENAI_API_KEY`; the commerce `SUPABASE_SERVICE_ROLE_KEY`).
-  Never hardcode keys; never log them. The Supabase **service-role** key is server-only —
-  never expose it to the browser or a `NEXT_PUBLIC_*` var (the anon key is the only
-  client-safe one, and only behind RLS). Keep `.env.local.example` in sync when a new env
-  var is introduced.
+- Secrets come from `.env.local` (`OPENAI_API_KEY`; the commerce `SUPABASE_SERVICE_ROLE_KEY`;
+  the Lemon Squeezy `LEMONSQUEEZY_API_KEY` / `LEMONSQUEEZY_STORE_ID` /
+  `LEMONSQUEEZY_WEBHOOK_SECRET`, server-only — read on the public host that takes/confirms
+  payment, PR-06). Never hardcode keys; never log them; never echo them in an error body.
+  The Supabase **service-role** key is server-only — never expose it to the browser or a
+  `NEXT_PUBLIC_*` var (the anon key is the only client-safe one, and only behind RLS). The
+  per-product LS **variant ids** (`LEMONSQUEEZY_VARIANT_<PRODUCT_ID>`) are **non-secret**
+  runtime config (like `DEPLOY_TARGET` below), resolved server-side at checkout — kept out
+  of the client-safe `lib/catalog/` module and never `NEXT_PUBLIC_*`. Keep
+  `.env.local.example` in sync when a new env var is introduced.
 - `DEPLOY_TARGET` (`public` | `operator`) is **non-secret** runtime config, not a key:
   it selects the deploy surface (see *Deploy-surface boundary* above). Default `operator`
   (full local app); the Vercel build sets `public` via `vercel.json`. Fine to commit.
