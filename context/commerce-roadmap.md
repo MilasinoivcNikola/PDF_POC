@@ -149,7 +149,9 @@ worker, an admin auth gate, Resend delivery email.
   download link. → `delivered`.
 - **Phase 5 (recurring) — Build more books.** Each new title = a new registry entry
   (master text + layout + illustration slots + price) that auto-appears as a purchasable
-  product. Infra is built once in 1–4; every title after is mostly *writing*.
+  product. Infra is built once in 1–4; every title after is mostly *writing*. The
+  step-by-step, file-path-level recipe lives in
+  [new-book-playbook.md](./new-book-playbook.md).
 
 **Worker simplification:** at this volume the worker is a **batch command you run**
 once or twice a day, not a 24/7 poller. Pairs with the 24–48h promise.
