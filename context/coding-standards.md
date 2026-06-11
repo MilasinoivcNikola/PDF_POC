@@ -23,11 +23,12 @@ framework beyond this list without approval. The plan in
 
 > **Commerce exception (approved).** [commerce-roadmap.md](./commerce-roadmap.md) is the
 > standing approval for graduating past the POC surface — it adds **Supabase**
-> (Postgres + Storage) via the **`@supabase/supabase-js`** dependency as the persisted
-> order store (the CLI is not a runtime dep; migrations run via the dashboard/`psql`).
-> This coexists with the JSON-session store — see *Files, IO, and persistence* below.
-> Later commerce PRs add Lemon Squeezy and Resend per the roadmap; those are pre-approved
-> there too, not here. Anything *outside* the roadmap still needs sign-off.
+> (Postgres + Storage + **Auth**) via **`@supabase/supabase-js`** (the data/Storage client)
+> and **`@supabase/ssr`** (PR-08's cookie-based operator-auth session client) as the
+> persisted order store + the admin auth gate (the CLI is not a runtime dep; migrations run
+> via the dashboard/`psql`). This coexists with the JSON-session store — see *Files, IO, and
+> persistence* below. Later commerce PRs add Lemon Squeezy and Resend per the roadmap; those
+> are pre-approved there too, not here. Anything *outside* the roadmap still needs sign-off.
 
 ---
 
@@ -104,10 +105,16 @@ framework beyond this list without approval. The plan in
   `lib/order/types.ts` owns the `Order` / `OrderStatus` contract every later commerce PR
   imports; `lib/order/state.ts` is the **single source of truth** for legal status
   transitions (mirror it in the migration's `CHECK` constraint, never fork it).
-  `lib/supabase/` holds the server-only client (`server.ts`), the `isSafeOrderId` guard
-  (`ids.ts`), and Storage helpers (`storage.ts`). The service-role client is
-  **server-only** — same `lib/session/disk.ts` discipline — and must never reach a
-  **client/browser** bundle; RLS is defence-in-depth on top. *"Server-only" is not
+  `lib/supabase/` holds the server-only service-role client (`server.ts`), the
+  `isSafeOrderId` guard (`ids.ts`), Storage helpers (`storage.ts`), and — since PR-08 —
+  the **operator auth-session client** (`auth.ts`). **Two distinct Supabase clients live
+  here, by key and purpose:** `server.ts` uses the **service-role** key (bypasses RLS, the
+  order data/Storage path), while `auth.ts` uses the **anon** key + the request's session
+  cookie (`@supabase/ssr`; the `(operator)/admin` login gate only — `getOperatorUserId()`
+  calls `auth.getUser()`, which re-validates the token server-side). Both are **server-only**
+  — same `lib/session/disk.ts` discipline — and must never reach a **client/browser** bundle
+  (`auth.ts` touches `next/headers`, so it can't, even though the anon key is the only
+  `NEXT_PUBLIC_*`-safe key); RLS is defence-in-depth on top. *"Server-only" is not
   "operator-only":* a **public** server-side API route may hold it too (PR-05's
   `app/(public)/api/order/route.ts` is the first such consumer — it writes the order row
   + photo on the public Vercel host). The invariant that bites is *no client bundle*, not

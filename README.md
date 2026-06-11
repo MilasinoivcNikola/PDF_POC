@@ -85,6 +85,30 @@ One codebase runs as **two surfaces**, switched by the `DEPLOY_TARGET` env var
 - The gate lives in `lib/runtime/surface.ts` (`assertOperator()` for API routes,
   `isPublic()` for the `(operator)` layout). Generation is **local only** — the
   public host takes orders and serves finished files, but cannot generate.
+
+## Admin review desk (operator-only)
+
+The operator reviews and approves each generated book at `/admin` (operator
+surface only — it 404s on a public deploy). The local batch worker
+(`npm run process:orders`) drains paid orders into `awaiting_review`; the admin
+queue lists those (and any `failed` orders), opens each in the reused book preview
+(repaint any drifted page, fix the customer's own words inline), and **Approve**
+renders the final PDF, uploads it to the private `order-pdfs` bucket, and moves the
+order to `approved` (which PR-09's delivery email reacts to).
+
+Login is **Supabase Auth** (email/password), cookie-based via `@supabase/ssr`. The
+admin uses the **anon** key (`NEXT_PUBLIC_SUPABASE_*`) for the session gate only —
+order data still goes through the service-role client.
+
+**One-time setup — create the operator account:**
+
+1. In the Supabase dashboard → **Authentication → Users → Add user**, create one
+   user with the operator's email + a password (confirm/auto-confirm the email).
+2. Ensure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set in
+   `.env.local` (from Project Settings → API).
+3. Run the operator app locally and sign in at `/admin/login`.
+
+There is no self-serve signup — the single operator account is provisioned by hand.
 - **Both gates hold at runtime, build-env-independent.** The `(operator)` layout is
   `force-dynamic`, so its `isPublic()` / `notFound()` decision is evaluated **per
   request** rather than baked in at build time — an app built in operator mode but

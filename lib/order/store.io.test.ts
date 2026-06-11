@@ -286,6 +286,68 @@ describe("updateOrderStatus", () => {
     expect(patch.error).toBe("pet drifted");
   });
 
+  it("writes status AND pdf_key in one patch on awaiting_review → approved (PR-08)", async () => {
+    // The admin Approve action: the final PDF's storage key and the `approved`
+    // status are written TOGETHER, so an order is never `approved` without its
+    // pdfKey. The camelCase option maps to the snake_case `pdf_key` column.
+    builder._results.maybeSingle.push({
+      data: rowWith({ status: "awaiting_review" }),
+      error: null,
+    });
+    builder._results.single.push({
+      data: rowWith({ status: "approved", pdf_key: "order-1.pdf" }),
+      error: null,
+    });
+
+    const order = await updateOrderStatus("order-1", "approved", {
+      pdfKey: "order-1.pdf",
+    });
+
+    expect(builder.update).toHaveBeenCalledTimes(1);
+    const patch = builder.update.mock.calls[0][0] as Partial<OrderRow>;
+    // One guarded write carrying both the status and the snake_case pdf_key.
+    expect(patch.status).toBe("approved");
+    expect(patch.pdf_key).toBe("order-1.pdf");
+    expect(patch.updated_at).toBeTruthy();
+    // The echoed row maps back camelCase: pdfKey is surfaced on the Order.
+    expect(order.status).toBe("approved");
+    expect(order.pdfKey).toBe("order-1.pdf");
+  });
+
+  it("omits pdf_key from the patch when no pdfKey option is given", async () => {
+    // A status move without a pdfKey (e.g. the re-queue path) must not write a
+    // null/undefined pdf_key column — the patch only carries what changed.
+    builder._results.maybeSingle.push({
+      data: rowWith({ status: "failed" }),
+      error: null,
+    });
+    builder._results.single.push({
+      data: rowWith({ status: "queued" }),
+      error: null,
+    });
+
+    await updateOrderStatus("order-1", "queued");
+
+    const patch = builder.update.mock.calls[0][0] as Partial<OrderRow>;
+    expect("pdf_key" in patch).toBe(false);
+    expect("error" in patch).toBe(false);
+  });
+
+  it("does NOT write pdf_key on an illegal transition (assert-before-write holds)", async () => {
+    // The pdfKey is written in the same guarded patch, so an illegal move never
+    // persists a stray pdf_key either — the assert throws before the update.
+    builder._results.maybeSingle.push({
+      data: rowWith({ status: "delivered" }),
+      error: null,
+    });
+
+    await expect(
+      updateOrderStatus("order-1", "approved", { pdfKey: "order-1.pdf" }),
+    ).rejects.toMatchObject({ name: "IllegalTransitionError" });
+
+    expect(builder.update).not.toHaveBeenCalled();
+  });
+
   it("throws IllegalTransitionError WITHOUT calling the DB update on an illegal move", async () => {
     // A delivered order is terminal — paid is not reachable from it.
     builder._results.maybeSingle.push({

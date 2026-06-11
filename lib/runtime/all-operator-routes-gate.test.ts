@@ -81,6 +81,21 @@ interface OperatorRoute {
 const cast = (p: Promise<unknown>) => p as Promise<Record<string, unknown>>;
 const OPERATOR_ROUTES: readonly OperatorRoute[] = [
   {
+    name: "admin/approve",
+    verbs: ["POST"],
+    load: () => cast(import("../../app/(operator)/api/admin/approve/route")),
+  },
+  {
+    name: "admin/auth",
+    verbs: ["POST", "DELETE"],
+    load: () => cast(import("../../app/(operator)/api/admin/auth/route")),
+  },
+  {
+    name: "admin/requeue",
+    verbs: ["POST"],
+    load: () => cast(import("../../app/(operator)/api/admin/requeue/route")),
+  },
+  {
     name: "generate-illustrations",
     verbs: ["POST", "GET"],
     load: () => cast(import("../../app/(operator)/api/generate-illustrations/route")),

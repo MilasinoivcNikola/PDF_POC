@@ -4,3 +4,4 @@ _Index of saved memories (one line each: `- [Title](file.md) — hook`)._
 
 - [Canonical doc map](canonical-doc-map.md) — which standing doc owns which decision; roadmap supersedes plan's "out of scope" lines
 - [Deploy-surface & secrets lag](deploy-surface-secrets-lag.md) — recurring drift: boundary text + secrets/env note lag each new public API route + new secret
+- [Supabase Auth (PR-08)](supabase-auth-pr08.md) — admin auth gate built; settled supersessions + the 3 doc lags (deferred-decision line, @supabase/ssr dep, lib/supabase/ map)
