@@ -40,3 +40,14 @@ export function letterPdfFilename(petName: string): string {
   const slug = slugify(petName) || "Pet";
   return `Letter-from-${slug}.pdf`;
 }
+
+/**
+ * The output filename for a rendered Story-4 letter ("If [PET_NAME] Could Talk"),
+ * per that template's production checklist: `If-[PET_NAME]-Could-Talk.pdf`. Same
+ * path-safe slugify as `storyPdfFilename`, with the same `Pet` fallback for an
+ * empty/symbol-only name.
+ */
+export function talkPdfFilename(petName: string): string {
+  const slug = slugify(petName) || "Pet";
+  return `If-${slug}-Could-Talk.pdf`;
+}

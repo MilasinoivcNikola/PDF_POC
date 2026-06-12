@@ -4,17 +4,18 @@
 //
 // Routing those lookups through `getStory(session.storyType ?? "story-1")` instead
 // of importing the Story-1 modules directly is the seam that lets the app host more
-// than one product. Story 1 ("Saying Goodbye") and Story 2 ("A Letter") are both
-// registered; a type with no definition still throws (so an unknown future type is
-// loud rather than silently mis-resolved).
+// than one product. Story 1 ("Saying Goodbye"), Story 2 ("A Letter") and Story 4
+// ("If [PET_NAME] Could Talk") are all registered; a type with no definition still
+// throws (so an unknown future type is loud rather than silently mis-resolved).
 //
 // This module is a lookup table only — no story logic lives here. Each product's
-// definition wraps its own existing functions (see lib/story/story-1.ts and
-// lib/story/story-2.ts).
+// definition wraps its own existing functions (see lib/story/story-1.ts,
+// lib/story/story-2.ts and lib/story/story-4.ts).
 
 import type {
   StorySession,
   Story2Session,
+  Story4Session,
   StoryType,
 } from "@/lib/session/types";
 import type { PageId } from "@/lib/story/master-text";
@@ -22,15 +23,16 @@ import type { ResolvedStory } from "@/lib/story/merge";
 import type { WizardConfig } from "@/lib/story/wizard-config";
 import { story1Definition } from "@/lib/story/story-1";
 import { story2Definition } from "@/lib/story/story-2";
+import { story4Definition } from "@/lib/story/story-4";
 
 /**
  * The "edit your own words" contract for the in-browser preview (feature 19),
  * per story. The route + preview components stay generic by typing fields as
  * `string` at this boundary; each product's implementation
- * (lib/story/{editable-fields,story2/editable-fields}.ts) narrows internally.
- * `setSessionField`/`getSessionFieldValue` take the `StorySession | Story2Session`
- * union and each impl narrows with a `storyType`-guarded cast at the registry seam
- * — exactly the pattern lib/ai/generate.ts uses for Story 2.
+ * (lib/story/{editable-fields,story2/editable-fields,story4/editable-fields}.ts)
+ * narrows internally. `setSessionField`/`getSessionFieldValue` take the
+ * `AnyEditableSession` union and each impl narrows with a `storyType`-guarded cast
+ * at the registry seam — exactly the pattern lib/ai/generate.ts uses for Story 2.
  */
 export interface EditableFieldsContract {
   /** Every editable field key, for membership checks at the API boundary. */
@@ -45,16 +47,24 @@ export interface EditableFieldsContract {
   fieldCopy: Record<string, { label: string; hint: string }>;
   /** Return a NEW session with the cleaned value written into the right group. */
   setSessionField(
-    session: StorySession | Story2Session,
+    session: AnyEditableSession,
     field: string,
     value: string,
-  ): StorySession | Story2Session;
+  ): AnyEditableSession;
   /** The current raw value of an editable field (what the editor pre-fills). */
-  getSessionFieldValue(
-    session: StorySession | Story2Session,
-    field: string,
-  ): string;
+  getSessionFieldValue(session: AnyEditableSession, field: string): string;
 }
+
+/**
+ * The cross-product session union the editable-fields contract operates on. Each
+ * product's impl narrows to its own concrete session with a `storyType`-guarded
+ * cast at the registry seam (the route's `isEditableField` allowlist gates the
+ * field, and the storyType discriminant gates the session, before either is used).
+ */
+export type AnyEditableSession =
+  | StorySession
+  | Story2Session
+  | Story4Session;
 
 /**
  * Everything the render + API pipeline needs from a story product, in one place.
@@ -86,6 +96,7 @@ export interface StoryDefinition {
 const REGISTRY: Partial<Record<StoryType, StoryDefinition>> = {
   "story-1": story1Definition,
   "story-2": story2Definition,
+  "story-4": story4Definition,
 };
 
 /**

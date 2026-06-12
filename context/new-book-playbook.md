@@ -144,6 +144,14 @@ the renderer and CSS already handle it. Add a new layout only when no existing t
 (as feature 16 did when a frameable letter shouldn't borrow the children's-book `narrative`
 treatment).
 
+> **One exception when reusing the `letter` layout:** the shared letter renderer
+> (`lib/pdf/pages-story2.tsx`) splits the Page-6 signature block off the body at a sign-off
+> sentinel. A new letter book whose sign-off differs (Story 2 = `"Yours, always,"`, Story 4 =
+> `"Yours,"`) must register its sentinel in the `LETTER_SIGNOFFS` set there. Keep the new
+> sentinel **distinct** and never a standalone existing-body paragraph — that preserves the
+> byte-identity of the already-shipped letter books (match is exact-equality, so a distinct
+> string can't mis-split another book). Feature 20 did this for Story 4.
+
 To add one:
 
 1. Add the value to the `PageLayout` union in **`lib/story/merge.ts`** and map your pages to

@@ -10,6 +10,7 @@
 import { StepShell } from "@/components/wizard/StepShell";
 import { useWizard } from "@/components/wizard/WizardProvider";
 import { getWizardConfig } from "@/lib/story/wizard-config";
+import { isStory2Draft } from "@/lib/session/draft";
 import type {
   GiftFor,
   LetterBeliefFrame,
@@ -44,7 +45,9 @@ export default function TonePage() {
   const { draft, updateDraft } = useWizard();
 
   const total = getWizardConfig("story-2").total;
-  const toggles = draft && "owner" in draft ? draft.toggles : {};
+  // This route is the Story-2 wizard step; narrow precisely to a Story-2 draft
+  // (Story 4 also has an `owner` group, but its toggles have no `newPet`).
+  const toggles = draft && isStory2Draft(draft) ? draft.toggles : {};
   const deathType = toggles.deathType ?? "peaceful";
   const beliefFrame = toggles.beliefFrame ?? "rainbow-bridge";
   const giftFor = toggles.giftFor ?? "self";

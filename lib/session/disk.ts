@@ -7,14 +7,18 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { StorySession, Story2Session } from "@/lib/session/types";
+import type {
+  StorySession,
+  Story2Session,
+  Story4Session,
+} from "@/lib/session/types";
 
 /**
- * Either product's finalized session. The disk layer is product-agnostic — it
+ * Any product's finalized session. The disk layer is product-agnostic — it
  * round-trips whichever shape it's handed as id-keyed JSON. Readers narrow on
  * `storyType` (`?? "story-1"`) after reading.
  */
-export type AnySession = StorySession | Story2Session;
+export type AnySession = StorySession | Story2Session | Story4Session;
 
 /** Absolute path to ./sessions/[id].json for a given session id. */
 function sessionFilePath(id: string): string {

@@ -1,0 +1,34 @@
+{
+  "id": "test-biscuit-memorial",
+  "createdAt": "2026-06-12T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-4",
+  "pet": {
+    "name": "Biscuit",
+    "species": "dog",
+    "breedColor": "rescue mutt with the lopsided grin",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/biscuit.jpg"
+  },
+  "owner": {
+    "names": "Sarah and David",
+    "relationship": "couple"
+  },
+  "memories": {
+    "quirks": "the way I lost my mind when you picked up the leash",
+    "favoriteRitual": "our walk before coffee, every single morning",
+    "favoriteSpots": "the spot by the back door where the sun lands at 4pm",
+    "favoriteActivity": "stealing one sock and running a victory lap",
+    "nicknames": "Biscy, the gremlin, sir",
+    "dateAdopted": "March 2014",
+    "datePassed": "October 2025"
+  },
+  "toggles": {
+    "livingOrMemorial": "memorial",
+    "giftFor": "self",
+    "deathType": "euthanasia",
+    "beliefFrame": "secular"
+  },
+  "images": []
+}
