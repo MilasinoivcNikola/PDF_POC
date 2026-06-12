@@ -5,10 +5,10 @@
 //     pronoun, illustration style; name + description gate Continue (the
 //     description is a live merge field, so a blank one would break generation);
 //     continues to /create/child.
-//   - Story 2 / Story 4 (the letters): name (required), species, a few words of
-//     appearance (optional — feeds the cover portrait). Pronoun + illustration
-//     style are dropped (a letter is first-person and photo-led). Name gates
-//     Continue; continues to /create/owner.
+//   - Story 2 / Story 4 / Story 5 (the letters): name (required), species, a few
+//     words of appearance (optional — feeds the cover portrait). Pronoun +
+//     illustration style are dropped (a letter is first-person/owner-voice and
+//     photo-led). Name gates Continue; continues to /create/owner.
 // Every field writes straight through to the draft so a refresh keeps it.
 
 import { useState } from "react";
@@ -50,11 +50,14 @@ export default function PetPage() {
   const [showGate, setShowGate] = useState(false);
 
   const storyType = draft?.storyType ?? "story-1";
-  // Story 2 and Story 4 are both "letter" products: first-person, photo-led, no
-  // child, no pronoun/style. They share the pet step's letter behavior. Story 4
-  // is the *celebration* (living) twin, so its copy is warm/present-tense rather
-  // than grief-toned.
-  const isLetter = storyType === "story-2" || storyType === "story-4";
+  // Story 2, Story 4 and Story 5 are all "letter" products: photo-led, no child,
+  // no pronoun/style. They share the pet step's letter behavior. Story 4 is the
+  // *celebration* (living) twin, so its copy is warm/present-tense; Story 2 and
+  // Story 5 are grief-toned (the default copy).
+  const isLetter =
+    storyType === "story-2" ||
+    storyType === "story-4" ||
+    storyType === "story-5";
   const isStory4 = storyType === "story-4";
   const total = getWizardConfig(storyType).total;
   // Story 1 continues to the child step; a letter (no child) to the owner step.

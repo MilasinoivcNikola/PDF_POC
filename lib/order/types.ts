@@ -12,6 +12,7 @@ import type {
   StorySession,
   Story2Session,
   Story4Session,
+  Story5Session,
   StoryType,
 } from "@/lib/session/types";
 
@@ -51,7 +52,7 @@ export type OrderStatus =
 
 /**
  * One book order. `inputs` reuses the existing session types VERBATIM
- * (`StorySession | Story2Session | Story4Session`) so the generation engine
+ * (`StorySession | Story2Session | Story4Session | Story5Session`) so the generation engine
  * consumes a paid order's captured inputs with no translation — the same shape
  * the local wizard already produces and `resolveStory*` already reads.
  *
@@ -74,7 +75,7 @@ export interface Order {
   /** Buyer email — where the finished book is delivered (PR-09). */
   customerEmail: string;
   /** Captured wizard inputs, reused verbatim by the engine. */
-  inputs: StorySession | Story2Session | Story4Session;
+  inputs: StorySession | Story2Session | Story4Session | Story5Session;
   /** Object key of the uploaded pet photo in the `order-photos` bucket. */
   photoKey: string;
   /** Object key of the rendered PDF in the `order-pdfs` bucket, once produced. */

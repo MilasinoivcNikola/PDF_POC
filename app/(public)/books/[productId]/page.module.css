@@ -125,3 +125,37 @@
   max-width: 26em;
   line-height: 1.6;
 }
+
+/* Companion cross-link — the Story 2 ↔ Story 5 "one from them, one from you" pair */
+.companion {
+  margin-top: var(--s-10);
+  padding-top: var(--s-8);
+  border-top: 1px solid var(--border-hairline);
+}
+
+.companionKicker {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.companionBody {
+  font-family: var(--font-body);
+  font-size: var(--t-sm);
+  line-height: 1.7;
+  color: var(--ink-soft);
+  margin: var(--s-3) 0 var(--s-4);
+  max-width: 30em;
+}
+
+.companionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--rose);
+  border-bottom: 1px solid var(--rose-soft);
+}

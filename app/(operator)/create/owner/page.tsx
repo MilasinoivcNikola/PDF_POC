@@ -1,11 +1,12 @@
 "use client";
 
-// Step 3 of 6 — the owner the letter is addressed to: name(s) (required) and the
-// relationship (single / couple), which drives the "you" vs "you both" letter
-// voice. The owner names gate Continue (they are merged into every page of the
-// letter). Shared by both letter products: Story 2 (the grief letter) and Story 4
-// ("If [PET_NAME] Could Talk", the celebration twin). Story 1 uses /create/child
-// here instead.
+// Step 3 of 6 — the owner the letter involves: name(s) (required) and the
+// relationship (single / couple), which drives the "you"/"I" vs "you both"/"we"
+// letter voice. The owner names gate Continue (they are merged into every page of
+// the letter). Shared by all three letter products: Story 2 (the grief letter
+// *from* the pet), Story 4 ("If [PET_NAME] Could Talk", the celebration twin),
+// and Story 5 (the letter *to* the pet, written in the owner's own voice — so the
+// names are the signer, not the addressee). Story 1 uses /create/child instead.
 
 import { useState } from "react";
 import { StepShell } from "@/components/wizard/StepShell";
@@ -24,6 +25,9 @@ export default function OwnerPage() {
 
   const storyType = draft?.storyType ?? "story-2";
   const isStory4 = storyType === "story-4";
+  // Story 5 is the owner writing TO the pet, so the names are the signer (the
+  // letter is from "you" to the pet), not the addressee of a pet's letter.
+  const isStory5 = storyType === "story-5";
   const total = getWizardConfig(storyType).total;
   const owner = draft && "owner" in draft ? draft.owner : {};
   const names = owner.names ?? "";
@@ -42,19 +46,29 @@ export default function OwnerPage() {
     <StepShell
       step={3}
       total={total}
-      introQuote="And who is this letter for?"
+      introQuote={
+        isStory5 ? "And who is writing this letter?" : "And who is this letter for?"
+      }
       introAttribution={
-        isStory4
-          ? "The one they would tell, if they had the words."
-          : "The one they would have written to, if they could."
+        isStory5
+          ? "The one who loved them, and is putting it into words."
+          : isStory4
+            ? "The one they would tell, if they had the words."
+            : "The one they would have written to, if they could."
       }
       sectionLabel="Section · Three"
       sectionHeading={
         <>
-          The one they <em>{isStory4 ? "love" : "loved"}</em>.
+          The one {isStory5 ? "who " : "they "}
+          <em>{isStory4 ? "love" : "loved"}</em>
+          {isStory5 ? " them" : ""}.
         </>
       }
-      sectionDescription="The letter is addressed to you by name, in your pet's own voice. Tell us how it should reach you."
+      sectionDescription={
+        isStory5
+          ? "The letter is written to your pet, in your own voice, and signed by you. Tell us the name to sign it with."
+          : "The letter is addressed to you by name, in your pet's own voice. Tell us how it should reach you."
+      }
       backHref="/create/pet"
       continueHref="/create/letter"
       footerNote="Step 03 · The letter is for"
@@ -63,7 +77,9 @@ export default function OwnerPage() {
       <div className="field">
         <label className="field__label" htmlFor="owner-names">
           <span className="field__num">01</span>
-          Who should the letter be written to?
+          {isStory5
+            ? "Who should the letter be signed by?"
+            : "Who should the letter be written to?"}
         </label>
         <p className="field__hint">
           The name {petLabel} knew you by — your own name, both your names, or
@@ -78,7 +94,9 @@ export default function OwnerPage() {
         />
         {showGate && !names.trim() ? (
           <p className="notice notice--required">
-            The letter is addressed to you by name. Please add it to continue.
+            {isStory5
+              ? "The letter is signed by you. Please add your name to continue."
+              : "The letter is addressed to you by name. Please add it to continue."}
           </p>
         ) : null}
       </div>

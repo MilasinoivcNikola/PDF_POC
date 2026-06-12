@@ -37,6 +37,8 @@ import type {
   Story2Toggles,
   Story4Memories,
   Story4Toggles,
+  Story5Memories,
+  Story5Toggles,
   Toggles,
   WizardDraft,
 } from "@/lib/session/types";
@@ -51,7 +53,8 @@ import {
  * A patch to the draft's input groups. Each named group merges shallowly. Story 1
  * uses `pet`/`child`/`memories: Memories`/`toggles: Toggles`; Story 2 uses
  * `pet`/`owner`/`memories: LetterMemories`/`toggles: Story2Toggles`; Story 4 uses
- * `pet`/`owner`/`memories: Story4Memories`/`toggles: Story4Toggles`. The union of
+ * `pet`/`owner`/`memories: Story4Memories`/`toggles: Story4Toggles`; Story 5 uses
+ * `pet`/`owner`/`memories: Story5Memories`/`toggles: Story5Toggles`. The union of
  * the per-group types is intentional — a step only ever patches the groups its own
  * product has, and the merge below applies only the named groups.
  */
@@ -59,8 +62,16 @@ export interface DraftPatch {
   pet?: Partial<Pet>;
   child?: Partial<Child>;
   owner?: Partial<Owner>;
-  memories?: Partial<Memories> | Partial<LetterMemories> | Partial<Story4Memories>;
-  toggles?: Partial<Toggles> | Partial<Story2Toggles> | Partial<Story4Toggles>;
+  memories?:
+    | Partial<Memories>
+    | Partial<LetterMemories>
+    | Partial<Story4Memories>
+    | Partial<Story5Memories>;
+  toggles?:
+    | Partial<Toggles>
+    | Partial<Story2Toggles>
+    | Partial<Story4Toggles>
+    | Partial<Story5Toggles>;
 }
 
 interface WizardContextValue {

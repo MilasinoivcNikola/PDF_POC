@@ -8,7 +8,13 @@ metadata:
 A new sellable product (a new `storyType` + catalog entry + `Story*Fields` form
 component + `Story*Session` widening) inherits the proven Story-1/2 commerce
 security posture **without touching the trust boundary**, because the boundary is
-structural, not per-product. Verified on Story 4 (PR-22).
+structural, not per-product. Verified on Story 4 (PR-22) and again on Story 5
+(PR-24) — both ran the recipe below fully green with zero findings, so the
+inheritance is now twice-confirmed. (PR-24 specifics: `/api/order/route.ts` diff
+empty; `NewOrderInput` still excludes status/pdfKey; `draftToSessionStory5` builds
+fresh field-by-field; `lib/ai/story5-prompts` in `FORBIDDEN_LOCAL`; the two
+`public/samples/story-5-letter-to/*.jpg` carried only the same clean 76-byte Exif
+stub + 56-byte empty 8BIM IPTC stub.)
 
 **Why these hold by construction (re-confirm, don't assume, on the next product):**
 

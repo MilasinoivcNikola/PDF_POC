@@ -15,6 +15,9 @@
 //   - Story 4: pet name, species, photo, owner names, plus the four personal
 //     free-text fields (quirks, favoriteRitual, favoriteSpots, favoriteActivity)
 //     the celebration letter merges.
+//   - Story 5: pet name, species, photo, owner names, plus the two personal
+//     free-text fields (favoriteRitual, favoriteSpots) the letter TO the pet
+//     merges with no fallback (quirks is optional-with-fallback here).
 // Anything else is trusted to have been defaulted by the assembler.
 
 import { NextResponse } from "next/server";
@@ -25,6 +28,7 @@ import type {
   StorySession,
   Story2Session,
   Story4Session,
+  Story5Session,
 } from "@/lib/session/types";
 
 /** Whether a value is a non-empty trimmed string. */
@@ -102,6 +106,35 @@ function validateStory4(session: Partial<Story4Session>): string | null {
 }
 
 /**
+ * Validate a Story-5 body ("A Letter to [PET_NAME]"). Required: pet name,
+ * species, photo, owner names, and the two personal free-text fields
+ * (favoriteRitual, favoriteSpots) the letter merges with no fallback. `quirks` is
+ * optional-with-fallback here, so it is NOT required. Returns an error code (the
+ * missing field), or null when valid.
+ */
+function validateStory5(session: Partial<Story5Session>): string | null {
+  if (!nonEmpty(session.pet?.name)) {
+    return "missing_pet_name";
+  }
+  if (!nonEmpty(session.pet?.species)) {
+    return "missing_species";
+  }
+  if (!nonEmpty(session.pet?.photo)) {
+    return "missing_photo";
+  }
+  if (!nonEmpty(session.owner?.names)) {
+    return "missing_owner_names";
+  }
+  if (!nonEmpty(session.memories?.favoriteRitual)) {
+    return "missing_favorite_ritual";
+  }
+  if (!nonEmpty(session.memories?.favoriteSpots)) {
+    return "missing_favorite_spots";
+  }
+  return null;
+}
+
+/**
  * Validate a Story-1 body. Required: pet name, child name, photo, and the four
  * personal free-text fields (breedColor, favoriteActivity, sleepingSpot,
  * favoriteMemory). Returns an error code (the missing field), or null when valid.
@@ -146,7 +179,9 @@ export async function POST(request: Request): Promise<Response> {
     return fail("invalid_session");
   }
 
-  const base = body as Partial<StorySession | Story2Session | Story4Session>;
+  const base = body as Partial<
+    StorySession | Story2Session | Story4Session | Story5Session
+  >;
 
   if (!nonEmpty(base.id) || !isSafeSessionId(base.id.trim())) {
     return fail("invalid_session_id");
@@ -159,6 +194,8 @@ export async function POST(request: Request): Promise<Response> {
     error = validateStory2(body as Partial<Story2Session>);
   } else if (storyType === "story-4") {
     error = validateStory4(body as Partial<Story4Session>);
+  } else if (storyType === "story-5") {
+    error = validateStory5(body as Partial<Story5Session>);
   } else {
     error = validateStory1(body as Partial<StorySession>);
   }

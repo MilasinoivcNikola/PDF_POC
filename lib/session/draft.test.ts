@@ -10,13 +10,22 @@ import {
   missingRequiredFieldsStory4,
   draftToSessionStory4,
   isStory4Draft,
+  missingRequiredFieldsStory5,
+  draftToSessionStory5,
+  isStory5Draft,
   isStory1Draft,
   missingRequiredFieldsForDraft,
   draftToSessionForDraft,
 } from "./draft";
 import { newDraft } from "./storage";
 import { resolveStory4 } from "@/lib/story/story4/variants";
-import type { StoryDraft, Story2Draft, Story4Draft } from "./types";
+import { resolveStory5 } from "@/lib/story/story5/variants";
+import type {
+  StoryDraft,
+  Story2Draft,
+  Story4Draft,
+  Story5Draft,
+} from "./types";
 
 // The draft→session bridge is pure (no IO, no React), so it is asserted directly.
 // Three surfaces:
@@ -1334,5 +1343,499 @@ describe("draftToSessionForDraft — routes a Story-4 draft", () => {
       (session as { toggles: { livingOrMemorial: string } }).toggles
         .livingOrMemorial,
     ).toBe("living");
+  });
+});
+
+// ===========================================================================
+// Story 5 — "A Letter to [PET_NAME]" draft → session bridge
+// ===========================================================================
+//
+// The inverse/companion of Story 2 (the OWNER's second-person voice writing TO the
+// pet who died, single-tense past). It REUSES Story 2's `Owner` group and shares
+// the letter memories PLUS the two genuinely new fields lastGoodDay + whatIKeep.
+// SIX fields are required: pet name, owner names, species, photo, favoriteRitual,
+// favoriteSpots — ONE FEWER than Story 2 because `quirks` is optional-with-fallback
+// here (the variant layer supplies a stock Page-3 line when it is blank). The two
+// new fields lastGoodDay / whatIKeep are likewise optional. Its toggles are the
+// simplest of the letter products: just deathType + beliefFrame. The surfaces
+// mirror Story 2 / Story 4:
+//   1. missingRequiredFieldsStory5 — the Story-5 Generate gate (whitespace-only
+//      counts as missing because present() trims; quirks / lastGoodDay / whatIKeep
+//      are NOT required).
+//   2. draftToSessionStory5 — assembly that fills skipped optionals with the
+//      Story-5 defaults, trims free-text, drops the optional-with-fallback (the new
+//      lastGoodDay / whatIKeep) and nickname/date fields when blank, stores a blank
+//      quirks as "" (so the variant fallback fires), throws when a required field is
+//      absent.
+//   3. The dispatchers (isStory5Draft / missingRequiredFieldsForDraft /
+//      draftToSessionForDraft) — which previously THREW "not wired yet (PR 24)" for
+//      a Story-5 draft and now route to the Story-5 functions.
+
+/** A Story-5 draft with all six required fields present (and nothing else). */
+function minimalCompleteStory5Draft(): Story5Draft {
+  const draft = newDraft("story-5");
+  draft.pet.name = "Murphy";
+  draft.pet.photo = "uploads/sess/murphy.jpg";
+  // species is pre-seeded "dog" by newDraft("story-5").
+  draft.owner.names = "Sarah";
+  draft.memories.favoriteRitual = "our walk before coffee, every morning";
+  draft.memories.favoriteSpots = "the spot by the back door";
+  return draft;
+}
+
+/** A Story-5 draft with every input group fully populated. */
+function fullStory5Draft(): Story5Draft {
+  return {
+    id: "story5-draft-id-101",
+    createdAt: "2026-06-12T09:00:00.000Z",
+    status: "draft",
+    storyType: "story-5",
+    pet: {
+      name: "Murphy",
+      species: "cat",
+      breedColor: "rescue mutt with the lopsided grin",
+      pronoun: "she",
+      illustrationStyle: "pencil",
+      photo: "uploads/sess/murphy.jpg",
+    },
+    owner: { names: "Sarah and David", relationship: "couple" },
+    memories: {
+      quirks: "the way you tilted your head when I said your name",
+      favoriteRitual: "our walk before coffee, every morning",
+      favoriteSpots: "the spot by the back door where the sun hit at 4pm",
+      lastGoodDay: "the last good Saturday in the sun",
+      whatIKeep: "your collar on the hook",
+      nicknames: "Murph, Mr. Murph, the worst dog",
+      dateAdopted: "March 2014",
+      datePassed: "October 2025",
+    },
+    toggles: {
+      deathType: "euthanasia",
+      beliefFrame: "heaven",
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// missingRequiredFieldsStory5
+// ---------------------------------------------------------------------------
+
+describe("missingRequiredFieldsStory5", () => {
+  it("reports all required fields except species for a fresh newDraft('story-5')", () => {
+    // newDraft("story-5") pre-seeds species: "dog", so only the other five are
+    // missing — in display order. Note quirks is NOT in the required set.
+    expect(missingRequiredFieldsStory5(newDraft("story-5"))).toEqual([
+      "petName",
+      "ownerNames",
+      "photo",
+      "favoriteRitual",
+      "favoriteSpots",
+    ]);
+  });
+
+  it("returns an empty array when all six required fields are present", () => {
+    expect(missingRequiredFieldsStory5(minimalCompleteStory5Draft())).toEqual(
+      [],
+    );
+  });
+
+  it("reports only petName when just the pet name is missing", () => {
+    const draft = minimalCompleteStory5Draft();
+    delete draft.pet.name;
+    expect(missingRequiredFieldsStory5(draft)).toEqual(["petName"]);
+  });
+
+  it("reports only ownerNames when just the owner names are missing", () => {
+    const draft = minimalCompleteStory5Draft();
+    delete draft.owner.names;
+    expect(missingRequiredFieldsStory5(draft)).toEqual(["ownerNames"]);
+  });
+
+  it("reports only species when just the species is missing", () => {
+    const draft = minimalCompleteStory5Draft();
+    delete draft.pet.species;
+    expect(missingRequiredFieldsStory5(draft)).toEqual(["species"]);
+  });
+
+  it("reports only photo when just the photo is missing", () => {
+    const draft = minimalCompleteStory5Draft();
+    delete draft.pet.photo;
+    expect(missingRequiredFieldsStory5(draft)).toEqual(["photo"]);
+  });
+
+  it("reports only favoriteRitual when just that field is missing", () => {
+    const draft = minimalCompleteStory5Draft();
+    delete draft.memories.favoriteRitual;
+    expect(missingRequiredFieldsStory5(draft)).toEqual(["favoriteRitual"]);
+  });
+
+  it("reports only favoriteSpots when just that field is missing", () => {
+    const draft = minimalCompleteStory5Draft();
+    delete draft.memories.favoriteSpots;
+    expect(missingRequiredFieldsStory5(draft)).toEqual(["favoriteSpots"]);
+  });
+
+  it("does NOT require quirks (optional-with-fallback — absent is still complete)", () => {
+    // The key divergence from Story 2: quirks has a variant fallback here, so a
+    // blank one must NOT block Generate. A complete draft with no quirks is valid.
+    const draft = minimalCompleteStory5Draft();
+    expect(draft.memories.quirks).toBeUndefined();
+    expect(missingRequiredFieldsStory5(draft)).toEqual([]);
+  });
+
+  it("does NOT require lastGoodDay / whatIKeep (the two new optional fields)", () => {
+    const draft = minimalCompleteStory5Draft();
+    expect(draft.memories.lastGoodDay).toBeUndefined();
+    expect(draft.memories.whatIKeep).toBeUndefined();
+    // Even with them blank, the draft is complete.
+    draft.memories.lastGoodDay = "   ";
+    draft.memories.whatIKeep = "";
+    expect(missingRequiredFieldsStory5(draft)).toEqual([]);
+  });
+
+  it("treats whitespace-only values as missing (present() trims)", () => {
+    const draft = minimalCompleteStory5Draft();
+    draft.pet.name = "   ";
+    draft.owner.names = "\t\n";
+    draft.pet.species = "  " as Story5Draft["pet"]["species"];
+    draft.pet.photo = " ";
+    draft.memories.favoriteRitual = " ";
+    draft.memories.favoriteSpots = "\n";
+    expect(missingRequiredFieldsStory5(draft)).toEqual([
+      "petName",
+      "ownerNames",
+      "species",
+      "photo",
+      "favoriteRitual",
+      "favoriteSpots",
+    ]);
+  });
+
+  it("ignores the optional nickname/date fields (absent is still complete)", () => {
+    const draft = minimalCompleteStory5Draft();
+    expect(draft.memories.nicknames).toBeUndefined();
+    expect(draft.memories.dateAdopted).toBeUndefined();
+    expect(draft.memories.datePassed).toBeUndefined();
+    expect(missingRequiredFieldsStory5(draft)).toEqual([]);
+  });
+
+  it("reports every required field, in display order, when all are missing", () => {
+    const draft: Story5Draft = {
+      id: "empty-story5",
+      createdAt: "2026-06-12T00:00:00.000Z",
+      status: "draft",
+      storyType: "story-5",
+      pet: {},
+      owner: {},
+      memories: {},
+      toggles: {},
+    };
+    expect(missingRequiredFieldsStory5(draft)).toEqual([
+      "petName",
+      "ownerNames",
+      "species",
+      "photo",
+      "favoriteRitual",
+      "favoriteSpots",
+    ]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// draftToSessionStory5 — assembly
+// ---------------------------------------------------------------------------
+
+describe("draftToSessionStory5 — required fields & lifecycle", () => {
+  it("throws when required fields are missing, naming them in order", () => {
+    const draft: Story5Draft = {
+      id: "empty-story5",
+      createdAt: "2026-06-12T00:00:00.000Z",
+      status: "draft",
+      storyType: "story-5",
+      pet: {},
+      owner: {},
+      memories: {},
+      toggles: {},
+    };
+    expect(() => draftToSessionStory5(draft)).toThrow(
+      /missing_required_fields: petName, ownerNames, species, photo, favoriteRitual, favoriteSpots/,
+    );
+  });
+
+  it("throws naming only the single missing field", () => {
+    const draft = minimalCompleteStory5Draft();
+    delete draft.owner.names;
+    expect(() => draftToSessionStory5(draft)).toThrow(
+      /missing_required_fields: ownerNames/,
+    );
+  });
+
+  it("throws when a required free-text letter field is missing", () => {
+    const noRitual = minimalCompleteStory5Draft();
+    delete noRitual.memories.favoriteRitual;
+    expect(() => draftToSessionStory5(noRitual)).toThrow(
+      /missing_required_fields: favoriteRitual/,
+    );
+
+    const noSpots = minimalCompleteStory5Draft();
+    delete noSpots.memories.favoriteSpots;
+    expect(() => draftToSessionStory5(noSpots)).toThrow(
+      /missing_required_fields: favoriteSpots/,
+    );
+  });
+
+  it("does NOT throw when quirks / lastGoodDay / whatIKeep are absent (optional-with-fallback)", () => {
+    const draft = minimalCompleteStory5Draft();
+    expect(draft.memories.quirks).toBeUndefined();
+    expect(() => draftToSessionStory5(draft)).not.toThrow();
+  });
+
+  it("preserves id/createdAt, sets status 'generating' and storyType 'story-5'", () => {
+    const draft = fullStory5Draft();
+    const session = draftToSessionStory5(draft);
+    expect(session.id).toBe(draft.id);
+    expect(session.createdAt).toBe(draft.createdAt);
+    expect(session.status).toBe("generating");
+    expect(session.storyType).toBe("story-5");
+  });
+
+  it("starts the images manifest empty", () => {
+    expect(draftToSessionStory5(fullStory5Draft()).images).toEqual([]);
+  });
+});
+
+describe("draftToSessionStory5 — required fields carried through (trimmed)", () => {
+  it("carries pet name, photo, owner names and species verbatim", () => {
+    const session = draftToSessionStory5(fullStory5Draft());
+    expect(session.pet.name).toBe("Murphy");
+    expect(session.pet.photo).toBe("uploads/sess/murphy.jpg");
+    expect(session.pet.species).toBe("cat");
+    expect(session.owner.names).toBe("Sarah and David");
+  });
+
+  it("trims surrounding whitespace from names, ritual and spots", () => {
+    const draft = minimalCompleteStory5Draft();
+    draft.pet.name = "  Murphy  ";
+    draft.owner.names = "\tSarah\n";
+    draft.memories.favoriteRitual = " the morning walk ";
+    draft.memories.favoriteSpots = "\tthe back door\n";
+    const session = draftToSessionStory5(draft);
+    expect(session.pet.name).toBe("Murphy");
+    expect(session.owner.names).toBe("Sarah");
+    expect(session.memories.favoriteRitual).toBe("the morning walk");
+    expect(session.memories.favoriteSpots).toBe("the back door");
+  });
+
+  it("carries the photo reference without trimming it", () => {
+    const draft = minimalCompleteStory5Draft();
+    draft.pet.photo = "uploads/sess/murphy.jpg";
+    expect(draftToSessionStory5(draft).pet.photo).toBe(
+      "uploads/sess/murphy.jpg",
+    );
+  });
+
+  it("carries explicitly chosen optional enum/toggle fields through", () => {
+    const session = draftToSessionStory5(fullStory5Draft());
+    expect(session.pet.pronoun).toBe("she");
+    expect(session.pet.illustrationStyle).toBe("pencil");
+    expect(session.owner.relationship).toBe("couple");
+    expect(session.toggles.deathType).toBe("euthanasia");
+    expect(session.toggles.beliefFrame).toBe("heaven");
+  });
+});
+
+describe("draftToSessionStory5 — quirks (optional-with-fallback) handling", () => {
+  it("trims and carries quirks when provided", () => {
+    const draft = minimalCompleteStory5Draft();
+    draft.memories.quirks = "  the head tilt  ";
+    expect(draftToSessionStory5(draft).memories.quirks).toBe("the head tilt");
+  });
+
+  it("stores a BLANK quirks as the empty string (so the variant fallback fires)", () => {
+    // Unlike the optional nickname/date fields (which are DROPPED when blank),
+    // quirks is always present as a string — the variant layer reads "" and swaps
+    // in its stock Page-3 line. Assert the ACTUAL behavior: the key is present, "".
+    const absent = minimalCompleteStory5Draft();
+    expect("quirks" in draftToSessionStory5(absent).memories).toBe(true);
+    expect(draftToSessionStory5(absent).memories.quirks).toBe("");
+
+    const blank = minimalCompleteStory5Draft();
+    blank.memories.quirks = "   ";
+    expect(draftToSessionStory5(blank).memories.quirks).toBe("");
+  });
+});
+
+describe("draftToSessionStory5 — skipped optionals get defaults", () => {
+  it("fills skipped pet enums and toggles with their documented Story-5 defaults", () => {
+    // A minimal complete draft leaves pronoun, relationship and deathType skipped;
+    // also strip illustrationStyle / beliefFrame (which newDraft("story-5")
+    // pre-seeds) to observe the assembler's own ?? defaults.
+    const draft = minimalCompleteStory5Draft();
+    delete draft.pet.illustrationStyle;
+    delete draft.toggles.beliefFrame;
+
+    const session = draftToSessionStory5(draft);
+
+    expect(session.pet.species).toBe("dog");
+    expect(session.pet.pronoun).toBe("he");
+    expect(session.pet.illustrationStyle).toBe("watercolor");
+    expect(session.owner.relationship).toBe("single");
+    expect(session.toggles.deathType).toBe("peaceful");
+    expect(session.toggles.beliefFrame).toBe("rainbow-bridge");
+  });
+
+  it("does NOT carry giftFor / newPet / livingOrMemorial toggles (Story 5 has none)", () => {
+    const session = draftToSessionStory5(fullStory5Draft());
+    expect("giftFor" in session.toggles).toBe(false);
+    expect("newPet" in session.toggles).toBe(false);
+    expect("livingOrMemorial" in session.toggles).toBe(false);
+  });
+
+  it("fills breedColor with an empty string when the optional description is skipped", () => {
+    // breedColor is NOT required for Story 5 (the Premium cover uses the photo), so
+    // a skipped one assembles to "" rather than throwing.
+    const draft = minimalCompleteStory5Draft();
+    expect(draft.pet.breedColor).toBeUndefined();
+    expect(draftToSessionStory5(draft).pet.breedColor).toBe("");
+  });
+
+  it("trims breedColor when it is provided", () => {
+    const draft = minimalCompleteStory5Draft();
+    draft.pet.breedColor = "  scruffy mutt  ";
+    expect(draftToSessionStory5(draft).pet.breedColor).toBe("scruffy mutt");
+  });
+});
+
+describe("draftToSessionStory5 — optional fields dropped when blank", () => {
+  it("carries trimmed lastGoodDay / whatIKeep / nickname / date fields when provided", () => {
+    const draft = minimalCompleteStory5Draft();
+    draft.memories.lastGoodDay = "  the last good Saturday  ";
+    draft.memories.whatIKeep = " the collar on the hook ";
+    draft.memories.nicknames = "  Murph  ";
+    draft.memories.dateAdopted = " March 2014 ";
+    draft.memories.datePassed = "\tOctober 2025\n";
+    const session = draftToSessionStory5(draft);
+    expect(session.memories.lastGoodDay).toBe("the last good Saturday");
+    expect(session.memories.whatIKeep).toBe("the collar on the hook");
+    expect(session.memories.nicknames).toBe("Murph");
+    expect(session.memories.dateAdopted).toBe("March 2014");
+    expect(session.memories.datePassed).toBe("October 2025");
+  });
+
+  it("omits the keys entirely when the optional fields are absent", () => {
+    const session = draftToSessionStory5(minimalCompleteStory5Draft());
+    expect("lastGoodDay" in session.memories).toBe(false);
+    expect("whatIKeep" in session.memories).toBe(false);
+    expect("nicknames" in session.memories).toBe(false);
+    expect("dateAdopted" in session.memories).toBe(false);
+    expect("datePassed" in session.memories).toBe(false);
+  });
+
+  it("omits the keys when the optional fields are empty or whitespace-only (never '')", () => {
+    const draft = minimalCompleteStory5Draft();
+    draft.memories.lastGoodDay = "";
+    draft.memories.whatIKeep = "   ";
+    draft.memories.nicknames = "\t";
+    draft.memories.dateAdopted = "  ";
+    draft.memories.datePassed = "\n";
+    const session = draftToSessionStory5(draft);
+    expect("lastGoodDay" in session.memories).toBe(false);
+    expect("whatIKeep" in session.memories).toBe(false);
+    expect("nicknames" in session.memories).toBe(false);
+    expect("dateAdopted" in session.memories).toBe(false);
+    expect("datePassed" in session.memories).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story-5 round-trip — a complete draft resolves with no MergeError
+// ---------------------------------------------------------------------------
+//
+// The headline correctness check for the bridge: a session assembled from a
+// complete Story-5 draft must resolve through the merge layer cleanly.
+// resolveStory5 throws a MergeError if any live merge placeholder is empty, so a
+// clean resolve proves the assembler filled every required free-text field and
+// every enum/toggle default the merge text references — AND that a blank quirks
+// (stored as "") triggers the variant fallback rather than surviving as a token.
+
+describe("draftToSessionStory5 — round-trip through resolveStory5", () => {
+  it("a minimal complete draft (no quirks/optionals) assembles into a session that resolves (no surviving placeholders)", () => {
+    const session = draftToSessionStory5(minimalCompleteStory5Draft());
+    // quirks is "" here — the variant fallback must fill Page 3, not leak a token.
+    expect(session.memories.quirks).toBe("");
+    const story = resolveStory5(session);
+    expect(story.length).toBeGreaterThan(0);
+    for (const page of story) {
+      for (const line of page.body) {
+        expect(line).not.toMatch(/[{[][A-Z_]+[}\]]/);
+      }
+    }
+  });
+
+  it("a fully-populated draft assembles into a session that resolves (no MergeError)", () => {
+    const session = draftToSessionStory5(fullStory5Draft());
+    expect(() => resolveStory5(session)).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story-type dispatchers — Story 5
+// ---------------------------------------------------------------------------
+
+describe("isStory5Draft", () => {
+  it("is true for a Story-5 draft", () => {
+    expect(isStory5Draft(newDraft("story-5"))).toBe(true);
+  });
+
+  it("is false for a Story-1, Story-2 and Story-4 draft", () => {
+    expect(isStory5Draft(newDraft())).toBe(false);
+    expect(isStory5Draft(newDraft("story-2"))).toBe(false);
+    expect(isStory5Draft(newDraft("story-4"))).toBe(false);
+  });
+});
+
+describe("isStory1Draft — narrows away from a Story-5 draft too", () => {
+  it("is false for a Story-5 draft (a letter draft narrows to neither)", () => {
+    expect(isStory1Draft(newDraft("story-5"))).toBe(false);
+  });
+});
+
+describe("missingRequiredFieldsForDraft — routes a Story-5 draft", () => {
+  it("routes a Story-5 draft to the Story-5 gate (reports favoriteRitual, not quirks)", () => {
+    // quirks is required for Story 2/4 but NOT for Story 5 — a draft missing only
+    // quirks must be complete (empty array), proving the dispatch hit Story 5.
+    const draft = minimalCompleteStory5Draft();
+    expect(missingRequiredFieldsForDraft(draft)).toEqual([]);
+    delete draft.memories.favoriteRitual;
+    expect(missingRequiredFieldsForDraft(draft)).toEqual(["favoriteRitual"]);
+  });
+
+  it("no longer throws 'not wired yet' for a Story-5 draft (PR 24 wired it)", () => {
+    expect(() =>
+      missingRequiredFieldsForDraft(minimalCompleteStory5Draft()),
+    ).not.toThrow();
+    expect(missingRequiredFieldsForDraft(minimalCompleteStory5Draft())).toEqual(
+      [],
+    );
+  });
+});
+
+describe("draftToSessionForDraft — routes a Story-5 draft", () => {
+  it("routes a Story-5 draft to draftToSessionStory5 (storyType 'story-5')", () => {
+    const session = draftToSessionForDraft(fullStory5Draft());
+    expect(session.storyType).toBe("story-5");
+    expect("owner" in session).toBe(true);
+    expect("child" in session).toBe(false);
+  });
+
+  it("no longer throws 'not wired yet' for a Story-5 draft (PR 24 wired it)", () => {
+    const draft = minimalCompleteStory5Draft();
+    expect(() => draftToSessionForDraft(draft)).not.toThrow();
+    const session = draftToSessionForDraft(draft);
+    expect(session.storyType).toBe("story-5");
+    // The simplest letter toggles: deathType + beliefFrame, no living/memorial.
+    expect("livingOrMemorial" in (session as { toggles: object }).toggles).toBe(
+      false,
+    );
   });
 });
