@@ -17,6 +17,7 @@ import type {
   Story2Draft,
   Story2Session,
   Story4Draft,
+  Story4Session,
   WizardDraft,
   AgeBracket,
   DeathType,
@@ -30,6 +31,7 @@ import type {
   LetterBeliefFrame,
   GiftFor,
   NewPet,
+  LivingOrMemorial,
 } from "@/lib/session/types";
 
 /** A required field the wizard gates Generate on. */
@@ -259,6 +261,134 @@ export function draftToSessionStory2(draft: Story2Draft): Story2Session {
 }
 
 // ===========================================================================
+// Story 4 — "If [PET_NAME] Could Talk" draft → session bridge
+// ===========================================================================
+//
+// Story 4 is the celebration twin of Story 2 (a living pet's present-tense
+// letter, with a memorial past-tense toggle). It REUSES Story 2's `Owner` group
+// and shares Story 2's letter memories PLUS Story 1's `favoriteActivity` (the
+// Page-4 "daily joy" beat). EIGHT fields are required: pet name, owner names,
+// species, photo (the Premium cover uses it), plus the four personal free-text
+// fields the letter merges as live placeholders — quirks, favoriteRitual,
+// favoriteSpots, favoriteActivity. A blank in any of those resolves to an empty
+// merge value, which `lib/story/story4/merge.ts` treats as a missing field and
+// rejects with a MergeError; requiring them here keeps every written letter
+// renderable. The optional nicknames/dateAdopted/datePassed stay optional —
+// merge drops a blank one rather than printing an empty line — and the
+// toggle/enum fields have non-empty defaults that never break merge.
+//
+// Toggles differ from Story 2: Story 4 has the headline `livingOrMemorial`
+// switch and no `newPet`. The death-type/belief-frame answers are dormant in the
+// default living path and consulted only when `livingOrMemorial === "memorial"`,
+// but they always carry a default so merge never sees an empty enum.
+
+/** A required field the Story-4 wizard gates Generate on. */
+export type Story4RequiredField =
+  | "petName"
+  | "ownerNames"
+  | "species"
+  | "photo"
+  | "quirks"
+  | "favoriteRitual"
+  | "favoriteSpots"
+  | "favoriteActivity";
+
+/** Story-4 defaults the master template assumes when the user skips them. */
+const DEFAULT_LIVING_OR_MEMORIAL: LivingOrMemorial = "living";
+
+/**
+ * The required Story-4 fields still missing from a draft, in display order. Empty
+ * array means the draft can be finalized. Required = pet name, owner names,
+ * species, photo, and the four personal free-text fields (quirks, favoriteRitual,
+ * favoriteSpots, favoriteActivity) the letter merges as live placeholders.
+ */
+export function missingRequiredFieldsStory4(
+  draft: Story4Draft,
+): Story4RequiredField[] {
+  const missing: Story4RequiredField[] = [];
+  if (!present(draft.pet.name)) {
+    missing.push("petName");
+  }
+  if (!present(draft.owner.names)) {
+    missing.push("ownerNames");
+  }
+  if (!present(draft.pet.species)) {
+    missing.push("species");
+  }
+  if (!present(draft.pet.photo)) {
+    missing.push("photo");
+  }
+  if (!present(draft.memories.quirks)) {
+    missing.push("quirks");
+  }
+  if (!present(draft.memories.favoriteRitual)) {
+    missing.push("favoriteRitual");
+  }
+  if (!present(draft.memories.favoriteSpots)) {
+    missing.push("favoriteSpots");
+  }
+  if (!present(draft.memories.favoriteActivity)) {
+    missing.push("favoriteActivity");
+  }
+  return missing;
+}
+
+/**
+ * Assemble a finalized `Story4Session` from a complete Story-4 draft, filling any
+ * skipped optional fields with the master-template defaults. Throws if a required
+ * field (pet name, owner names, species, photo, quirks, favoriteRitual,
+ * favoriteSpots, favoriteActivity) is missing — callers should gate on
+ * `missingRequiredFieldsStory4` first. Free-text fields are trimmed; the optional
+ * nickname/date fields are dropped rather than stored as "" so merge never prints
+ * an empty line.
+ */
+export function draftToSessionStory4(draft: Story4Draft): Story4Session {
+  const missing = missingRequiredFieldsStory4(draft);
+  if (missing.length > 0) {
+    throw new Error(`missing_required_fields: ${missing.join(", ")}`);
+  }
+
+  const { nicknames, dateAdopted, datePassed } = draft.memories;
+
+  return {
+    id: draft.id,
+    createdAt: draft.createdAt,
+    status: "generating",
+    storyType: "story-4",
+    pet: {
+      name: draft.pet.name!.trim(),
+      species: draft.pet.species ?? DEFAULT_SPECIES,
+      breedColor: draft.pet.breedColor?.trim() ?? "",
+      pronoun: draft.pet.pronoun ?? DEFAULT_PRONOUN,
+      illustrationStyle:
+        draft.pet.illustrationStyle ?? DEFAULT_ILLUSTRATION_STYLE,
+      photo: draft.pet.photo!,
+    },
+    owner: {
+      names: draft.owner.names!.trim(),
+      relationship: draft.owner.relationship ?? DEFAULT_RELATIONSHIP,
+    },
+    memories: {
+      quirks: draft.memories.quirks!.trim(),
+      favoriteRitual: draft.memories.favoriteRitual!.trim(),
+      favoriteSpots: draft.memories.favoriteSpots!.trim(),
+      favoriteActivity: draft.memories.favoriteActivity!.trim(),
+      ...(present(nicknames) ? { nicknames: nicknames.trim() } : {}),
+      ...(present(dateAdopted) ? { dateAdopted: dateAdopted.trim() } : {}),
+      ...(present(datePassed) ? { datePassed: datePassed.trim() } : {}),
+    },
+    toggles: {
+      livingOrMemorial:
+        draft.toggles.livingOrMemorial ?? DEFAULT_LIVING_OR_MEMORIAL,
+      giftFor: draft.toggles.giftFor ?? DEFAULT_GIFT_FOR,
+      deathType: draft.toggles.deathType ?? DEFAULT_LETTER_DEATH_TYPE,
+      beliefFrame: draft.toggles.beliefFrame ?? DEFAULT_LETTER_BELIEF_FRAME,
+    },
+    images: [],
+  };
+}
+
+// ===========================================================================
 // Story-type dispatchers — branch on the draft's storyType
 // ===========================================================================
 //
@@ -271,11 +401,7 @@ export function isStory2Draft(draft: WizardDraft): draft is Story2Draft {
   return draft.storyType === "story-2";
 }
 
-/**
- * True if the draft is a Story-4 draft (narrows the union for callers). Story 4's
- * wizard/order assembly is owned by a later PR (PR 22); until then no UI ever
- * creates a Story-4 draft, so the dispatchers below treat one as not-yet-wired.
- */
+/** True if the draft is a Story-4 draft (narrows the union for callers). */
 export function isStory4Draft(draft: WizardDraft): draft is Story4Draft {
   return draft.storyType === "story-4";
 }
@@ -287,33 +413,29 @@ export function isStory1Draft(draft: WizardDraft): draft is StoryDraft {
 
 /**
  * The required fields still missing from a draft of a wired product, as string
- * codes (the union of `RequiredField` | `Story2RequiredField`). The Generate step
- * uses this to gate and to drive the "go fix it" links per product. Story 4's
- * wizard is not wired yet (PR 22); a Story-4 draft is unreachable here.
+ * codes (the union of `RequiredField` | `Story2RequiredField` |
+ * `Story4RequiredField`). The Generate step + the public order form use this to
+ * gate and to drive the "go fix it" links per product.
  */
 export function missingRequiredFieldsForDraft(
   draft: WizardDraft,
-): (RequiredField | Story2RequiredField)[] {
+): (RequiredField | Story2RequiredField | Story4RequiredField)[] {
   if (isStory2Draft(draft)) return missingRequiredFieldsStory2(draft);
-  if (isStory4Draft(draft)) {
-    throw new Error("Story 4 draft assembly is not wired yet (PR 22)");
-  }
+  if (isStory4Draft(draft)) return missingRequiredFieldsStory4(draft);
   return missingRequiredFields(draft);
 }
 
 /**
  * Assemble the finalized session for a draft of a wired product. Throws if a
  * required field is missing — callers gate on `missingRequiredFieldsForDraft`
- * first. Returns the `StorySession | Story2Session` union; the POST body the
- * /api/session route validates carries `storyType` so the server re-branches.
- * Story 4's draft→session assembly is not wired yet (PR 22).
+ * first. Returns the `StorySession | Story2Session | Story4Session` union; the
+ * POST body the /api/session + /api/order routes validate carries `storyType` so
+ * the server re-branches.
  */
 export function draftToSessionForDraft(
   draft: WizardDraft,
-): StorySession | Story2Session {
+): StorySession | Story2Session | Story4Session {
   if (isStory2Draft(draft)) return draftToSessionStory2(draft);
-  if (isStory4Draft(draft)) {
-    throw new Error("Story 4 draft assembly is not wired yet (PR 22)");
-  }
+  if (isStory4Draft(draft)) return draftToSessionStory4(draft);
   return draftToSession(draft);
 }

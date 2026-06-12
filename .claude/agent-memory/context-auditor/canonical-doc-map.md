@@ -32,3 +32,18 @@ Settled supersession (do NOT re-flag as drift): public server-side API routes le
 hold the **service-role** Supabase key (PR-05) and **Lemon Squeezy secrets** (PR-06) — the
 invariant is *no client bundle* + *engine-free*, NOT *operator-only*. The roadmap diagram's
 "NO OpenAI key, NO engine" on the Vercel box is correct (it bans the engine, not all keys).
+
+Catalog-title convention (do NOT flag): the storefront `title` in `lib/catalog/products.ts`
+intentionally **drops the `[PET_NAME]` merge field** from the master template's title — Story 1
+master "Saying Goodbye to [PET_NAME]" → catalog "Saying Goodbye"; Story 2 "A Letter from
+[PET_NAME]" → "A Letter from Your Pet"; Story 4 "If [PET_NAME] Could Talk" → "If Your Pet Could
+Talk". A generic storefront title is the established pattern, not drift.
+
+Roadmap-header scope-framing lag (recurring): `commerce-roadmap.md`'s header line
+"**Pet-memorial focused; catalog grows by authoring more book titles**" (line ~7) lagged the
+catalog broadening. Story 4 ("If [PET_NAME] Could Talk", PR-22) is by deliberate master-template
+decision a **living/celebration** product (default = living pet; birthday/gotcha-day gift), with
+memorial only a secondary toggle. The newest decision doc for Story 4 is its master template
+(ranked #1 candidate, celebration-default). The Phase-5 *body* ("each new title = a new registry
+entry") stays correct; only the header's "Pet-memorial focused" framing understates the line.
+Flag as staleness when a non-memorial product lands; recommend updating the roadmap header.

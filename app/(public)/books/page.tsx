@@ -37,12 +37,13 @@ export default function BooksPage() {
         <section className={`${styles.intro} fade-in fade-in-1`}>
           <span className="label label--gold">Made by hand</span>
           <h1 className={`display-lg ${styles.introTitle}`}>
-            Two keepsakes, for <em>two kinds</em> of goodbye.
+            A keepsake for <em>every kind</em> of love.
           </h1>
           <p className="lede">
-            Each book is illustrated from a photo of your own pet and written
+            Each keepsake is illustrated from a photo of your own pet and written
             with care. Choose the one that fits — a story to read with your
-            child, or a letter in your pet&apos;s own voice.
+            child, a goodbye letter in your pet&apos;s own voice, or a joyful
+            letter for the one still curled up beside you.
           </p>
         </section>
 

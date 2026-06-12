@@ -80,9 +80,13 @@ export interface Product {
 // - Story 2 (the letter) lists Basic $19 / Premium $29 in its master template. The
 //   live product generates Premium imagery (cover portrait + belief wash), so the
 //   Premium price (2900, $29) is used as the placeholder.
+// - Story 4 ("If [PET_NAME] Could Talk") lists $27-29 PDF in its master template,
+//   with $29 the explicit recommendation (matching Story 2, undercutting the
+//   printed incumbents) — 2900 ($29) is the placeholder.
 
 const PLACEHOLDER_STORY_1_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_2_PRICE_USD = 2900;
+const PLACEHOLDER_STORY_4_PRICE_USD = 2900;
 
 // ---------------------------------------------------------------------------
 // The catalog
@@ -152,6 +156,25 @@ function buildCatalog(): Product[] {
       sampleImages: [
         "/samples/story-2-letter/letter-cover.jpg",
         "/samples/story-2-letter/letter-page-5.jpg",
+      ],
+    }),
+    buildProduct("story-4-talk", "story-4", {
+      title: "If Your Pet Could Talk",
+      tagline: "A joyful letter, in their voice — for a good day.",
+      description:
+        "A 6-page personalized letter written in your pet's own voice — warm, " +
+        "funny, and true — addressed to you by name. The things they'd say if " +
+        "they had the words for one afternoon: what they love about you, the " +
+        "ordinary days they live for, and how they really feel when you walk " +
+        "back through the door. Illustrated with a watercolor portrait of your " +
+        "actual pet, painted from a photo you upload — not a generic breed " +
+        "picture. A gift for a birthday, a gotcha day, or no reason at all. Has " +
+        "your pet died? There's a quiet option at checkout to have the letter " +
+        "written in the past tense, as a keepsake of them.",
+      priceUsd: PLACEHOLDER_STORY_4_PRICE_USD,
+      sampleImages: [
+        "/samples/story-4-talk/talk-cover.jpg",
+        "/samples/story-4-talk/talk-page-4.jpg",
       ],
     }),
   ];
