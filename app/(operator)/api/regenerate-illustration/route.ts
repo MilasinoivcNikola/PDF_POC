@@ -34,6 +34,7 @@ import type { GeneratedImage, StorySession } from "@/lib/session/types";
 const SCENE_SLOTS: readonly PageId[] = [
   ...getStory("story-1").illustrationSlots,
   ...getStory("story-2").illustrationSlots,
+  ...getStory("story-4").illustrationSlots,
 ];
 
 /** Read `{ id, page }` from the request body, with the page narrowed to a scene. */

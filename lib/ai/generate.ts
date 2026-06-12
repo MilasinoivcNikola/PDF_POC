@@ -27,14 +27,19 @@ import type {
   IllustrationStyle,
   StorySession,
   Story2Session,
+  Story4Session,
 } from "@/lib/session/types";
-import type { PageId, Story2PageId } from "@/lib/story/master-text";
+import type { PageId, Story2PageId, Story4PageId } from "@/lib/story/master-text";
 import { getOpenAI, photoToFile } from "@/lib/ai/client";
 import { buildScenePrompts, SCENE_PAGE_IDS } from "@/lib/ai/prompts";
 import {
   buildStory2SlotPrompts,
   type Story2SlotPrompt,
 } from "@/lib/ai/story2-prompts";
+import {
+  buildStory4SlotPrompts,
+  type Story4SlotPrompt,
+} from "@/lib/ai/story4-prompts";
 import { getStory } from "@/lib/story/registry";
 import {
   findCachedImage,
@@ -390,9 +395,14 @@ export async function generateAllIllustrations(
   // Dispatch on the product. The slot list is the registry's (per storyType), not
   // a hardcoded Story-1 constant — the seam that lets a second product define its
   // own illustration plan. Story 1 keeps its existing reference-then-scenes flow
-  // below, unchanged; Story 2 (feature 17) has its own minimal two-slot flow.
-  if ((session.storyType ?? "story-1") === "story-2") {
+  // below, unchanged; Story 2 (feature 17) and Story 4 (feature 21) each have their
+  // own minimal two-slot flow.
+  const storyType = session.storyType ?? "story-1";
+  if (storyType === "story-2") {
     return generateStory2Illustrations(session as unknown as Story2Session, options);
+  }
+  if (storyType === "story-4") {
+    return generateStory4Illustrations(session as unknown as Story4Session, options);
   }
 
   const approach = options.approach ?? "A";
@@ -569,6 +579,82 @@ async function generateStory2Illustrations(
   });
 }
 
+// ---------------------------------------------------------------------------
+// Story 4 — minimal Premium imagery (cover portrait + daily-joy scene)
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate (or reuse from cache) one Story-4 slot, save it, and return its manifest
+ * entry. The clone of `generateAndSaveStory2Slot`, with ONE deliberate divergence:
+ * BOTH Story-4 slots are reference-anchored (the pet appears in the cover portrait
+ * AND the daily-joy scene — the PM call), so both pass the uploaded photo as a
+ * reference and route through `generateSceneIllustration` (`images.edit`) — never
+ * the photo-free `generateImageFromPrompt` Story 2's belief wash used. Same cache
+ * contract as the Story-1/2 paths: same page + prompt hash + reference hash + file
+ * on disk ⇒ a pure lookup, zero spend.
+ */
+async function generateAndSaveStory4Slot(
+  session: Story4Session,
+  slot: Story4PageId,
+  slotPrompt: Story4SlotPrompt,
+  photoBytes: Buffer,
+  quality: Quality,
+): Promise<GeneratedImage> {
+  const references = slotPrompt.useReference ? [photoBytes] : [];
+  const promptHash = hashPrompt(slotPrompt.prompt);
+  const referenceHash = hashReferenceSet(references);
+
+  const cached = await findCachedImage(session.images, slot, promptHash, referenceHash);
+  if (cached) {
+    return cached;
+  }
+
+  const bytes = await generateSceneIllustration(references, slotPrompt.prompt, quality);
+  const path = await saveImage(session.id, `${slot}.png`, bytes);
+  return { page: slot, path, promptHash, referenceHash };
+}
+
+/**
+ * Generate Story 4's Premium imagery: the cover portrait + the Page-4 daily-joy
+ * scene (two images, not thirteen). The slot list comes from the registry
+ * (`getStory("story-4").illustrationSlots`), so adding/removing a Story-4 slot is a
+ * registry change, not an orchestrator change. Each slot's prompt + reference flag
+ * come from `buildStory4SlotPrompts` — and unlike Story 2, BOTH slots reference the
+ * photo. The two slots are independent ⇒ generated through the bounded worker pool
+ * (the same rate-limit guard the Story-1/2 paths use), and every write goes through
+ * the traversal guards.
+ *
+ * Like Story 2, there is no separate "reference" anchor slot — `talk-cover` IS the
+ * portrait — so the returned manifest is exactly the registry's slots.
+ */
+async function generateStory4Illustrations(
+  session: Story4Session,
+  options: GenerateOptions,
+): Promise<GeneratedImage[]> {
+  const quality = options.sceneQuality ?? "low";
+
+  if (!isSafeSessionId(session.id)) {
+    throw new Error(`Unsafe session id: ${session.id}`);
+  }
+
+  const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+  if (!photoPath) {
+    throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+  }
+  const photoBytes = await readImage(photoPath);
+
+  const slots = getStory("story-4").illustrationSlots as readonly Story4PageId[];
+  const prompts = buildStory4SlotPrompts(session);
+
+  return mapWithConcurrency(slots, DEFAULT_CONCURRENCY, async (slot) => {
+    const slotPrompt = prompts[slot];
+    if (!slotPrompt) {
+      throw new Error(`No Story-4 prompt builder for slot: ${slot}`);
+    }
+    return generateAndSaveStory4Slot(session, slot, slotPrompt, photoBytes, quality);
+  });
+}
+
 /**
  * Regenerate a SINGLE page's illustration, re-using the reference illustration
  * already on disk (no second reference generation). Feeds feature 10's
@@ -590,7 +676,7 @@ export async function regenerateSceneIllustration(
 
   // The illustrated-slot allowlist is the session's product (the registry), not a
   // hardcoded Story-1 constant. For Story 1 this set is identical to SCENE_PAGE_IDS,
-  // so the behavior is unchanged; Story 2 gates on its own two slots.
+  // so the behavior is unchanged; Story 2 / Story 4 gate on their own two slots.
   const storyType = session.storyType ?? "story-1";
   const slots = getStory(storyType).illustrationSlots;
   if (!slots.includes(page)) {
@@ -603,6 +689,14 @@ export async function regenerateSceneIllustration(
     return regenerateStory2Slot(
       session as unknown as Story2Session,
       page as Story2PageId,
+      sceneQuality,
+    );
+  }
+
+  if (storyType === "story-4") {
+    return regenerateStory4Slot(
+      session as unknown as Story4Session,
+      page as Story4PageId,
       sceneQuality,
     );
   }
@@ -665,6 +759,36 @@ async function regenerateStory2Slot(
   return { page: slot, path, promptHash, referenceHash };
 }
 
+/**
+ * Regenerate a SINGLE Story-4 slot (the cover portrait or the daily-joy scene),
+ * bypassing the cache (an explicit fresh render). Both Story-4 slots are
+ * reference-anchored, so the photo is always passed and the call always routes
+ * through `generateSceneIllustration` (no photo-free path). Saves over the old PNG
+ * and returns the updated manifest entry for the caller to splice.
+ */
+async function regenerateStory4Slot(
+  session: Story4Session,
+  slot: Story4PageId,
+  quality: Quality,
+): Promise<GeneratedImage> {
+  const slotPrompt = buildStory4SlotPrompts(session)[slot];
+  if (!slotPrompt) {
+    throw new Error(`No Story-4 prompt builder for slot: ${slot}`);
+  }
+
+  const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+  if (!photoPath) {
+    throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+  }
+  const references = [await readImage(photoPath)];
+
+  const promptHash = hashPrompt(slotPrompt.prompt);
+  const referenceHash = hashReferenceSet(references);
+  const bytes = await generateSceneIllustration(references, slotPrompt.prompt, quality);
+  const path = await saveImage(session.id, `${slot}.png`, bytes);
+  return { page: slot, path, promptHash, referenceHash };
+}
+
 // ---------------------------------------------------------------------------
 // Manifest → renderer input
 // ---------------------------------------------------------------------------
@@ -676,9 +800,10 @@ async function regenerateStory2Slot(
  * assets). Only ILLUSTRATED slots map through — the set is the union of every
  * product's `illustrationSlots` (the registry), so the Story-1 anchor "reference"
  * and the writing-only "back-cover" are both excluded (neither is an illustration
- * slot), while Story-2's `letter-cover`/`letter-page-5` pass through. Reads each
- * saved PNG back from disk; missing files are skipped so the template falls back
- * to its placeholder art for that page.
+ * slot), while Story-2's `letter-cover`/`letter-page-5` and Story-4's
+ * `talk-cover`/`talk-page-4` pass through. Reads each saved PNG back from disk;
+ * missing files are skipped so the template falls back to its placeholder art for
+ * that page.
  */
 export async function manifestToImageMap(
   manifest: readonly GeneratedImage[],
@@ -687,6 +812,7 @@ export async function manifestToImageMap(
   const illustratedSlots = new Set<string>([
     ...getStory("story-1").illustrationSlots,
     ...getStory("story-2").illustrationSlots,
+    ...getStory("story-4").illustrationSlots,
   ]);
   await Promise.all(
     manifest

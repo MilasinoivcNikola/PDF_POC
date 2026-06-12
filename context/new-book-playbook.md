@@ -110,6 +110,12 @@ The registry is the single seam that makes the app multi-product. Two edits:
      Story 2 declares `LETTER_SCENE_PAGE_IDS` in `lib/story/story-2.ts`. A text-only book can
      have an empty list. **This is the single source for the catalog's `illustrationCount`**
      (Step 4) and gates the AI orchestration + per-page regenerate paths.
+     - **Per-slot imagery shape (a real choice each book makes):** each slot is either
+       **figure-free** (a prompt-only wash via `generateImageFromPrompt` / `images.generate`,
+       no pet reference — Story 2's belief wash) or **reference-anchored** (the pet appears,
+       photo passed via `generateSceneIllustration` / `images.edit` — Story 4's `talk-page-4`).
+       Pick per the template's illustration brief; reference-anchored makes likeness drift more
+       visible on a full-width slot, so QA it explicitly.
    - **`pdfFilename(session): string`** — build it with a helper in **`lib/pdf/filename.ts`**
      (pure string module, kept out of `lib/pdf/render.ts` so the registry stays
      puppeteer-free — see Step 4's client-safe note). Add a `<book>PdfFilename(petName)`

@@ -8,3 +8,4 @@ _Index of saved memories (one line each: `- [Title](file.md) — hook`)._
 - [Deferred decisions blocking PRs](deferred-decisions-blocking-prs.md) — refund/remake, AI-honesty, pricing keyed to a blocking PR; check whether the named PR actually settled it (PR-09: still placeholder)
 - [New-book playbook (PR-10)](new-book-playbook-pr10.md) — context/new-book-playbook.md is the canonical add-a-book recipe; the citations to re-verify on a future new-book branch
 - [Letter-layout reuse touches the shared renderer](letter-layout-reuse-renderer-touch.md) — a `letter`-reuse book legitimately edits pages-story2.tsx (sign-off sentinel); "no shared renderer touched" wording goes stale
+- [Masterstory slot-id / art-shape lag](masterstory-slot-id-lag.md) — a book's template guesses slot ids (`letter-*`) + offers "figureless"; the registry (`talk-*`) + spec (reference-anchored) win — bites on the imagery PR
