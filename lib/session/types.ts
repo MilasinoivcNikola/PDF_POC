@@ -38,16 +38,18 @@ export type SessionStatus = "draft" | "generating" | "ready";
  * Which product a session is for. Story 1 is the children's storybook ("Saying
  * Goodbye to [PET_NAME]"); "story-2" is the adult grief letter (feature 15);
  * "story-4" is the celebration twin ("If [PET_NAME] Could Talk" — a living pet's
- * present-tense letter, with a memorial past-tense toggle; feature 20). The
- * registry (lib/story/registry.ts) maps each value to its resolver, illustration
- * plan, and PDF-filename builder.
+ * present-tense letter, with a memorial past-tense toggle; feature 20); "story-5"
+ * is the inverse of Story 2 ("A Letter to [PET_NAME]" — the owner's second-person
+ * voice writing TO the pet who died; feature 23). The registry
+ * (lib/story/registry.ts) maps each value to its resolver, illustration plan, and
+ * PDF-filename builder.
  *
  * Back-compat: drafts/sessions written before this field existed have no
  * `storyType`, so every reader treats a missing value as Story 1 via
  * `session.storyType ?? "story-1"`. That is what makes the field zero-migration
  * for on-disk `./sessions/*.json`.
  */
-export type StoryType = "story-1" | "story-2" | "story-4";
+export type StoryType = "story-1" | "story-2" | "story-4" | "story-5";
 
 // ---------------------------------------------------------------------------
 // Input groups (collected by the wizard)
@@ -378,6 +380,94 @@ export interface Story4Session {
 }
 
 // ===========================================================================
+// Story 5 — "A Letter to [PET_NAME]" (the inverse/companion of Story 2)
+// ===========================================================================
+//
+// The fifth product (feature 23). The mirror of Story 2: the OWNER's
+// second-person voice writing a letter TO the pet who died ("You always knew") —
+// cover + 5 letter pages, single-tense past. Field coverage maps 1:1 to the
+// master template's "Merge fields" + "Special-case toggles" tables
+// (context/masterstories/story-5-master-template.md).
+//
+// REUSES the Story-1 `Pet` group and the Story-2 `Owner` group wholesale; there
+// is NO child. Its memory group is Story 2's `LetterMemories` PLUS the two
+// genuinely new fields `lastGoodDay` + `whatIKeep` (`Story5Memories`). Its toggles
+// reuse Story 2's `LetterDeathType` / `LetterBeliefFrame` (`Story5Toggles`), and
+// DROP `giftFor` (a letter TO the pet is never a sympathy gift) and `newPet` (the
+// owner's letter has no new-pet beat). There is no `livingOrMemorial` (that is
+// Story 4's). As with Stories 2 & 4, the "family" relationship is punted — single
+// + couple only (the master template redirects family to Story 1).
+
+/**
+ * The customer's free-text inputs that personalize the letter TO the pet. Story
+ * 2's `LetterMemories` plus the two genuinely new Story-5 fields. Both new fields
+ * are OPTIONAL — they have stock fallbacks in the variant layer, so a sparse order
+ * never breaks merge. The optional nickname/date fields carry the same
+ * omit-when-blank semantics as Story 2.
+ */
+export interface Story5Memories extends LetterMemories {
+  /** [LAST_GOOD_DAY] — optional, 1-3 sentences. The owner's chosen "last good memory". */
+  lastGoodDay?: string;
+  /** [WHAT_I_KEEP] — optional, 1-3 items. The thing(s) the owner is keeping. */
+  whatIKeep?: string;
+}
+
+/**
+ * The sensitivity/belief toggles collected as short follow-up questions. Reuses
+ * Story 2's `LetterDeathType` / `LetterBeliefFrame`; deliberately DROPS `giftFor`
+ * and `newPet` (see the section header). There is no `livingOrMemorial` (Story 5
+ * is single-tense past).
+ */
+export interface Story5Toggles {
+  /** [DEATH_TYPE] — adjusts Page 4 (the confession/apology). */
+  deathType: LetterDeathType;
+  /** [BELIEF_FRAME] — adjusts Page 5 (where you are / what I keep). Default "rainbow-bridge". */
+  beliefFrame: LetterBeliefFrame;
+}
+
+/**
+ * The in-progress Story-5 order the wizard holds in `localStorage`. Mirrors the
+ * `Story2Draft` shape: every input group is `Partial` because the user fills them
+ * step by step; `id`/`createdAt`/`status` exist from creation onward. Required-
+ * field validation happens at the wizard boundary (PR 24), not in the type.
+ *
+ * Discriminated by the literal `storyType: "story-5"` (not optional — a Story-5
+ * draft always knows it is one).
+ */
+export interface Story5Draft {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-5";
+  pet: Partial<Pet>;
+  owner: Partial<Owner>;
+  memories: Partial<Story5Memories>;
+  toggles: Partial<Story5Toggles>;
+}
+
+/**
+ * A finalized Story-5 order written to `./sessions/[id].json` at Generate time.
+ * Mirrors `Story2Session`: all input groups are complete (required fields
+ * present); generation state fills in as illustrations and the PDF are produced.
+ * Discriminated by the literal `storyType: "story-5"`, so the registry routes it
+ * to `resolveStory5`.
+ */
+export interface Story5Session {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-5";
+  pet: Pet;
+  owner: Owner;
+  memories: Story5Memories;
+  toggles: Story5Toggles;
+  /** Per-page generated-illustration manifest (empty until generation runs). */
+  images: GeneratedImage[];
+  /** Path to the rendered PDF under ./output, once produced. */
+  pdfPath?: string;
+}
+
+// ===========================================================================
 // Wizard draft union — what the in-browser wizard holds (any product)
 // ===========================================================================
 
@@ -385,11 +475,12 @@ export interface Story4Session {
  * The draft the wizard provider holds in localStorage, for any product. The
  * `storyType` discriminant decides which groups are present: a `StoryDraft`
  * (Story 1, with `child`/`memories: Memories`), a `Story2Draft` (Story 2, with
- * `owner`/`memories: LetterMemories`), or a `Story4Draft` (Story 4, with
- * `owner`/`memories: Story4Memories`). Consumers branch on `storyType` (a missing
+ * `owner`/`memories: LetterMemories`), a `Story4Draft` (Story 4, with
+ * `owner`/`memories: Story4Memories`), or a `Story5Draft` (Story 5, with
+ * `owner`/`memories: Story5Memories`). Consumers branch on `storyType` (a missing
  * one is Story 1, via `?? "story-1"`, since legacy Story-1 drafts omit it).
  *
  * `loadDraft()` returns this union so a single localStorage entry can hold any
  * product without crashing the other products' readers.
  */
-export type WizardDraft = StoryDraft | Story2Draft | Story4Draft;
+export type WizardDraft = StoryDraft | Story2Draft | Story4Draft | Story5Draft;

@@ -51,3 +51,15 @@ export function talkPdfFilename(petName: string): string {
   const slug = slugify(petName) || "Pet";
   return `If-${slug}-Could-Talk.pdf`;
 }
+
+/**
+ * The output filename for a rendered Story-5 letter ("A Letter to [PET_NAME]" —
+ * the owner writing TO the pet), per that template's production checklist:
+ * `Letter-to-[PET_NAME].pdf`. Distinct from Story 2's `Letter-from-…`. Same
+ * path-safe slugify as `storyPdfFilename`, with the same `Pet` fallback for an
+ * empty/symbol-only name.
+ */
+export function letterToPdfFilename(petName: string): string {
+  const slug = slugify(petName) || "Pet";
+  return `Letter-to-${slug}.pdf`;
+}

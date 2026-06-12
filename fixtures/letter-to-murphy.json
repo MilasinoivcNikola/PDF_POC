@@ -1,0 +1,33 @@
+{
+  "id": "test-letter-to-murphy",
+  "createdAt": "2026-06-12T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-5",
+  "pet": {
+    "name": "Murphy",
+    "species": "dog",
+    "breedColor": "rescue mutt with the lopsided grin",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/murphy.jpg"
+  },
+  "owner": {
+    "names": "Sarah",
+    "relationship": "single"
+  },
+  "memories": {
+    "quirks": "the way you tilted your head when I said your name",
+    "favoriteRitual": "our walk before coffee, every morning",
+    "favoriteSpots": "the spot by the back door where the sun hit at 4pm",
+    "lastGoodDay": "the last good Saturday, when you stole half my toast and slept in the sun all afternoon",
+    "whatIKeep": "your collar on the hook, the dent you left in the couch",
+    "nicknames": "Murph, Mr. Murph, the worst dog",
+    "dateAdopted": "March 2014",
+    "datePassed": "October 2025"
+  },
+  "toggles": {
+    "deathType": "peaceful",
+    "beliefFrame": "rainbow-bridge"
+  },
+  "images": []
+}
