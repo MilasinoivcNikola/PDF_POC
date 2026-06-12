@@ -54,8 +54,8 @@ No new `PageLayout` value, no `renderPage` case, no new CSS, no screen↔PDF par
 
 **Illustration slots — 2, same shape as Story 2.** Premium imagery only:
 
-- `letter-cover` — a cover portrait of the pet (uses the uploaded photo as reference)
-- `letter-page-4` — one watercolor scene/joy wash for the "I love this about us" beat (a soft, figureless or single-subject scene — sunlit floor, the spot by the door, a tennis ball mid-bounce)
+- `talk-cover` — a cover portrait of the pet (uses the uploaded photo as reference)
+- `talk-page-4` — one watercolor scene for the "I love this about us" beat: a **reference-anchored** single-subject scene of the pet doing the activity (the pet appears — not a figureless wash), sunlit floor / the spot by the door / a tennis ball mid-bounce
 
 Both default to **Low** tier. A full Story-4 book is ~$0.012 to generate (2 images), well under the per-book budget.
 
@@ -143,7 +143,7 @@ to [OWNER_NAMES]
 *Optional, smaller still, at bottom of page (living path):*
 together since [DATE_ADOPTED]
 
-*Illustration brief:* A single watercolor portrait of the pet — recognizably *this* animal, from the uploaded photo — looking directly back at the reader, alert and happy, ears up, the way they look when you've just walked in. Warm, soft palette. This is the "hello, it's me" image. White space around it; the cover should read like a small book of poems, not a greeting card. (`letter-cover` layout; `letter-cover` illustration slot.)
+*Illustration brief:* A single watercolor portrait of the pet — recognizably *this* animal, from the uploaded photo — looking directly back at the reader, alert and happy, ears up, the way they look when you've just walked in. Warm, soft palette. This is the "hello, it's me" image. White space around it; the cover should read like a small book of poems, not a greeting card. (`letter-cover` layout; `talk-cover` illustration slot.)
 
 *Variant for [GIFT_FOR] = friend:* The letter is still *to* the pet's owner. The gift-giver's name appears only as a small inscription on the dedication line, never in the title.
 
@@ -224,7 +224,7 @@ I don't need much. A walk. A window. The sound of you in the next room. You, com
 
 That's the whole secret. The days don't have to be big. They just have to have you in them.
 
-*Illustration brief:* A soft watercolor scene wash — the pet doing the favorite activity, or curled in the favorite spot with the late-afternoon light coming in. Single subject or figureless joy; warm, golden, gentle. This is the one full scene illustration in the book. (`letter-page-4` illustration slot.)
+*Illustration brief:* A soft watercolor scene — the pet doing the favorite activity, or curled in the favorite spot with the late-afternoon light coming in. **Reference-anchored single subject** (the pet appears, not a figureless wash); warm, golden, gentle. This is the one full scene illustration in the book. (`talk-page-4` illustration slot.)
 
 *Species variant — cat:* "...the spot at [FAVORITE_SPOTS], where the sun lands and I can watch you and pretend I'm watching something else."
 

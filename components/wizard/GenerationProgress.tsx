@@ -127,7 +127,9 @@ export function GenerationProgress({
         <p className="gen-subtitle">
           {storyType === "story-2"
             ? "The cover portrait is painted from the photo you uploaded. This usually takes a minute or two — please don't close the window."
-            : "Each illustration is painted from the photo you uploaded. This usually takes a few minutes — please don't close the window."}
+            : storyType === "story-4"
+              ? "The cover portrait and the scene are painted from the photo you uploaded. This usually takes a minute or two — please don't close the window."
+              : "Each illustration is painted from the photo you uploaded. This usually takes a few minutes — please don't close the window."}
         </p>
 
         {error ? (
@@ -202,7 +204,9 @@ export function GenerationProgress({
         <p className="label">
           {storyType === "story-2"
             ? "~$0.02 per letter · From your own credits"
-            : "~$0.07 per book · From your own credits"}
+            : storyType === "story-4"
+              ? "~$0.01 per letter · From your own credits"
+              : "~$0.07 per book · From your own credits"}
         </p>
       </footer>
     </div>

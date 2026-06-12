@@ -42,13 +42,28 @@ export const LETTER_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
   "letter-page-5",
 ];
 
+/**
+ * The Story-4 ordered set of slots — the two Premium "If [PET_NAME] Could Talk"
+ * images (cover portrait + the Page-4 daily-joy scene). Declared here (not imported
+ * from story-4.ts) to keep this module client-safe; the story-4 tests assert these
+ * match the registry's `illustrationSlots`.
+ */
+export const TALK_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
+  "talk-cover",
+  "talk-page-4",
+];
+
 /** The progress-checklist slot list for a product (default Story 1). */
 export function illustrationSlotsFor(
   storyType: StoryType,
 ): readonly IllustrationSlot[] {
-  return storyType === "story-2"
-    ? LETTER_ILLUSTRATION_SLOTS
-    : ILLUSTRATION_SLOTS;
+  if (storyType === "story-2") {
+    return LETTER_ILLUSTRATION_SLOTS;
+  }
+  if (storyType === "story-4") {
+    return TALK_ILLUSTRATION_SLOTS;
+  }
+  return ILLUSTRATION_SLOTS;
 }
 
 /**
@@ -92,6 +107,19 @@ function story2LabelsFor(name: string): Partial<Record<IllustrationSlot, string>
 }
 
 /**
+ * Story-4 labels — the two Premium "If [PET_NAME] Could Talk" images, in the warm,
+ * present-tense voice of the celebration letter. The cover portrait is the pet
+ * looking back ("hello, it's me"); the Page-4 scene is the pet doing what they love
+ * in the late-afternoon light (the one full scene in the book).
+ */
+function story4LabelsFor(name: string): Partial<Record<IllustrationSlot, string>> {
+  return {
+    "talk-cover": `Cover portrait — ${name}, looking right back at you`,
+    "talk-page-4": `${name} doing what they love`,
+  };
+}
+
+/**
  * Resolve a slot's human-friendly checklist label for a given pet name + product.
  * Defaults to the Story-1 labels for a missing/Story-1 type.
  */
@@ -101,7 +129,13 @@ export function illustrationLabel(
   storyType: StoryType = "story-1",
 ): string {
   const name = petName.trim() || "your pet";
-  const labels =
-    storyType === "story-2" ? story2LabelsFor(name) : story1LabelsFor(name);
+  let labels: Partial<Record<IllustrationSlot, string>>;
+  if (storyType === "story-2") {
+    labels = story2LabelsFor(name);
+  } else if (storyType === "story-4") {
+    labels = story4LabelsFor(name);
+  } else {
+    labels = story1LabelsFor(name);
+  }
   return labels[slot] ?? `Illustration for ${slot}`;
 }

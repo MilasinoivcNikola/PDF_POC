@@ -5,6 +5,7 @@ import { getStory } from "@/lib/story/registry";
 import {
   ILLUSTRATION_SLOTS,
   LETTER_ILLUSTRATION_SLOTS,
+  TALK_ILLUSTRATION_SLOTS,
   illustrationLabel,
   illustrationSlotsFor,
 } from "./illustrationLabels";
@@ -67,6 +68,30 @@ describe("LETTER_ILLUSTRATION_SLOTS", () => {
 });
 
 // ---------------------------------------------------------------------------
+// TALK_ILLUSTRATION_SLOTS — Story 4's two talk slots, registry-locked
+// ---------------------------------------------------------------------------
+
+describe("TALK_ILLUSTRATION_SLOTS", () => {
+  it("is exactly the two Premium talk slots (no `reference` anchor)", () => {
+    expect([...TALK_ILLUSTRATION_SLOTS]).toEqual([
+      "talk-cover",
+      "talk-page-4",
+    ]);
+  });
+
+  it("equals the registry's Story-4 illustrationSlots (drift guard)", () => {
+    // The checklist the parent watches must match what the pipeline actually
+    // generates. The slots are declared in illustrationLabels.ts (to keep it
+    // client-safe) but MUST stay in lockstep with the registry's source of truth —
+    // if someone edits one list and not the other, this fails. Mirrors the
+    // Story-2 LETTER_ILLUSTRATION_SLOTS guard.
+    expect([...TALK_ILLUSTRATION_SLOTS]).toEqual([
+      ...getStory("story-4").illustrationSlots,
+    ]);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // illustrationSlotsFor — per-product checklist slot list
 // ---------------------------------------------------------------------------
 
@@ -79,6 +104,11 @@ describe("illustrationSlotsFor", () => {
   it("returns the 2 letter slots for story-2", () => {
     expect(illustrationSlotsFor("story-2")).toBe(LETTER_ILLUSTRATION_SLOTS);
     expect(illustrationSlotsFor("story-2")).toHaveLength(2);
+  });
+
+  it("returns the 2 talk slots for story-4", () => {
+    expect(illustrationSlotsFor("story-4")).toBe(TALK_ILLUSTRATION_SLOTS);
+    expect(illustrationSlotsFor("story-4")).toHaveLength(2);
   });
 });
 
@@ -166,5 +196,39 @@ describe("illustrationLabel", () => {
       expect(label.length).toBeGreaterThan(0);
       expect(label).not.toContain("undefined");
     }
+  });
+
+  // Story 4 (the living/celebration letter): the two talk slots, pet name woven in.
+  it("uses the Story-4 cover label (pet name woven in) for story-4", () => {
+    expect(illustrationLabel("talk-cover", "Biscuit", "story-4")).toBe(
+      "Cover portrait — Biscuit, looking right back at you",
+    );
+  });
+
+  it("uses the Story-4 page-4 scene label (pet name woven in) for story-4", () => {
+    expect(illustrationLabel("talk-page-4", "Biscuit", "story-4")).toBe(
+      "Biscuit doing what they love",
+    );
+  });
+
+  it("substitutes the gentle default for a blank pet name in story-4 labels", () => {
+    expect(illustrationLabel("talk-page-4", "  ", "story-4")).toBe(
+      "your pet doing what they love",
+    );
+  });
+
+  it("returns a non-empty string for every slot in TALK_ILLUSTRATION_SLOTS", () => {
+    for (const slot of TALK_ILLUSTRATION_SLOTS) {
+      const label = illustrationLabel(slot, "Biscuit", "story-4");
+      expect(label.length).toBeGreaterThan(0);
+      expect(label).not.toContain("undefined");
+    }
+  });
+
+  it("does not regress the Story-1 default for the existing 2-arg calls", () => {
+    // The 2-arg signature (no storyType) still resolves to Story-1 labels — the
+    // story-4 branch must not leak into the default.
+    expect(illustrationLabel("page-2", "Otis")).toBe("Otis at the front door");
+    expect(illustrationLabel("cover", "Otis")).toBe("Cover illustration");
   });
 });
