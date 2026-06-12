@@ -39,8 +39,11 @@ Build them roughly in number order — each feature lists what it depends on.
 | 17 | [Story 2 — Premium imagery (portrait + belief wash)](17-story2-imagery.md) | 7 (Story 2) | 2 · `ai-image-specialist` | 14, 16 |
 | 18 | [Story 2 — wizard inputs & landing story picker](18-story2-wizard-and-story-picker.md) | 7 (Story 2) | 3 · `nextjs-ui-builder` | 14, 15 |
 | 19 | [Story 2 — in-browser preview & PDF download](19-story2-preview-and-download.md) | 7 (Story 2) | 3 + 1 · `nextjs-ui-builder` / `pdf-render-specialist` | 16, 17, 18 |
+| 20 | [Story 4 — text, two-tense engine & registration](20-story4-text-and-tense-engine.md) | 8 (Story 4) | 1 · `pdf-render-specialist` | 14, 15, 16 |
+| 21 | [Story 4 — imagery (portrait + pet-in-scene)](21-story4-imagery.md) | 8 (Story 4) | 2 · `ai-image-specialist` | 20 |
+| 22 | [Story 4 — wizard, storefront & order intake](22-story4-wizard-and-storefront.md) | 8 (Story 4) | 3 · `nextjs-ui-builder` | 20, 21 |
 
-> **Note:** Stories 2–3 were "out of scope" in the original `local-prototype-plan.md`. Story 2 (features 14–19) is a deliberate, PM-approved scope expansion (2026-06-09): full product, with the AI pet portrait (Premium tier), built on a generalized multi-story engine.
+> **Note:** Stories 2–3 were "out of scope" in the original `local-prototype-plan.md`. Story 2 (features 14–19) is a deliberate, PM-approved scope expansion (2026-06-09): full product, with the AI pet portrait (Premium tier), built on a generalized multi-story engine. Story 4 (features 20–22) is the first concrete title built via [`../new-book-playbook.md`](../new-book-playbook.md) (commerce PR-10) — "If [PET_NAME] Could Talk", the living/celebration twin of Story 2, split into 3 PRs.
 
 ## Milestone map (from the plan)
 
@@ -51,6 +54,7 @@ Build them roughly in number order — each feature lists what it depends on.
 - **M5 — In-browser preview:** 10. *Done = see all 12 pages with real illustrations, then download the PDF.*
 - **M6 — Polish:** 11 (open-ended).
 - **M7 — Story 2 (A Letter from [PET_NAME]):** 14 → 15 → 16 → 17 → 18 → 19. *Done = pick Story 2 on the landing page, walk the wizard, generate the Premium portrait + belief wash, preview the typeset letter, and download `Letter-from-[PET_NAME].pdf`.* Phase 0 (14) is the behavior-preserving engine refactor — Story 1 must stay byte-identical.
+- **M8 — Story 4 (If [PET_NAME] Could Talk):** 20 → 21 → 22. *Done = pick Story 4 on the landing page (or its storefront listing), walk the wizard / order form, generate the cover portrait + pet-in-scene page-4, preview the present-tense letter, and download `If-[PET_NAME]-Could-Talk.pdf`.* The living/celebration twin of Story 2; follows the new-book-playbook (no new layout — reuses the `letter` treatment). The headline `livingOrMemorial` toggle flips the whole letter to past tense for a grieving buyer; the **living** path is default. Story 1 + Story 2 stay byte-identical.
 
 ## Spec file shape
 
