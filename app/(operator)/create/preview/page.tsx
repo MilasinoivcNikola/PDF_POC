@@ -16,7 +16,8 @@ import { BookPreview } from "@/components/preview/BookPreview";
 
 export default function PreviewPage() {
   const { draft, hydrated } = useWizard();
-  const isLetter = draft?.storyType === "story-2";
+  const isLetter =
+    draft?.storyType === "story-2" || draft?.storyType === "story-4";
 
   return (
     <div className="page-wrap">

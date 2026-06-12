@@ -311,7 +311,7 @@ export function BookPreview({ sessionId, renderActions }: BookPreviewProps) {
       const blob = await res.blob();
       const filename =
         parseFilename(res.headers.get("Content-Disposition")) ??
-        (data?.storyType === "story-2" ? "Letter.pdf" : "Saying-Goodbye.pdf");
+        fallbackFilename(data?.storyType);
 
       // Trigger the browser download from the streamed bytes.
       const url = URL.createObjectURL(blob);
@@ -359,7 +359,10 @@ export function BookPreview({ sessionId, renderActions }: BookPreviewProps) {
   }
 
   const petName = data.petName.trim() || "your pet";
-  const isLetter = data.storyType === "story-2";
+  // Both letter products (Story 2 grief letter, Story 4 celebration letter)
+  // render single-column sheets, not facing-page spreads.
+  const isLetter =
+    data.storyType === "story-2" || data.storyType === "story-4";
 
   // Per-story dispatch: which pages carry a regenerate-able illustration, and the
   // "edit your own words" contract (editable fields, required check, copy). Both
@@ -510,4 +513,19 @@ function parseFilename(header: string | null): string | null {
   }
   const match = /filename="?([^"]+)"?/.exec(header);
   return match ? match[1] : null;
+}
+
+/**
+ * A per-product fallback download name, used only if the server's
+ * Content-Disposition header is missing (the real name — with the pet's name —
+ * comes from there via the registry's `pdfFilename`).
+ */
+function fallbackFilename(storyType: StoryType | undefined): string {
+  if (storyType === "story-2") {
+    return "Letter.pdf";
+  }
+  if (storyType === "story-4") {
+    return "If-Your-Pet-Could-Talk.pdf";
+  }
+  return "Saying-Goodbye.pdf";
 }

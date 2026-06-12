@@ -12,13 +12,20 @@
 //     favoriteMemory) the master text merges as live placeholders.
 //   - Story 2: pet name, species, photo, owner names, plus the three personal
 //     free-text fields (quirks, favoriteRitual, favoriteSpots) the letter merges.
+//   - Story 4: pet name, species, photo, owner names, plus the four personal
+//     free-text fields (quirks, favoriteRitual, favoriteSpots, favoriteActivity)
+//     the celebration letter merges.
 // Anything else is trusted to have been defaulted by the assembler.
 
 import { NextResponse } from "next/server";
 import { writeSession, type AnySession } from "@/lib/session/disk";
 import { isSafeSessionId } from "@/lib/ai/paths";
 import { assertOperator } from "@/lib/runtime/surface";
-import type { StorySession, Story2Session } from "@/lib/session/types";
+import type {
+  StorySession,
+  Story2Session,
+  Story4Session,
+} from "@/lib/session/types";
 
 /** Whether a value is a non-empty trimmed string. */
 function nonEmpty(value: unknown): value is string {
@@ -56,6 +63,40 @@ function validateStory2(session: Partial<Story2Session>): string | null {
   }
   if (!nonEmpty(session.memories?.favoriteSpots)) {
     return "missing_favorite_spots";
+  }
+  return null;
+}
+
+/**
+ * Validate a Story-4 body ("If [PET_NAME] Could Talk"). Required: pet name,
+ * species, photo, owner names, and the four personal free-text fields (quirks,
+ * favoriteRitual, favoriteSpots, favoriteActivity). Returns an error code (the
+ * missing field), or null when valid.
+ */
+function validateStory4(session: Partial<Story4Session>): string | null {
+  if (!nonEmpty(session.pet?.name)) {
+    return "missing_pet_name";
+  }
+  if (!nonEmpty(session.pet?.species)) {
+    return "missing_species";
+  }
+  if (!nonEmpty(session.pet?.photo)) {
+    return "missing_photo";
+  }
+  if (!nonEmpty(session.owner?.names)) {
+    return "missing_owner_names";
+  }
+  if (!nonEmpty(session.memories?.quirks)) {
+    return "missing_quirks";
+  }
+  if (!nonEmpty(session.memories?.favoriteRitual)) {
+    return "missing_favorite_ritual";
+  }
+  if (!nonEmpty(session.memories?.favoriteSpots)) {
+    return "missing_favorite_spots";
+  }
+  if (!nonEmpty(session.memories?.favoriteActivity)) {
+    return "missing_favorite_activity";
   }
   return null;
 }
@@ -105,7 +146,7 @@ export async function POST(request: Request): Promise<Response> {
     return fail("invalid_session");
   }
 
-  const base = body as Partial<StorySession | Story2Session>;
+  const base = body as Partial<StorySession | Story2Session | Story4Session>;
 
   if (!nonEmpty(base.id) || !isSafeSessionId(base.id.trim())) {
     return fail("invalid_session_id");
@@ -113,10 +154,14 @@ export async function POST(request: Request): Promise<Response> {
 
   // Branch on the product. A missing storyType is Story 1 (legacy default).
   const storyType = base.storyType ?? "story-1";
-  const error =
-    storyType === "story-2"
-      ? validateStory2(body as Partial<Story2Session>)
-      : validateStory1(body as Partial<StorySession>);
+  let error: string | null;
+  if (storyType === "story-2") {
+    error = validateStory2(body as Partial<Story2Session>);
+  } else if (storyType === "story-4") {
+    error = validateStory4(body as Partial<Story4Session>);
+  } else {
+    error = validateStory1(body as Partial<StorySession>);
+  }
   if (error) {
     return fail(error);
   }

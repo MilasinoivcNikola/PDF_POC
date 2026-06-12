@@ -3,7 +3,11 @@ import { join } from "node:path";
 import { access } from "node:fs/promises";
 
 import { isSafeSessionId } from "@/lib/ai/paths";
-import type { StorySession, Story2Session } from "@/lib/session/types";
+import type {
+  StorySession,
+  Story2Session,
+  Story4Session,
+} from "@/lib/session/types";
 
 // The /api/session boundary is the high-value surface: a malformed body, an
 // unsafe id (it becomes the filename), and each of the seven missing required
@@ -19,7 +23,7 @@ import type { StorySession, Story2Session } from "@/lib/session/types";
 const writeSessionMock = vi.fn();
 
 vi.mock("@/lib/session/disk", () => ({
-  writeSession: (session: StorySession | Story2Session) =>
+  writeSession: (session: StorySession | Story2Session | Story4Session) =>
     writeSessionMock(session),
 }));
 
@@ -94,6 +98,38 @@ function validStory2Session(id = "story2-id-xyz789"): Story2Session {
       beliefFrame: "rainbow-bridge",
       giftFor: "self",
       newPet: "no",
+    },
+    images: [],
+  };
+}
+
+/** A complete, valid finalized Story-4 session payload. */
+function validStory4Session(id = "story4-id-talk789"): Story4Session {
+  return {
+    id,
+    createdAt: "2026-06-12T09:00:00.000Z",
+    status: "generating",
+    storyType: "story-4",
+    pet: {
+      name: "Biscuit",
+      species: "dog",
+      breedColor: "rescue mutt with the lopsided grin",
+      pronoun: "he",
+      illustrationStyle: "watercolor",
+      photo: "uploads/sess/biscuit.jpg",
+    },
+    owner: { names: "Sarah", relationship: "single" },
+    memories: {
+      quirks: "the way I lose my mind when you pick up the leash",
+      favoriteRitual: "our walk before coffee, every single morning",
+      favoriteSpots: "the spot by the back door",
+      favoriteActivity: "stealing one sock and running a victory lap",
+    },
+    toggles: {
+      livingOrMemorial: "living",
+      giftFor: "self",
+      deathType: "peaceful",
+      beliefFrame: "rainbow-bridge",
     },
     images: [],
   };
@@ -463,6 +499,157 @@ describe("POST /api/session — Story 2 happy path", () => {
       pet: { name: "Murphy", species: "dog", photo: "uploads/sess/murphy.jpg" },
       owner: { names: "Sarah", relationship: "single" },
       memories: { quirks: expect.any(String) },
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story 4 — per-storyType validation branches (disk write still mocked)
+// ---------------------------------------------------------------------------
+//
+// A "story-4" body validates the Story-4 required set (pet name, species, photo,
+// owner names, quirks, favoriteRitual, favoriteSpots, AND favoriteActivity — the
+// Story-1 reuse that distinguishes it from Story 2) and writes a Story4Session.
+// The id traversal guard is shared. Note: a Story-4 body that omitted
+// favoriteActivity but is otherwise complete must still be rejected — proving the
+// route ran validateStory4, not validateStory2 (which would have accepted it).
+
+describe("POST /api/session — Story 4 validation", () => {
+  it("rejects a missing pet name with 400 missing_pet_name", async () => {
+    const body = validStory4Session();
+    body.pet.name = "   ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_pet_name",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing species with 400 missing_species", async () => {
+    const body = validStory4Session();
+    body.pet.species = "" as Story4Session["pet"]["species"];
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_species",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing photo with 400 missing_photo", async () => {
+    const body = validStory4Session();
+    body.pet.photo = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_photo",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing owner names with 400 missing_owner_names", async () => {
+    const body = validStory4Session();
+    body.owner.names = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_owner_names",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing quirks with 400 missing_quirks", async () => {
+    const body = validStory4Session();
+    body.memories.quirks = "   ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_quirks",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing favorite ritual with 400 missing_favorite_ritual", async () => {
+    const body = validStory4Session();
+    body.memories.favoriteRitual = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_favorite_ritual",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing favorite spots with 400 missing_favorite_spots", async () => {
+    const body = validStory4Session();
+    body.memories.favoriteSpots = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_favorite_spots",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing favorite activity with 400 missing_favorite_activity (the Story-4-only required field)", async () => {
+    // favoriteActivity is required for Story 4 but NOT for Story 2 — rejecting it
+    // proves the route dispatched to validateStory4 on the storyType discriminant.
+    const body = validStory4Session();
+    body.memories.favoriteActivity = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_favorite_activity",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a path-traversal id for a Story-4 body (shared guard) and writes nothing", async () => {
+    const malicious = "../../../tmp/evil-story4";
+    expect(isSafeSessionId(malicious)).toBe(false);
+    const res = await POST(
+      jsonRequest({ ...validStory4Session(), id: malicious }),
+    );
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "invalid_session_id",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/session — Story 4 happy path", () => {
+  it("writes the Story-4 session and returns { ok:true, id }", async () => {
+    const body = validStory4Session("good-story4-id");
+    const res = await POST(jsonRequest(body));
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      id: "good-story4-id",
+    });
+
+    expect(writeSessionMock).toHaveBeenCalledTimes(1);
+    expect(writeSessionMock.mock.calls[0][0]).toMatchObject({
+      id: "good-story4-id",
+      storyType: "story-4",
+      pet: { name: "Biscuit", species: "dog", photo: "uploads/sess/biscuit.jpg" },
+      owner: { names: "Sarah", relationship: "single" },
+      memories: {
+        quirks: expect.any(String),
+        favoriteActivity: expect.any(String),
+      },
+      toggles: { livingOrMemorial: "living" },
     });
   });
 });

@@ -7,11 +7,16 @@ import {
   missingRequiredFieldsStory2,
   draftToSessionStory2,
   isStory2Draft,
+  missingRequiredFieldsStory4,
+  draftToSessionStory4,
+  isStory4Draft,
+  isStory1Draft,
   missingRequiredFieldsForDraft,
   draftToSessionForDraft,
 } from "./draft";
 import { newDraft } from "./storage";
-import type { StoryDraft, Story2Draft } from "./types";
+import { resolveStory4 } from "@/lib/story/story4/variants";
+import type { StoryDraft, Story2Draft, Story4Draft } from "./types";
 
 // The draft→session bridge is pure (no IO, no React), so it is asserted directly.
 // Three surfaces:
@@ -827,5 +832,507 @@ describe("draftToSessionForDraft — routes per storyType", () => {
     const session = draftToSessionForDraft(fullDraft());
     expect("child" in session).toBe(true);
     expect("owner" in session).toBe(false);
+  });
+});
+
+// ===========================================================================
+// Story 4 — "If [PET_NAME] Could Talk" draft → session bridge
+// ===========================================================================
+//
+// The celebration twin of Story 2. It REUSES Story 2's `Owner` group and shares
+// the letter memories PLUS Story 1's `favoriteActivity`, so EIGHT fields are
+// required: pet name, owner names, species, photo, quirks, favoriteRitual,
+// favoriteSpots, favoriteActivity. Its toggles differ — the headline
+// `livingOrMemorial` switch (default "living"), no `newPet`. The surfaces mirror
+// Story 2:
+//   1. missingRequiredFieldsStory4 — the Story-4 Generate gate (whitespace-only
+//      counts as missing because present() trims).
+//   2. draftToSessionStory4 — assembly that fills skipped optionals with the
+//      Story-4 defaults (incl. livingOrMemorial: "living"), trims free-text, drops
+//      the optional nickname/date fields when blank, throws when a required field
+//      is absent.
+//   3. The dispatchers (isStory4Draft / missingRequiredFieldsForDraft /
+//      draftToSessionForDraft) — which previously THREW "not wired yet (PR 22)" for
+//      a Story-4 draft and now route to the Story-4 functions.
+
+/** A Story-4 draft with all eight required fields present (and nothing else). */
+function minimalCompleteStory4Draft(): Story4Draft {
+  const draft = newDraft("story-4");
+  draft.pet.name = "Biscuit";
+  draft.pet.photo = "uploads/sess/biscuit.jpg";
+  // species is pre-seeded "dog" by newDraft("story-4").
+  draft.owner.names = "Sarah";
+  draft.memories.quirks = "the way I lose my mind when you pick up the leash";
+  draft.memories.favoriteRitual = "our walk before coffee, every single morning";
+  draft.memories.favoriteSpots = "the spot by the back door where the sun lands";
+  draft.memories.favoriteActivity = "stealing one sock and running a victory lap";
+  return draft;
+}
+
+/** A Story-4 draft with every input group fully populated. */
+function fullStory4Draft(): Story4Draft {
+  return {
+    id: "story4-draft-id-789",
+    createdAt: "2026-06-12T09:00:00.000Z",
+    status: "draft",
+    storyType: "story-4",
+    pet: {
+      name: "Biscuit",
+      species: "cat",
+      breedColor: "tuxedo cat with the lopsided whiskers",
+      pronoun: "she",
+      illustrationStyle: "pencil",
+      photo: "uploads/sess/biscuit.jpg",
+    },
+    owner: { names: "Sarah and David", relationship: "couple" },
+    memories: {
+      quirks: "the way I lose my mind when you pick up the leash",
+      favoriteRitual: "our walk before coffee, every single morning",
+      favoriteSpots: "the spot by the back door where the sun lands at 4pm",
+      favoriteActivity: "stealing one sock and running a victory lap",
+      nicknames: "Biscy, the gremlin, sir",
+      dateAdopted: "March 2023",
+      datePassed: "October 2025",
+    },
+    toggles: {
+      livingOrMemorial: "memorial",
+      giftFor: "friend",
+      deathType: "euthanasia",
+      beliefFrame: "heaven",
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// missingRequiredFieldsStory4
+// ---------------------------------------------------------------------------
+
+describe("missingRequiredFieldsStory4", () => {
+  it("reports all required fields except species for a fresh newDraft('story-4')", () => {
+    // newDraft("story-4") pre-seeds species: "dog", so only the other seven are
+    // missing — in display order.
+    expect(missingRequiredFieldsStory4(newDraft("story-4"))).toEqual([
+      "petName",
+      "ownerNames",
+      "photo",
+      "quirks",
+      "favoriteRitual",
+      "favoriteSpots",
+      "favoriteActivity",
+    ]);
+  });
+
+  it("returns an empty array when all eight required fields are present", () => {
+    expect(missingRequiredFieldsStory4(minimalCompleteStory4Draft())).toEqual(
+      [],
+    );
+  });
+
+  it("reports only petName when just the pet name is missing", () => {
+    const draft = minimalCompleteStory4Draft();
+    delete draft.pet.name;
+    expect(missingRequiredFieldsStory4(draft)).toEqual(["petName"]);
+  });
+
+  it("reports only ownerNames when just the owner names are missing", () => {
+    const draft = minimalCompleteStory4Draft();
+    delete draft.owner.names;
+    expect(missingRequiredFieldsStory4(draft)).toEqual(["ownerNames"]);
+  });
+
+  it("reports only species when just the species is missing", () => {
+    const draft = minimalCompleteStory4Draft();
+    delete draft.pet.species;
+    expect(missingRequiredFieldsStory4(draft)).toEqual(["species"]);
+  });
+
+  it("reports only photo when just the photo is missing", () => {
+    const draft = minimalCompleteStory4Draft();
+    delete draft.pet.photo;
+    expect(missingRequiredFieldsStory4(draft)).toEqual(["photo"]);
+  });
+
+  it("reports only quirks when just that field is missing", () => {
+    const draft = minimalCompleteStory4Draft();
+    delete draft.memories.quirks;
+    expect(missingRequiredFieldsStory4(draft)).toEqual(["quirks"]);
+  });
+
+  it("reports only favoriteRitual when just that field is missing", () => {
+    const draft = minimalCompleteStory4Draft();
+    delete draft.memories.favoriteRitual;
+    expect(missingRequiredFieldsStory4(draft)).toEqual(["favoriteRitual"]);
+  });
+
+  it("reports only favoriteSpots when just that field is missing", () => {
+    const draft = minimalCompleteStory4Draft();
+    delete draft.memories.favoriteSpots;
+    expect(missingRequiredFieldsStory4(draft)).toEqual(["favoriteSpots"]);
+  });
+
+  it("reports only favoriteActivity when just that field is missing (the Story-1 reuse)", () => {
+    const draft = minimalCompleteStory4Draft();
+    delete draft.memories.favoriteActivity;
+    expect(missingRequiredFieldsStory4(draft)).toEqual(["favoriteActivity"]);
+  });
+
+  it("treats whitespace-only values as missing (present() trims)", () => {
+    const draft = minimalCompleteStory4Draft();
+    draft.pet.name = "   ";
+    draft.owner.names = "\t\n";
+    draft.pet.species = "  " as Story4Draft["pet"]["species"];
+    draft.pet.photo = " ";
+    draft.memories.quirks = "\t";
+    draft.memories.favoriteRitual = " ";
+    draft.memories.favoriteSpots = "\n";
+    draft.memories.favoriteActivity = "  ";
+    expect(missingRequiredFieldsStory4(draft)).toEqual([
+      "petName",
+      "ownerNames",
+      "species",
+      "photo",
+      "quirks",
+      "favoriteRitual",
+      "favoriteSpots",
+      "favoriteActivity",
+    ]);
+  });
+
+  it("ignores the optional nickname/date fields (absent is still complete)", () => {
+    const draft = minimalCompleteStory4Draft();
+    expect(draft.memories.nicknames).toBeUndefined();
+    expect(draft.memories.dateAdopted).toBeUndefined();
+    expect(draft.memories.datePassed).toBeUndefined();
+    expect(missingRequiredFieldsStory4(draft)).toEqual([]);
+  });
+
+  it("reports every required field, in display order, when all are missing", () => {
+    const draft: Story4Draft = {
+      id: "empty-story4",
+      createdAt: "2026-06-12T00:00:00.000Z",
+      status: "draft",
+      storyType: "story-4",
+      pet: {},
+      owner: {},
+      memories: {},
+      toggles: {},
+    };
+    expect(missingRequiredFieldsStory4(draft)).toEqual([
+      "petName",
+      "ownerNames",
+      "species",
+      "photo",
+      "quirks",
+      "favoriteRitual",
+      "favoriteSpots",
+      "favoriteActivity",
+    ]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// draftToSessionStory4 — assembly
+// ---------------------------------------------------------------------------
+
+describe("draftToSessionStory4 — required fields & lifecycle", () => {
+  it("throws when required fields are missing, naming them in order", () => {
+    const draft: Story4Draft = {
+      id: "empty-story4",
+      createdAt: "2026-06-12T00:00:00.000Z",
+      status: "draft",
+      storyType: "story-4",
+      pet: {},
+      owner: {},
+      memories: {},
+      toggles: {},
+    };
+    expect(() => draftToSessionStory4(draft)).toThrow(
+      /missing_required_fields: petName, ownerNames, species, photo, quirks, favoriteRitual, favoriteSpots, favoriteActivity/,
+    );
+  });
+
+  it("throws naming only the single missing field", () => {
+    const draft = minimalCompleteStory4Draft();
+    delete draft.owner.names;
+    expect(() => draftToSessionStory4(draft)).toThrow(
+      /missing_required_fields: ownerNames/,
+    );
+  });
+
+  it("throws when a required free-text letter field is missing", () => {
+    const noQuirks = minimalCompleteStory4Draft();
+    delete noQuirks.memories.quirks;
+    expect(() => draftToSessionStory4(noQuirks)).toThrow(
+      /missing_required_fields: quirks/,
+    );
+
+    const noRitual = minimalCompleteStory4Draft();
+    delete noRitual.memories.favoriteRitual;
+    expect(() => draftToSessionStory4(noRitual)).toThrow(
+      /missing_required_fields: favoriteRitual/,
+    );
+
+    const noSpots = minimalCompleteStory4Draft();
+    delete noSpots.memories.favoriteSpots;
+    expect(() => draftToSessionStory4(noSpots)).toThrow(
+      /missing_required_fields: favoriteSpots/,
+    );
+
+    const noActivity = minimalCompleteStory4Draft();
+    delete noActivity.memories.favoriteActivity;
+    expect(() => draftToSessionStory4(noActivity)).toThrow(
+      /missing_required_fields: favoriteActivity/,
+    );
+  });
+
+  it("preserves id/createdAt, sets status 'generating' and storyType 'story-4'", () => {
+    const draft = fullStory4Draft();
+    const session = draftToSessionStory4(draft);
+    expect(session.id).toBe(draft.id);
+    expect(session.createdAt).toBe(draft.createdAt);
+    expect(session.status).toBe("generating");
+    expect(session.storyType).toBe("story-4");
+  });
+
+  it("starts the images manifest empty", () => {
+    expect(draftToSessionStory4(fullStory4Draft()).images).toEqual([]);
+  });
+});
+
+describe("draftToSessionStory4 — required fields carried through (trimmed)", () => {
+  it("carries pet name, photo, owner names and species verbatim", () => {
+    const session = draftToSessionStory4(fullStory4Draft());
+    expect(session.pet.name).toBe("Biscuit");
+    expect(session.pet.photo).toBe("uploads/sess/biscuit.jpg");
+    expect(session.pet.species).toBe("cat");
+    expect(session.owner.names).toBe("Sarah and David");
+  });
+
+  it("trims surrounding whitespace from names, quirks, ritual, activity and spots", () => {
+    const draft = minimalCompleteStory4Draft();
+    draft.pet.name = "  Biscuit  ";
+    draft.owner.names = "\tSarah\n";
+    draft.memories.quirks = "  the leash meltdown  ";
+    draft.memories.favoriteRitual = " the morning walk ";
+    draft.memories.favoriteSpots = "\tthe back door\n";
+    draft.memories.favoriteActivity = "  the victory lap  ";
+    const session = draftToSessionStory4(draft);
+    expect(session.pet.name).toBe("Biscuit");
+    expect(session.owner.names).toBe("Sarah");
+    expect(session.memories.quirks).toBe("the leash meltdown");
+    expect(session.memories.favoriteRitual).toBe("the morning walk");
+    expect(session.memories.favoriteSpots).toBe("the back door");
+    expect(session.memories.favoriteActivity).toBe("the victory lap");
+  });
+
+  it("carries the photo reference without trimming it", () => {
+    const draft = minimalCompleteStory4Draft();
+    draft.pet.photo = "uploads/sess/biscuit.jpg";
+    expect(draftToSessionStory4(draft).pet.photo).toBe(
+      "uploads/sess/biscuit.jpg",
+    );
+  });
+
+  it("carries explicitly chosen optional enum/toggle fields through", () => {
+    const session = draftToSessionStory4(fullStory4Draft());
+    expect(session.pet.pronoun).toBe("she");
+    expect(session.pet.illustrationStyle).toBe("pencil");
+    expect(session.owner.relationship).toBe("couple");
+    expect(session.toggles.livingOrMemorial).toBe("memorial");
+    expect(session.toggles.giftFor).toBe("friend");
+    expect(session.toggles.deathType).toBe("euthanasia");
+    expect(session.toggles.beliefFrame).toBe("heaven");
+  });
+});
+
+describe("draftToSessionStory4 — skipped optionals get defaults", () => {
+  it("fills skipped pet enums and toggles with their documented Story-4 defaults", () => {
+    // A minimal complete draft leaves pronoun, relationship, giftFor and deathType
+    // skipped; also strip illustrationStyle / livingOrMemorial / beliefFrame (which
+    // newDraft("story-4") pre-seeds) to observe the assembler's own ?? defaults.
+    const draft = minimalCompleteStory4Draft();
+    delete draft.pet.illustrationStyle;
+    delete draft.toggles.livingOrMemorial;
+    delete draft.toggles.beliefFrame;
+
+    const session = draftToSessionStory4(draft);
+
+    expect(session.pet.species).toBe("dog");
+    expect(session.pet.pronoun).toBe("he");
+    expect(session.pet.illustrationStyle).toBe("watercolor");
+    expect(session.owner.relationship).toBe("single");
+    // The headline tense toggle defaults to the celebration (living) path.
+    expect(session.toggles.livingOrMemorial).toBe("living");
+    expect(session.toggles.giftFor).toBe("self");
+    expect(session.toggles.deathType).toBe("peaceful");
+    expect(session.toggles.beliefFrame).toBe("rainbow-bridge");
+  });
+
+  it("keeps newDraft()'s livingOrMemorial/beliefFrame defaults when not overridden", () => {
+    // newDraft("story-4") pre-seeds these two; a minimal complete draft should
+    // surface them unchanged (living, not memorial).
+    const session = draftToSessionStory4(minimalCompleteStory4Draft());
+    expect(session.toggles.livingOrMemorial).toBe("living");
+    expect(session.toggles.beliefFrame).toBe("rainbow-bridge");
+  });
+
+  it("does NOT carry a newPet toggle (Story 4 has no such field)", () => {
+    const session = draftToSessionStory4(fullStory4Draft());
+    expect("newPet" in session.toggles).toBe(false);
+  });
+
+  it("fills breedColor with an empty string when the optional description is skipped", () => {
+    // breedColor is NOT required for Story 4 (the Premium cover uses the photo), so
+    // a skipped one assembles to "" rather than throwing.
+    const draft = minimalCompleteStory4Draft();
+    expect(draft.pet.breedColor).toBeUndefined();
+    expect(draftToSessionStory4(draft).pet.breedColor).toBe("");
+  });
+
+  it("trims breedColor when it is provided", () => {
+    const draft = minimalCompleteStory4Draft();
+    draft.pet.breedColor = "  scruffy mutt  ";
+    expect(draftToSessionStory4(draft).pet.breedColor).toBe("scruffy mutt");
+  });
+});
+
+describe("draftToSessionStory4 — optional nickname/date fields dropped when blank", () => {
+  it("carries trimmed nickname/date fields when provided", () => {
+    const draft = minimalCompleteStory4Draft();
+    draft.memories.nicknames = "  Biscy  ";
+    draft.memories.dateAdopted = " March 2023 ";
+    draft.memories.datePassed = "\tOctober 2025\n";
+    const session = draftToSessionStory4(draft);
+    expect(session.memories.nicknames).toBe("Biscy");
+    expect(session.memories.dateAdopted).toBe("March 2023");
+    expect(session.memories.datePassed).toBe("October 2025");
+  });
+
+  it("omits the keys entirely when the optional fields are absent", () => {
+    const session = draftToSessionStory4(minimalCompleteStory4Draft());
+    expect("nicknames" in session.memories).toBe(false);
+    expect("dateAdopted" in session.memories).toBe(false);
+    expect("datePassed" in session.memories).toBe(false);
+    expect(session.memories.nicknames).toBeUndefined();
+    expect(session.memories.dateAdopted).toBeUndefined();
+    expect(session.memories.datePassed).toBeUndefined();
+  });
+
+  it("omits the keys when the optional fields are empty or whitespace-only (never '')", () => {
+    const draft = minimalCompleteStory4Draft();
+    draft.memories.nicknames = "";
+    draft.memories.dateAdopted = "   ";
+    draft.memories.datePassed = "\t";
+    const session = draftToSessionStory4(draft);
+    expect("nicknames" in session.memories).toBe(false);
+    expect("dateAdopted" in session.memories).toBe(false);
+    expect("datePassed" in session.memories).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story-4 round-trip — a complete draft resolves with no MergeError
+// ---------------------------------------------------------------------------
+//
+// The headline correctness check for the bridge: a session assembled from a
+// complete Story-4 draft must resolve through the merge layer cleanly — on BOTH
+// tense paths. resolveStory4 throws a MergeError if any live merge placeholder is
+// empty, so a clean resolve proves the assembler filled every required free-text
+// field and every enum/toggle default the merge text references.
+
+describe("draftToSessionStory4 — round-trip through resolveStory4", () => {
+  it("a complete living draft assembles into a session that resolves (no MergeError)", () => {
+    const draft = minimalCompleteStory4Draft();
+    draft.toggles.livingOrMemorial = "living";
+    const session = draftToSessionStory4(draft);
+    expect(session.toggles.livingOrMemorial).toBe("living");
+    const story = resolveStory4(session);
+    // 6-page letter (cover + 5 pages); each page free of surviving placeholders.
+    expect(story.length).toBeGreaterThan(0);
+    for (const page of story) {
+      for (const line of page.body) {
+        expect(line).not.toMatch(/[{[][A-Z_]+[}\]]/);
+      }
+    }
+  });
+
+  it("a complete memorial draft assembles into a session that resolves (no MergeError)", () => {
+    // The memorial path consults death-type + belief-frame, which the assembler
+    // always defaults — so a draft that only flips the tense still resolves.
+    const draft = minimalCompleteStory4Draft();
+    draft.toggles.livingOrMemorial = "memorial";
+    const session = draftToSessionStory4(draft);
+    expect(session.toggles.livingOrMemorial).toBe("memorial");
+    expect(() => resolveStory4(session)).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story-type dispatchers — Story 4
+// ---------------------------------------------------------------------------
+
+describe("isStory4Draft", () => {
+  it("is true for a Story-4 draft", () => {
+    expect(isStory4Draft(newDraft("story-4"))).toBe(true);
+  });
+
+  it("is false for a Story-1 draft (no storyType) and a Story-2 draft", () => {
+    expect(isStory4Draft(newDraft())).toBe(false);
+    expect(isStory4Draft(newDraft("story-2"))).toBe(false);
+  });
+});
+
+describe("isStory1Draft", () => {
+  it("is true for a Story-1 draft (no storyType) and one tagged 'story-1'", () => {
+    expect(isStory1Draft(newDraft())).toBe(true);
+    const tagged = newDraft();
+    tagged.storyType = "story-1";
+    expect(isStory1Draft(tagged)).toBe(true);
+  });
+
+  it("is false for a Story-2 or Story-4 draft (so a letter draft narrows to neither)", () => {
+    expect(isStory1Draft(newDraft("story-2"))).toBe(false);
+    expect(isStory1Draft(newDraft("story-4"))).toBe(false);
+  });
+});
+
+describe("missingRequiredFieldsForDraft — routes a Story-4 draft", () => {
+  it("routes a Story-4 draft to the Story-4 gate (reports favoriteActivity)", () => {
+    // favoriteActivity is unique to the Story-4 required set among the letter
+    // products — reporting it proves the dispatch hit Story 4, not Story 2.
+    const draft = minimalCompleteStory4Draft();
+    delete draft.memories.favoriteActivity;
+    expect(missingRequiredFieldsForDraft(draft)).toEqual(["favoriteActivity"]);
+  });
+
+  it("no longer throws 'not wired yet' for a Story-4 draft (PR 22 wired it)", () => {
+    expect(() =>
+      missingRequiredFieldsForDraft(minimalCompleteStory4Draft()),
+    ).not.toThrow();
+    expect(missingRequiredFieldsForDraft(minimalCompleteStory4Draft())).toEqual(
+      [],
+    );
+  });
+});
+
+describe("draftToSessionForDraft — routes a Story-4 draft", () => {
+  it("routes a Story-4 draft to draftToSessionStory4 (storyType 'story-4')", () => {
+    const session = draftToSessionForDraft(fullStory4Draft());
+    expect(session.storyType).toBe("story-4");
+    expect("owner" in session).toBe(true);
+    expect("child" in session).toBe(false);
+  });
+
+  it("no longer throws 'not wired yet' for a Story-4 draft (PR 22 wired it)", () => {
+    // Before PR 22 the dispatcher threw for a Story-4 draft; now it must produce a
+    // valid Story4Session that carries the living/memorial toggle.
+    const draft = minimalCompleteStory4Draft();
+    expect(() => draftToSessionForDraft(draft)).not.toThrow();
+    const session = draftToSessionForDraft(draft);
+    expect(session.storyType).toBe("story-4");
+    expect(
+      (session as { toggles: { livingOrMemorial: string } }).toggles
+        .livingOrMemorial,
+    ).toBe("living");
   });
 });

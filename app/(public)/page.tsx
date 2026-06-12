@@ -64,9 +64,10 @@ export default function Home() {
           </h1>
 
           <p className={`lede ${styles.landingLede} fade-in fade-in-3`}>
-            Personalized pet-memorial keepsakes, illustrated from a photo of
-            your own pet and written with care. A story to read with your child,
-            or a letter in your pet&apos;s own voice — made by hand, for you.
+            Personalized pet keepsakes, illustrated from a photo of your own pet
+            and written with care. A story to read with your child, a goodbye
+            letter in your pet&apos;s own voice, or a joyful letter for the one
+            still curled up beside you — made by hand, for you.
           </p>
 
           <div className={`${styles.landingCta} fade-in fade-in-3`}>
@@ -82,7 +83,8 @@ export default function Home() {
               </svg>
             </Link>
             <p className={styles.landingCtaMeta}>
-              Two books, each made to order. Delivered as a print-quality PDF.
+              Three keepsakes, each made to order. Delivered as a print-quality
+              PDF.
             </p>
           </div>
 
@@ -111,13 +113,37 @@ export default function Home() {
             </Link>
 
             <Link href="/books/story-2-letter" className={styles.chooserCard}>
-              <span className={styles.chooserKicker}>For you</span>
+              <span className={styles.chooserKicker}>In memory</span>
               <h2 className={styles.chooserTitle}>
-                A letter, in <em>their voice</em>.
+                A goodbye, in <em>their voice</em>.
               </h2>
               <p className={styles.chooserBody}>
-                A keepsake letter written from your pet&apos;s perspective,
-                addressed to you by name. Made to be printed, framed, and kept.
+                A keepsake letter written from your pet&apos;s perspective at the
+                Rainbow Bridge, addressed to you by name. Made to be printed,
+                framed, and kept.
+              </p>
+              <span className={styles.chooserLink}>
+                See the letter
+                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
+                  <path
+                    d="M1 6h16m0 0L12 1m5 5l-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            </Link>
+
+            <Link href="/books/story-4-talk" className={styles.chooserCard}>
+              <span className={styles.chooserKicker}>For a good day</span>
+              <h2 className={styles.chooserTitle}>
+                If they <em>could talk</em>.
+              </h2>
+              <p className={styles.chooserBody}>
+                A joyful letter in your living pet&apos;s own voice — the things
+                they&apos;d say if they had the words for one afternoon. For a
+                birthday, a gotcha day, or no reason at all.
               </p>
               <span className={styles.chooserLink}>
                 See the letter

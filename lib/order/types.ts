@@ -8,7 +8,12 @@
 // machine and the worker get exhaustive `switch` safety, matching the
 // `Species`/`SessionStatus` union style in lib/session/types.ts.
 
-import type { StorySession, Story2Session, StoryType } from "@/lib/session/types";
+import type {
+  StorySession,
+  Story2Session,
+  Story4Session,
+  StoryType,
+} from "@/lib/session/types";
 
 // ---------------------------------------------------------------------------
 // Order lifecycle (string-literal union — the state machine's alphabet)
@@ -46,9 +51,9 @@ export type OrderStatus =
 
 /**
  * One book order. `inputs` reuses the existing session types VERBATIM
- * (`StorySession | Story2Session`) so the generation engine consumes a paid
- * order's captured inputs with no translation — the same shape the local wizard
- * already produces and `resolveStory*` already reads.
+ * (`StorySession | Story2Session | Story4Session`) so the generation engine
+ * consumes a paid order's captured inputs with no translation — the same shape
+ * the local wizard already produces and `resolveStory*` already reads.
  *
  * Storage keys (`photoKey`, `pdfKey`) are object paths inside the private
  * Supabase buckets, not URLs — delivery mints a short-lived signed URL on demand
@@ -69,7 +74,7 @@ export interface Order {
   /** Buyer email — where the finished book is delivered (PR-09). */
   customerEmail: string;
   /** Captured wizard inputs, reused verbatim by the engine. */
-  inputs: StorySession | Story2Session;
+  inputs: StorySession | Story2Session | Story4Session;
   /** Object key of the uploaded pet photo in the `order-photos` bucket. */
   photoKey: string;
   /** Object key of the rendered PDF in the `order-pdfs` bucket, once produced. */

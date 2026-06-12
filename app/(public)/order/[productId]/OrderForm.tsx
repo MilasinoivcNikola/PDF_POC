@@ -24,6 +24,7 @@ import {
   draftToSessionForDraft,
   isStory1Draft,
   isStory2Draft,
+  isStory4Draft,
   missingRequiredFieldsForDraft,
 } from "@/lib/session/draft";
 import type {
@@ -102,11 +103,16 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
   }, [hydrated, draft, storyType, replaceDraft]);
 
   const isStory2 = storyType === "story-2";
+  const isStory4 = storyType === "story-4";
+  // Both letters (Story 2 / Story 4) drop pronoun/illustration-style and are
+  // first-person, photo-led keepsakes.
+  const isLetter = isStory2 || isStory4;
 
-  // Narrow the draft per product for typed group access. Story 4 has no order
-  // form yet (PR 22), so a Story-4 draft narrows to neither story1 nor story2.
+  // Narrow the draft per product for typed group access. A Story-4 draft narrows
+  // to neither story1 nor story2.
   const story2 = draft && isStory2Draft(draft) ? draft : null;
   const story1 = draft && isStory1Draft(draft) ? draft : null;
+  const story4 = draft && isStory4Draft(draft) ? draft : null;
 
   const petName = draft?.pet.name ?? "";
   const species = draft?.pet.species ?? "dog";
@@ -231,9 +237,11 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
       <main className="wizard">
         <div className="wizard__intro fade-in">
           <p className="wizard__quote">
-            {isStory2
-              ? "Tell us about the one you're writing for."
-              : "Tell us about the one who is gone."}
+            {isStory4
+              ? "Tell us about the one curled up beside you."
+              : isStory2
+                ? "Tell us about the one you're writing for."
+                : "Tell us about the one who is gone."}
           </p>
           <p className="wizard__attribution">
             A few gentle questions and a photo. We&apos;ll do the rest by hand.
@@ -245,7 +253,7 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
             <span className="label label--gold">Your order</span>
             <h2>
               {title}
-              <em> · {isStory2 ? "a letter" : "a storybook"}</em>
+              <em> · {isLetter ? "a letter" : "a storybook"}</em>
             </h2>
             <p>
               The more specific you are, the more the book sounds like the pet
@@ -331,7 +339,7 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
                   <label className="field__label" htmlFor="pet-description">
                     <span className="field__num">04</span>
                     A few words to describe {petLabel}.
-                    {isStory2 ? (
+                    {isLetter ? (
                       <span className="field__optional"> (optional)</span>
                     ) : null}
                   </label>
@@ -341,7 +349,7 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
                       A scruffy rescue mutt with one floppy ear. A black tabby
                       with a white chest patch.
                     </em>
-                    {isStory2 ? " It helps us paint the cover." : ""}
+                    {isLetter ? " It helps us paint the cover." : ""}
                   </p>
                   <input
                     type="text"
@@ -352,7 +360,7 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
                     }
                     placeholder="a sweet rescue mutt with floppy ears and soft brown eyes"
                   />
-                  {!isStory2 && showGate && !breedColor.trim() ? (
+                  {!isLetter && showGate && !breedColor.trim() ? (
                     <p className="notice notice--required">
                       A few words here let us draw {petLabel} as they truly were.
                       Please add a little.
@@ -361,7 +369,7 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
                 </div>
 
                 {/* ---- Story-1-only: pronoun + style ---- */}
-                {!isStory2 ? (
+                {!isLetter ? (
                   <>
                     <div className="field">
                       <label className="field__label">
@@ -452,6 +460,29 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
                     beliefFrame={story2.toggles.beliefFrame ?? "rainbow-bridge"}
                     giftFor={story2.toggles.giftFor ?? "self"}
                     newPet={story2.toggles.newPet ?? "no"}
+                    update={updateDraft}
+                  />
+                ) : null}
+
+                {story4 ? (
+                  <Story4Fields
+                    show={showGate}
+                    petLabel={petLabel}
+                    ownerNames={story4.owner.names ?? ""}
+                    relationship={story4.owner.relationship ?? "single"}
+                    quirks={story4.memories.quirks ?? ""}
+                    favoriteRitual={story4.memories.favoriteRitual ?? ""}
+                    favoriteSpots={story4.memories.favoriteSpots ?? ""}
+                    favoriteActivity={story4.memories.favoriteActivity ?? ""}
+                    nicknames={story4.memories.nicknames ?? ""}
+                    dateAdopted={story4.memories.dateAdopted ?? ""}
+                    datePassed={story4.memories.datePassed ?? ""}
+                    livingOrMemorial={
+                      story4.toggles.livingOrMemorial ?? "living"
+                    }
+                    deathType={story4.toggles.deathType ?? "peaceful"}
+                    beliefFrame={story4.toggles.beliefFrame ?? "rainbow-bridge"}
+                    giftFor={story4.toggles.giftFor ?? "self"}
                     update={updateDraft}
                   />
                 ) : null}
@@ -1011,6 +1042,383 @@ function Story2Fields({
                 value={opt.value}
                 checked={newPet === opt.value}
                 onChange={() => update({ toggles: { newPet: opt.value } })}
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Story 4 — "If [PET_NAME] Could Talk" owner + letter fields (the celebration twin)
+// ---------------------------------------------------------------------------
+
+interface Story4FieldsProps {
+  show: boolean;
+  petLabel: string;
+  ownerNames: string;
+  relationship: "single" | "couple";
+  quirks: string;
+  favoriteRitual: string;
+  favoriteSpots: string;
+  favoriteActivity: string;
+  nicknames: string;
+  dateAdopted: string;
+  datePassed: string;
+  livingOrMemorial: "living" | "memorial";
+  deathType: "peaceful" | "illness" | "sudden" | "euthanasia";
+  beliefFrame: "rainbow-bridge" | "heaven" | "secular";
+  giftFor: "self" | "friend";
+  update: ReturnType<typeof useWizard>["updateDraft"];
+}
+
+const LIVING_OR_MEMORIAL_OPTIONS: {
+  value: "living" | "memorial";
+  label: string;
+}[] = [
+  { value: "living", label: "a celebration — they are here, now" },
+  { value: "memorial", label: "a keepsake — they have died" },
+];
+
+function Story4Fields({
+  show,
+  petLabel,
+  ownerNames,
+  relationship,
+  quirks,
+  favoriteRitual,
+  favoriteSpots,
+  favoriteActivity,
+  nicknames,
+  dateAdopted,
+  datePassed,
+  livingOrMemorial,
+  deathType,
+  beliefFrame,
+  giftFor,
+  update,
+}: Story4FieldsProps) {
+  // The headline conditional reveal: death-type / belief-frame / the second date
+  // appear ONLY when the buyer chooses the memorial (past-tense) path. In the
+  // default living path they stay hidden and are defaulted by the assembler.
+  const isMemorial = livingOrMemorial === "memorial";
+
+  return (
+    <>
+      <div className="field">
+        <label className="field__label" htmlFor="owner-names">
+          <span className="field__num">A</span>
+          Who should the letter be written to?
+        </label>
+        <p className="field__hint">
+          The name {petLabel} knows you by — your own name, both your names, or
+          even &ldquo;Mom.&rdquo; <em>Sarah. Sarah and David.</em>
+        </p>
+        <input
+          type="text"
+          id="owner-names"
+          value={ownerNames}
+          onChange={(e) => update({ owner: { names: e.target.value } })}
+          placeholder="Sarah"
+        />
+        {show && !ownerNames.trim() ? (
+          <p className="notice notice--required">
+            The letter is addressed to you by name. Please add it.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">B</span>
+          Is {petLabel} loved by one of you, or two?
+        </label>
+        <p className="field__hint">
+          This shapes whether the letter speaks to &ldquo;you&rdquo; or
+          &ldquo;you both.&rdquo;
+        </p>
+        <div className="radio-group">
+          {RELATIONSHIP_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="relationship"
+                value={opt.value}
+                checked={relationship === opt.value}
+                onChange={() => update({ owner: { relationship: opt.value } })}
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="quirks">
+          <span className="field__num">C</span>
+          A quirk or two that are only theirs.
+        </label>
+        <p className="field__hint">
+          The small habits you&apos;d know anywhere.{" "}
+          <em>The way you tilt your head when I say your name.</em>
+        </p>
+        <textarea
+          id="quirks"
+          value={quirks}
+          onChange={(e) => update({ memories: { quirks: e.target.value } })}
+          placeholder="the way you tilt your head when I say your name"
+        />
+        {show && !quirks.trim() ? (
+          <p className="notice notice--required">
+            One small quirk lets the letter sound like {petLabel}. Please add
+            one.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="favorite-ritual">
+          <span className="field__num">D</span>
+          A ritual that&apos;s the best part of the day.
+        </label>
+        <p className="field__hint">
+          The thing you do together, again and again.{" "}
+          <em>Our walk before coffee, every morning.</em>
+        </p>
+        <input
+          type="text"
+          id="favorite-ritual"
+          value={favoriteRitual}
+          onChange={(e) =>
+            update({ memories: { favoriteRitual: e.target.value } })
+          }
+          placeholder="our walk before coffee, every morning"
+        />
+        {show && !favoriteRitual.trim() ? (
+          <p className="notice notice--required">
+            A shared ritual gives the letter its heart. Please add one.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="favorite-spots">
+          <span className="field__num">E</span>
+          The spots that are theirs.
+        </label>
+        <p className="field__hint">
+          One to three places they love.{" "}
+          <em>The spot by the back door where the sun lands at 4pm.</em>
+        </p>
+        <input
+          type="text"
+          id="favorite-spots"
+          value={favoriteSpots}
+          onChange={(e) =>
+            update({ memories: { favoriteSpots: e.target.value } })
+          }
+          placeholder="the spot by the back door where the sun lands at 4pm"
+        />
+        {show && !favoriteSpots.trim() ? (
+          <p className="notice notice--required">
+            A place that is theirs gives the letter somewhere to rest. Please
+            add one.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="favorite-activity">
+          <span className="field__num">F</span>
+          Their favorite thing to do.
+        </label>
+        <p className="field__hint">
+          The ordinary joy they live for.{" "}
+          <em>Stealing one sock and running a victory lap.</em>
+        </p>
+        <input
+          type="text"
+          id="favorite-activity"
+          value={favoriteActivity}
+          onChange={(e) =>
+            update({ memories: { favoriteActivity: e.target.value } })
+          }
+          placeholder="stealing one sock and running a victory lap"
+        />
+        {show && !favoriteActivity.trim() ? (
+          <p className="notice notice--required">
+            One ordinary joy gives the letter its happiest page. Please add one.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="nicknames">
+          <span className="field__num">G</span>
+          Any nicknames? <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          Printed under the signature, if you&apos;d like.{" "}
+          <em>Biscy, the gremlin, sir.</em>
+        </p>
+        <input
+          type="text"
+          id="nicknames"
+          value={nicknames}
+          onChange={(e) => update({ memories: { nicknames: e.target.value } })}
+          placeholder="Biscy, the gremlin"
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="date-adopted">
+          <span className="field__num">H</span>
+          Together since…{" "}
+          <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          If you&apos;d like a date on the cover — the day they came home.
+        </p>
+        <input
+          type="text"
+          id="date-adopted"
+          value={dateAdopted}
+          onChange={(e) =>
+            update({ memories: { dateAdopted: e.target.value } })
+          }
+          placeholder="March 2023"
+          aria-label="The year they came home"
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">I</span>
+          Is {petLabel} here with you, or is this a keepsake?
+        </label>
+        <p className="field__hint">
+          This sets the whole letter&apos;s voice — present tense for a
+          celebration, past tense for a memory.
+        </p>
+        <div className="radio-group">
+          {LIVING_OR_MEMORIAL_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="livingOrMemorial"
+                value={opt.value}
+                checked={livingOrMemorial === opt.value}
+                onChange={() =>
+                  update({ toggles: { livingOrMemorial: opt.value } })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Memorial-only reveal: how they died, the comfort frame, the second
+          date. Hidden entirely in the default living path. */}
+      {isMemorial ? (
+        <>
+          <div className="field">
+            <label className="field__label">
+              <span className="field__num">J</span>
+              How did {petLabel} die?
+            </label>
+            <p className="field__hint">
+              This gently adjusts how the letter speaks about the goodbye.
+            </p>
+            <div className="radio-group">
+              {LETTER_DEATH_OPTIONS.map((opt) => (
+                <label className="radio-option" key={opt.value}>
+                  <input
+                    type="radio"
+                    name="deathType"
+                    value={opt.value}
+                    checked={deathType === opt.value}
+                    onChange={() =>
+                      update({ toggles: { deathType: opt.value } })
+                    }
+                  />
+                  <span className="radio-option__label">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="field">
+            <label className="field__label">
+              <span className="field__num">K</span>
+              Where would you like the letter to say {petLabel} is now?
+            </label>
+            <p className="field__hint">
+              Choose the comfort frame that fits your beliefs.
+            </p>
+            <div className="radio-group">
+              {LETTER_BELIEF_OPTIONS.map((opt) => (
+                <label className="radio-option" key={opt.value}>
+                  <input
+                    type="radio"
+                    name="beliefFrame"
+                    value={opt.value}
+                    checked={beliefFrame === opt.value}
+                    onChange={() =>
+                      update({ toggles: { beliefFrame: opt.value } })
+                    }
+                  />
+                  <span className="radio-option__label">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="field">
+            <label className="field__label" htmlFor="date-passed">
+              <span className="field__num">L</span>
+              The day you said goodbye.{" "}
+              <span className="field__optional">(optional)</span>
+            </label>
+            <p className="field__hint">
+              If you&apos;d like both dates on the cover. We&apos;ll only print
+              them if you gave the &ldquo;together since&rdquo; date too.
+            </p>
+            <input
+              type="text"
+              id="date-passed"
+              value={datePassed}
+              onChange={(e) =>
+                update({ memories: { datePassed: e.target.value } })
+              }
+              placeholder="October 2025"
+              aria-label="The year they died"
+            />
+          </div>
+        </>
+      ) : null}
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">{isMemorial ? "M" : "J"}</span>
+          Is this letter for you, or a gift?
+        </label>
+        <p className="field__hint">
+          Many people keep one and give one. The letter is always written to the
+          owner.
+        </p>
+        <div className="radio-group">
+          {GIFT_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="giftFor"
+                value={opt.value}
+                checked={giftFor === opt.value}
+                onChange={() => update({ toggles: { giftFor: opt.value } })}
               />
               <span className="radio-option__label">{opt.label}</span>
             </label>

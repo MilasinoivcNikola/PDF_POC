@@ -1,14 +1,14 @@
 "use client";
 
-// Step 2 of 6 — the pet's identity and look, shared by both products.
+// Step 2 of 6 — the pet's identity and look, shared by all products.
 //   - Story 1: name (required), species, a few words of appearance (required),
 //     pronoun, illustration style; name + description gate Continue (the
 //     description is a live merge field, so a blank one would break generation);
 //     continues to /create/child.
-//   - Story 2 (the letter): name (required), species, a few words of appearance
-//     (optional — feeds the cover portrait). Pronoun + illustration style are
-//     dropped (the letter is first-person and photo-led). Name gates Continue;
-//     continues to /create/owner.
+//   - Story 2 / Story 4 (the letters): name (required), species, a few words of
+//     appearance (optional — feeds the cover portrait). Pronoun + illustration
+//     style are dropped (a letter is first-person and photo-led). Name gates
+//     Continue; continues to /create/owner.
 // Every field writes straight through to the draft so a refresh keeps it.
 
 import { useState } from "react";
@@ -50,10 +50,15 @@ export default function PetPage() {
   const [showGate, setShowGate] = useState(false);
 
   const storyType = draft?.storyType ?? "story-1";
-  const isStory2 = storyType === "story-2";
+  // Story 2 and Story 4 are both "letter" products: first-person, photo-led, no
+  // child, no pronoun/style. They share the pet step's letter behavior. Story 4
+  // is the *celebration* (living) twin, so its copy is warm/present-tense rather
+  // than grief-toned.
+  const isLetter = storyType === "story-2" || storyType === "story-4";
+  const isStory4 = storyType === "story-4";
   const total = getWizardConfig(storyType).total;
-  // Story 1 continues to the child step; Story 2 (no child) to the owner step.
-  const continueHref = isStory2 ? "/create/owner" : "/create/child";
+  // Story 1 continues to the child step; a letter (no child) to the owner step.
+  const continueHref = isLetter ? "/create/owner" : "/create/child";
 
   const name = draft?.pet.name ?? "";
   const species = draft?.pet.species ?? "dog";
@@ -65,9 +70,9 @@ export default function PetPage() {
   const petLabel = name.trim() ? name.trim() : "your pet";
 
   function handleContinue(): boolean {
-    // Story 1 also gates the description (a live merge field). Story 2's letter
-    // doesn't merge breedColor, so it only gates the name.
-    if (!name.trim() || (!isStory2 && !breedColor.trim())) {
+    // Story 1 also gates the description (a live merge field). A letter doesn't
+    // merge breedColor (it feeds only the cover portrait), so it gates the name.
+    if (!name.trim() || (!isLetter && !breedColor.trim())) {
       setShowGate(true);
       return false;
     }
@@ -78,15 +83,27 @@ export default function PetPage() {
     <StepShell
       step={2}
       total={total}
-      introQuote="Tell us about the one who is gone."
-      introAttribution="So the story can hold them, exactly as they were."
+      introQuote={
+        isStory4
+          ? "Tell us about the one who fills your days."
+          : "Tell us about the one who is gone."
+      }
+      introAttribution={
+        isStory4
+          ? "So the letter sounds like them — exactly as they are."
+          : "So the story can hold them, exactly as they were."
+      }
       sectionLabel="Section · Two"
       sectionHeading={
         <>
           The shape of <em>them</em>.
         </>
       }
-      sectionDescription="The details below help us draw the pet that was actually yours — not a stand-in. The more specific, the better the book."
+      sectionDescription={
+        isStory4
+          ? "The details below help us paint the pet that is actually yours — not a stand-in. The more specific, the better the letter."
+          : "The details below help us draw the pet that was actually yours — not a stand-in. The more specific, the better the book."
+      }
       backHref="/create/upload"
       continueHref={continueHref}
       footerNote="Step 02 · Pet details"
@@ -95,9 +112,13 @@ export default function PetPage() {
       <div className="field">
         <label className="field__label" htmlFor="pet-name">
           <span className="field__num">01</span>
-          What was their name?
+          {isStory4 ? "What's their name?" : "What was their name?"}
         </label>
-        <p className="field__hint">The name you used when calling them home.</p>
+        <p className="field__hint">
+          {isStory4
+            ? "The name you call them by."
+            : "The name you used when calling them home."}
+        </p>
         <input
           type="text"
           id="pet-name"
@@ -107,8 +128,8 @@ export default function PetPage() {
         />
         {showGate && !name.trim() ? (
           <p className="notice notice--required">
-            A name lets the story speak to them directly. Please add one to
-            continue.
+            A name lets the {isStory4 ? "letter" : "story"} speak to them
+            directly. Please add one to continue.
           </p>
         ) : null}
       </div>
@@ -116,7 +137,9 @@ export default function PetPage() {
       <div className="field">
         <label className="field__label">
           <span className="field__num">02</span>
-          What kind of pet was {petLabel}?
+          {isStory4
+            ? `What kind of pet is ${petLabel}?`
+            : `What kind of pet was ${petLabel}?`}
         </label>
         <div className="radio-group">
           {SPECIES_OPTIONS.map((opt) => (
@@ -145,7 +168,7 @@ export default function PetPage() {
             A scruffy rescue mutt with one floppy ear. A black tabby with a
             white chest patch.
           </em>
-          {isStory2 ? " Optional, but it helps us paint the cover." : ""}
+          {isLetter ? " Optional, but it helps us paint the cover." : ""}
         </p>
         <input
           type="text"
@@ -154,7 +177,7 @@ export default function PetPage() {
           onChange={(e) => updateDraft({ pet: { breedColor: e.target.value } })}
           placeholder="a sweet rescue mutt with floppy ears and soft brown eyes"
         />
-        {!isStory2 && showGate && !breedColor.trim() ? (
+        {!isLetter && showGate && !breedColor.trim() ? (
           <p className="notice notice--required">
             A few words here let us draw {petLabel} as they truly were. Please
             add a little to continue.
@@ -162,7 +185,7 @@ export default function PetPage() {
         ) : null}
       </div>
 
-      {!isStory2 ? (
+      {!isLetter ? (
         <>
           <div className="field">
             <label className="field__label">

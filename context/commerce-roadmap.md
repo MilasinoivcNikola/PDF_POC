@@ -5,7 +5,9 @@
 > [local-prototype-plan.md](./local-prototype-plan.md) — we are intentionally
 > graduating the local POC into a small real business.
 > **Product line:** full illustrated keepsake books only (no single portraits).
-> Pet-memorial focused; catalog grows by authoring more book titles.
+> Pet-keepsake focused — both memorial titles (e.g. Story 1 "Saying Goodbye",
+> Story 2 "A Letter from…") and celebration / living titles (e.g. Story 4 "If
+> [PET_NAME] Could Talk"); catalog grows by authoring more book titles.
 > **Fulfillment:** local-worker + human approval gate, async (24–48h hand-finished).
 
 ---

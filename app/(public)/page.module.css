@@ -49,17 +49,23 @@
   max-width: 22em;
 }
 
-/* Story chooser — two product cards (Story 1 / Story 2), each linking to its
-   product detail page. */
+/* Story chooser — three product cards (Story 1 / Story 2 / Story 4), each
+   linking to its product detail page. */
 .chooser {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--s-6);
-  max-width: 52em;
+  max-width: 60em;
   margin-top: var(--s-12);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 960px) {
+  .chooser {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
   .chooser {
     grid-template-columns: 1fr;
   }

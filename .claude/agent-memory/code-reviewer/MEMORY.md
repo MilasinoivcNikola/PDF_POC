@@ -6,3 +6,4 @@
 - [Commerce admin review calibration](commerce-admin-review-calibration.md) — PR-08: reused-route session-gap is security-posture not a code blocker; approve failure-chain + pdfKey-guarded-patch shape validated
 - [Commerce delivery review calibration](commerce-delivery-review-calibration.md) — PR-09: email-failure-leaves-approved chain ordering validated; refuted token-re-mint/cast/SDK concerns; /policies-placeholder is a PM flag
 - [Story-4 text review calibration](story4-text-review-calibration.md) — feature 20 two-tense engine: byte-identity technique for shared letter-renderer changes; refuted unreachable-throw/PageId-widening; present-tense belief-close is a real exception not a leak
+- [Story-4 wizard review calibration](story4-wizard-review-calibration.md) — feature 22 UI/commerce: isStory2→isLetter swaps are byte-safe for existing products; living-path stale-enum is inert at the merge layer (don't flag)
