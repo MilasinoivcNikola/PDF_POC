@@ -35,6 +35,7 @@ const SCENE_SLOTS: readonly PageId[] = [
   ...getStory("story-1").illustrationSlots,
   ...getStory("story-2").illustrationSlots,
   ...getStory("story-4").illustrationSlots,
+  ...getStory("story-5").illustrationSlots,
 ];
 
 /** Read `{ id, page }` from the request body, with the page narrowed to a scene. */

@@ -28,8 +28,14 @@ import type {
   StorySession,
   Story2Session,
   Story4Session,
+  Story5Session,
 } from "@/lib/session/types";
-import type { PageId, Story2PageId, Story4PageId } from "@/lib/story/master-text";
+import type {
+  PageId,
+  Story2PageId,
+  Story4PageId,
+  Story5PageId,
+} from "@/lib/story/master-text";
 import { getOpenAI, photoToFile } from "@/lib/ai/client";
 import { buildScenePrompts, SCENE_PAGE_IDS } from "@/lib/ai/prompts";
 import {
@@ -40,6 +46,10 @@ import {
   buildStory4SlotPrompts,
   type Story4SlotPrompt,
 } from "@/lib/ai/story4-prompts";
+import {
+  buildStory5SlotPrompts,
+  type Story5SlotPrompt,
+} from "@/lib/ai/story5-prompts";
 import { getStory } from "@/lib/story/registry";
 import {
   findCachedImage,
@@ -404,6 +414,9 @@ export async function generateAllIllustrations(
   if (storyType === "story-4") {
     return generateStory4Illustrations(session as unknown as Story4Session, options);
   }
+  if (storyType === "story-5") {
+    return generateStory5Illustrations(session as unknown as Story5Session, options);
+  }
 
   const approach = options.approach ?? "A";
   const sceneQuality = options.sceneQuality ?? "low";
@@ -655,6 +668,84 @@ async function generateStory4Illustrations(
   });
 }
 
+// ---------------------------------------------------------------------------
+// Story 5 — minimal Premium imagery (cover portrait + belief wash)
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate (or reuse from cache) one Story-5 slot, save it, and return its
+ * manifest entry. Story 5's imagery shape is IDENTICAL to Story 2's: the cover
+ * portrait passes the uploaded photo as a reference (pet consistency, via
+ * `images.edit`); the belief wash passes NO reference (an abstract, photo-free
+ * wash, via `images.generate`). So this is a near-clone of `generateAndSaveStory2Slot`
+ * — NOT Story 4's both-reference-anchored shape. Same cache contract as the
+ * Story-1/2/4 paths: same page + prompt hash + reference hash + file on disk ⇒ a
+ * pure lookup, zero spend.
+ */
+async function generateAndSaveStory5Slot(
+  session: Story5Session,
+  slot: Story5PageId,
+  slotPrompt: Story5SlotPrompt,
+  photoBytes: Buffer,
+  quality: Quality,
+): Promise<GeneratedImage> {
+  const references = slotPrompt.useReference ? [photoBytes] : [];
+  const promptHash = hashPrompt(slotPrompt.prompt);
+  const referenceHash = hashReferenceSet(references);
+
+  const cached = await findCachedImage(session.images, slot, promptHash, referenceHash);
+  if (cached) {
+    return cached;
+  }
+
+  const bytes = slotPrompt.useReference
+    ? await generateSceneIllustration(references, slotPrompt.prompt, quality)
+    : await generateImageFromPrompt(slotPrompt.prompt, quality);
+  const path = await saveImage(session.id, `${slot}.png`, bytes);
+  return { page: slot, path, promptHash, referenceHash };
+}
+
+/**
+ * Generate Story 5's Premium imagery: the cover portrait + the belief-frame wash
+ * (two images, not thirteen). The slot list comes from the registry
+ * (`getStory("story-5").illustrationSlots`), so adding/removing a Story-5 slot is a
+ * registry change, not an orchestrator change. Each slot's prompt + reference flag
+ * come from `buildStory5SlotPrompts` — the same shape as Story 2 (cover references
+ * the photo, the wash does not). The two slots are independent ⇒ generated through
+ * the bounded worker pool (the same rate-limit guard the Story-1/2/4 paths use),
+ * and every write goes through the traversal guards.
+ *
+ * Like Story 2, there is no separate "reference" anchor slot — `note-cover` IS the
+ * portrait — so the returned manifest is exactly the registry's slots.
+ */
+async function generateStory5Illustrations(
+  session: Story5Session,
+  options: GenerateOptions,
+): Promise<GeneratedImage[]> {
+  const quality = options.sceneQuality ?? "low";
+
+  if (!isSafeSessionId(session.id)) {
+    throw new Error(`Unsafe session id: ${session.id}`);
+  }
+
+  const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+  if (!photoPath) {
+    throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+  }
+  const photoBytes = await readImage(photoPath);
+
+  const slots = getStory("story-5").illustrationSlots as readonly Story5PageId[];
+  const prompts = buildStory5SlotPrompts(session);
+
+  return mapWithConcurrency(slots, DEFAULT_CONCURRENCY, async (slot) => {
+    const slotPrompt = prompts[slot];
+    if (!slotPrompt) {
+      throw new Error(`No Story-5 prompt builder for slot: ${slot}`);
+    }
+    return generateAndSaveStory5Slot(session, slot, slotPrompt, photoBytes, quality);
+  });
+}
+
 /**
  * Regenerate a SINGLE page's illustration, re-using the reference illustration
  * already on disk (no second reference generation). Feeds feature 10's
@@ -697,6 +788,14 @@ export async function regenerateSceneIllustration(
     return regenerateStory4Slot(
       session as unknown as Story4Session,
       page as Story4PageId,
+      sceneQuality,
+    );
+  }
+
+  if (storyType === "story-5") {
+    return regenerateStory5Slot(
+      session as unknown as Story5Session,
+      page as Story5PageId,
       sceneQuality,
     );
   }
@@ -789,6 +888,42 @@ async function regenerateStory4Slot(
   return { page: slot, path, promptHash, referenceHash };
 }
 
+/**
+ * Regenerate a SINGLE Story-5 slot (the cover portrait or the belief wash),
+ * bypassing the cache (an explicit fresh render). Identical shape to Story 2: the
+ * cover references the photo; the belief wash is photo-free — so the references /
+ * API path follow the slot's `useReference` flag, exactly as the full Story-5 run
+ * does. Saves over the old PNG and returns the updated manifest entry for the
+ * caller to splice.
+ */
+async function regenerateStory5Slot(
+  session: Story5Session,
+  slot: Story5PageId,
+  quality: Quality,
+): Promise<GeneratedImage> {
+  const slotPrompt = buildStory5SlotPrompts(session)[slot];
+  if (!slotPrompt) {
+    throw new Error(`No Story-5 prompt builder for slot: ${slot}`);
+  }
+
+  const references: Buffer[] = [];
+  if (slotPrompt.useReference) {
+    const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+    if (!photoPath) {
+      throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+    }
+    references.push(await readImage(photoPath));
+  }
+
+  const promptHash = hashPrompt(slotPrompt.prompt);
+  const referenceHash = hashReferenceSet(references);
+  const bytes = slotPrompt.useReference
+    ? await generateSceneIllustration(references, slotPrompt.prompt, quality)
+    : await generateImageFromPrompt(slotPrompt.prompt, quality);
+  const path = await saveImage(session.id, `${slot}.png`, bytes);
+  return { page: slot, path, promptHash, referenceHash };
+}
+
 // ---------------------------------------------------------------------------
 // Manifest → renderer input
 // ---------------------------------------------------------------------------
@@ -800,10 +935,10 @@ async function regenerateStory4Slot(
  * assets). Only ILLUSTRATED slots map through — the set is the union of every
  * product's `illustrationSlots` (the registry), so the Story-1 anchor "reference"
  * and the writing-only "back-cover" are both excluded (neither is an illustration
- * slot), while Story-2's `letter-cover`/`letter-page-5` and Story-4's
- * `talk-cover`/`talk-page-4` pass through. Reads each saved PNG back from disk;
- * missing files are skipped so the template falls back to its placeholder art for
- * that page.
+ * slot), while Story-2's `letter-cover`/`letter-page-5`, Story-4's
+ * `talk-cover`/`talk-page-4`, and Story-5's `note-cover`/`note-page-5` pass through.
+ * Reads each saved PNG back from disk; missing files are skipped so the template
+ * falls back to its placeholder art for that page.
  */
 export async function manifestToImageMap(
   manifest: readonly GeneratedImage[],
@@ -813,6 +948,7 @@ export async function manifestToImageMap(
     ...getStory("story-1").illustrationSlots,
     ...getStory("story-2").illustrationSlots,
     ...getStory("story-4").illustrationSlots,
+    ...getStory("story-5").illustrationSlots,
   ]);
   await Promise.all(
     manifest

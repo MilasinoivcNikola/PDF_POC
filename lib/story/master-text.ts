@@ -88,13 +88,33 @@ export type Story4PageId =
   | "talk-page-6";
 
 /**
+ * Stable id for each Story-5 slot ("A Letter to [PET_NAME]" — the inverse/
+ * companion of Story 2, the owner writing TO the pet who died; feature 23). A
+ * distinct `note-` prefix keeps the ids from colliding with Story 2's `letter-`
+ * and Story 4's `talk-` ids even though all three render with the shared
+ * `letter-cover` / `letter` layouts: the cover is "PAGE 1" and the body pages are
+ * 2-6, so the Story-5 variant code can address them precisely ("note-page-4" etc.).
+ */
+export type Story5PageId =
+  | "note-cover"
+  | "note-page-2"
+  | "note-page-3"
+  | "note-page-4"
+  | "note-page-5"
+  | "note-page-6";
+
+/**
  * The stable id for any book slot, across products. Shared, product-agnostic
  * types key on this — `ResolvedPage.id`, `PageImageMap`, the registry's
  * `illustrationSlots` — so the union is the sum of every product's slot ids.
  * (Same generalization shape as `PageLayout` in lib/story/merge.ts, which feature
  * 14 widened so one renderer can serve more than one product.)
  */
-export type PageId = Story1PageId | Story2PageId | Story4PageId;
+export type PageId =
+  | Story1PageId
+  | Story2PageId
+  | Story4PageId
+  | Story5PageId;
 
 // ---------------------------------------------------------------------------
 // Unresolved page model (this module's output, before variants + merge)

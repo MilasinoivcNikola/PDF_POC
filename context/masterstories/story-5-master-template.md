@@ -167,11 +167,15 @@ Thank you for [QUIRKS]. I would give anything to see it one more time.
 
 Thank you for the small ordinary things that I thought would last forever — for being at the door, for [FAVORITE_SPOTS], for the sound you made that meant you were happy. You made an ordinary life feel like enough. That was you. That was your whole quiet gift.
 
+And thank you for [LAST_GOOD_DAY].
+
 You were a good [SPECIES]. The best one. Mine.
 
 *Illustration brief:* Optional small margin element — a single hand-drawn line of the pet doing one specific thing from the ritual, sketch style, not full color. Best version may have no illustration at all. Let Page 5's wash be the only painted body page.
 
 *Fallback if [QUIRKS] is blank or shallow:* replace the "[QUIRKS]" sentence with — "Thank you for the way you found me without looking, the way you knew which days were the hard ones, the way your name fit you so exactly. I would give anything to see any of it one more time."
+
+*Fallback if [LAST_GOOD_DAY] is blank:* replace the "And thank you for [LAST_GOOD_DAY]." line with — "And thank you for the last good ordinary day, the one I didn't know to memorize." The page must never print a dangling "And thank you for ." fragment.
 
 *Variant for [RELATIONSHIP_TYPE] = couple/family:* "we didn't always say so… we're saying so now… we would give anything… I thought would last forever → we thought would last forever… You made our ordinary life feel like enough… The best one. Ours."
 

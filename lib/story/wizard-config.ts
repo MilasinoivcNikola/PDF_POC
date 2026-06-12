@@ -69,10 +69,25 @@ const STORY_4_STEPS: readonly WizardStep[] = [
   { id: "generate", step: 6 },
 ];
 
+/**
+ * Story 5's six steps: upload → pet → owner → letter → tone → generate. The same
+ * shape as Story 2 (the inverse/companion); the wizard UI (PR 24) reads its own
+ * field set per step, but the step ordering + count is identical.
+ */
+const STORY_5_STEPS: readonly WizardStep[] = [
+  { id: "upload", step: 1 },
+  { id: "pet", step: 2 },
+  { id: "owner", step: 3 },
+  { id: "letter", step: 4 },
+  { id: "tone", step: 5 },
+  { id: "generate", step: 6 },
+];
+
 const WIZARD_CONFIG: Record<StoryType, WizardConfig> = {
   "story-1": { steps: STORY_1_STEPS, total: STORY_1_STEPS.length },
   "story-2": { steps: STORY_2_STEPS, total: STORY_2_STEPS.length },
   "story-4": { steps: STORY_4_STEPS, total: STORY_4_STEPS.length },
+  "story-5": { steps: STORY_5_STEPS, total: STORY_5_STEPS.length },
 };
 
 /** The wizard configuration for a product (default Story 1 for a missing type). */

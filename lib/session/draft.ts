@@ -18,6 +18,7 @@ import type {
   Story2Session,
   Story4Draft,
   Story4Session,
+  Story5Draft,
   WizardDraft,
   AgeBracket,
   DeathType,
@@ -406,9 +407,16 @@ export function isStory4Draft(draft: WizardDraft): draft is Story4Draft {
   return draft.storyType === "story-4";
 }
 
+/** True if the draft is a Story-5 draft (narrows the union for callers). */
+export function isStory5Draft(draft: WizardDraft): draft is Story5Draft {
+  return draft.storyType === "story-5";
+}
+
 /** True if the draft is a Story-1 draft (the default — no/legacy `storyType`). */
 export function isStory1Draft(draft: WizardDraft): draft is StoryDraft {
-  return !isStory2Draft(draft) && !isStory4Draft(draft);
+  return (
+    !isStory2Draft(draft) && !isStory4Draft(draft) && !isStory5Draft(draft)
+  );
 }
 
 /**
@@ -416,12 +424,19 @@ export function isStory1Draft(draft: WizardDraft): draft is StoryDraft {
  * codes (the union of `RequiredField` | `Story2RequiredField` |
  * `Story4RequiredField`). The Generate step + the public order form use this to
  * gate and to drive the "go fix it" links per product.
+ *
+ * Story 5's draft→session bridge is PR 24's job (the wizard/order form is not yet
+ * built), so an (unreachable today — no catalog/SSG route mints a Story-5 draft)
+ * Story-5 draft throws here rather than silently mis-gating.
  */
 export function missingRequiredFieldsForDraft(
   draft: WizardDraft,
 ): (RequiredField | Story2RequiredField | Story4RequiredField)[] {
   if (isStory2Draft(draft)) return missingRequiredFieldsStory2(draft);
   if (isStory4Draft(draft)) return missingRequiredFieldsStory4(draft);
+  if (isStory5Draft(draft)) {
+    throw new Error("Story-5 draft bridge is not wired yet (PR 24)");
+  }
   return missingRequiredFields(draft);
 }
 
@@ -431,11 +446,17 @@ export function missingRequiredFieldsForDraft(
  * first. Returns the `StorySession | Story2Session | Story4Session` union; the
  * POST body the /api/session + /api/order routes validate carries `storyType` so
  * the server re-branches.
+ *
+ * Story 5's draft→session bridge is PR 24's job (genuinely unreachable today — no
+ * catalog/SSG route mints a Story-5 draft), so it throws here.
  */
 export function draftToSessionForDraft(
   draft: WizardDraft,
 ): StorySession | Story2Session | Story4Session {
   if (isStory2Draft(draft)) return draftToSessionStory2(draft);
   if (isStory4Draft(draft)) return draftToSessionStory4(draft);
+  if (isStory5Draft(draft)) {
+    throw new Error("Story-5 draft bridge is not wired yet (PR 24)");
+  }
   return draftToSession(draft);
 }

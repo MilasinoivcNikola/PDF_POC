@@ -4,18 +4,20 @@
 //
 // Routing those lookups through `getStory(session.storyType ?? "story-1")` instead
 // of importing the Story-1 modules directly is the seam that lets the app host more
-// than one product. Story 1 ("Saying Goodbye"), Story 2 ("A Letter") and Story 4
-// ("If [PET_NAME] Could Talk") are all registered; a type with no definition still
-// throws (so an unknown future type is loud rather than silently mis-resolved).
+// than one product. Story 1 ("Saying Goodbye"), Story 2 ("A Letter from"), Story 4
+// ("If [PET_NAME] Could Talk") and Story 5 ("A Letter to") are all registered; a
+// type with no definition still throws (so an unknown future type is loud rather
+// than silently mis-resolved).
 //
 // This module is a lookup table only — no story logic lives here. Each product's
 // definition wraps its own existing functions (see lib/story/story-1.ts,
-// lib/story/story-2.ts and lib/story/story-4.ts).
+// lib/story/story-2.ts, lib/story/story-4.ts and lib/story/story-5.ts).
 
 import type {
   StorySession,
   Story2Session,
   Story4Session,
+  Story5Session,
   StoryType,
 } from "@/lib/session/types";
 import type { PageId } from "@/lib/story/master-text";
@@ -24,6 +26,7 @@ import type { WizardConfig } from "@/lib/story/wizard-config";
 import { story1Definition } from "@/lib/story/story-1";
 import { story2Definition } from "@/lib/story/story-2";
 import { story4Definition } from "@/lib/story/story-4";
+import { story5Definition } from "@/lib/story/story-5";
 
 /**
  * The "edit your own words" contract for the in-browser preview (feature 19),
@@ -64,7 +67,8 @@ export interface EditableFieldsContract {
 export type AnyEditableSession =
   | StorySession
   | Story2Session
-  | Story4Session;
+  | Story4Session
+  | Story5Session;
 
 /**
  * Everything the render + API pipeline needs from a story product, in one place.
@@ -97,6 +101,7 @@ const REGISTRY: Partial<Record<StoryType, StoryDefinition>> = {
   "story-1": story1Definition,
   "story-2": story2Definition,
   "story-4": story4Definition,
+  "story-5": story5Definition,
 };
 
 /**

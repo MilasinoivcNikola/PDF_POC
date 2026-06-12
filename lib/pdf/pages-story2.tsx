@@ -18,26 +18,38 @@
 import type { ResolvedPage } from "@/lib/story/merge";
 import { LETTER_SIGNOFF } from "@/lib/story/story2/master-text";
 import { TALK_SIGNOFF } from "@/lib/story/story4/master-text";
+import { NOTE_SIGNOFF } from "@/lib/story/story5/master-text";
 
 // The sign-off sentinels that mark the start of a letter's signature block, across
 // every product that renders with the `letter` layout. The body is split at the
 // first paragraph equal to one of these; everything from it onward is the signature
 // block. Each is invariant across that product's variants (it carries no merge
-// field). Story 2 signs "Yours, always,"; Story 4 signs "Yours,". Story 2's body is
-// unaffected — its sentinel is still found at the same index, so its output stays
+// field). Story 2 signs "Yours, always,"; Story 4 signs "Yours,"; Story 5 signs
+// "With all my love, always,". Each is distinct and never a standalone body
+// paragraph in another product, so Story 2's and Story 4's bodies are unaffected —
+// their sentinels are still found at the same index, so their output stays
 // byte-identical.
-const LETTER_SIGNOFFS: readonly string[] = [LETTER_SIGNOFF, TALK_SIGNOFF];
+const LETTER_SIGNOFFS: readonly string[] = [
+  LETTER_SIGNOFF,
+  TALK_SIGNOFF,
+  NOTE_SIGNOFF,
+];
 
 /** The index of the signature sign-off in a body, or -1 if the page has none. */
 function signoffIndexOf(body: string[]): number {
   return body.findIndex((line) => LETTER_SIGNOFFS.includes(line));
 }
 
-// The single body page that carries the optional belief-frame wash (master
-// template Page 5, "Where I Am Now"). Only this page renders the wash slot; the
-// other body pages (letter-page-2/-3/-4/-6) stay text-only — no image, no empty
-// box, no layout shift — keeping the letter's "white space is the design" feel.
-const LETTER_WASH_PAGE_ID = "letter-page-5";
+// The body pages that carry the optional belief-frame wash (master template Page
+// 5, "Where I Am Now"), across every product that renders with the `letter`
+// layout: Story 2's `letter-page-5` and Story 5's `note-page-5` (the letter TO the
+// pet shares Story 2's imagery shape — reference cover + figure-free Page-5 wash).
+// Only these pages render the wash slot; the other body pages stay text-only — no
+// image, no empty box, no layout shift — keeping the letter's "white space is the
+// design" feel. Story 4 has no wash slot, so adding `note-page-5` here cannot
+// change Story 2's or Story 4's output (their page ids are not in the set / never
+// carry a wash `src`), keeping their PDFs byte-identical.
+const LETTER_WASH_PAGE_IDS: readonly string[] = ["letter-page-5", "note-page-5"];
 
 // ---------------------------------------------------------------------------
 // Small shared bits
@@ -115,9 +127,10 @@ function LetterBodyPage({ page, src }: { page: ResolvedPage; src?: string }) {
   const prose = hasSignature ? page.body.slice(0, signoffIndex) : page.body;
   // Signature run: [sign-off, petName, (nickname?), (date?)].
   const signature = hasSignature ? page.body.slice(signoffIndex) : [];
-  // The belief-frame wash (feature 17) renders ONLY on letter-page-5 and only
-  // when present; every other body page ignores `src`, staying text-only.
-  const showWash = page.id === LETTER_WASH_PAGE_ID && Boolean(src);
+  // The belief-frame wash (feature 17) renders ONLY on a wash page
+  // (letter-page-5 / note-page-5) and only when present; every other body page
+  // ignores `src`, staying text-only.
+  const showWash = LETTER_WASH_PAGE_IDS.includes(page.id) && Boolean(src);
 
   return (
     <section className="letter-page letter-page--body" data-page={page.id}>
