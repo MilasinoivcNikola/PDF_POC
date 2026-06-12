@@ -8,7 +8,12 @@ import type { StoryType } from "@/lib/session/types";
 // product per live `storyType` (see lib/catalog/products.ts module doc), so this
 // list lets us assert the catalog covers every story the registry can resolve —
 // adding a Story 3 to the registry without a catalog entry would then fail here.
-const ALL_STORY_TYPES: StoryType[] = ["story-1", "story-2", "story-4"];
+const ALL_STORY_TYPES: StoryType[] = [
+  "story-1",
+  "story-2",
+  "story-4",
+  "story-5",
+];
 
 // The product catalog (PR-02) under test: a pure, client-safe data module that
 // turns each registered `storyType` into a sellable `Product`. The load-bearing
@@ -18,17 +23,19 @@ const ALL_STORY_TYPES: StoryType[] = ["story-1", "story-2", "story-4"];
 // prices and that lookups behave.
 
 describe("getProducts", () => {
-  it("lists exactly the live books (story-1 + story-2 + story-4)", () => {
+  it("lists exactly the live books (story-1 + story-2 + story-4 + story-5)", () => {
     const products = getProducts();
     expect(products.map((p) => p.productId)).toEqual([
       "story-1-book",
       "story-2-letter",
       "story-4-talk",
+      "story-5-letter-to",
     ]);
     expect(products.map((p) => p.storyType)).toEqual([
       "story-1",
       "story-2",
       "story-4",
+      "story-5",
     ]);
   });
 
@@ -161,5 +168,53 @@ describe("story-4-talk catalog entry", () => {
     const types = getProducts().map((p) => p.storyType);
     expect(ids.filter((id) => id === "story-4-talk")).toHaveLength(1);
     expect(types.filter((t) => t === "story-4")).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story 5 — the new "A Letter to [PET_NAME]" listing (PR 24)
+// ---------------------------------------------------------------------------
+//
+// The Story-2 companion ("one from them, one from you"). Same focused assertions
+// the spec calls for, beyond the generic list/no-drift guards above: the entry
+// exists with the right storyType, its illustrationCount is the registry's 2
+// (derived, not a literal), the placeholder price is in place, and its
+// id/storyType are unique. Story 5 sells at $29 like Story 2 — identical form,
+// illustration count, and fulfillment effort.
+
+describe("story-5-letter-to catalog entry", () => {
+  it("is present in the catalog with storyType 'story-5'", () => {
+    const product = getProduct("story-5-letter-to");
+    expect(product).not.toBeNull();
+    expect(product?.productId).toBe("story-5-letter-to");
+    expect(product?.storyType).toBe("story-5");
+  });
+
+  it("derives illustrationCount from the registry (= 2 Premium slots), not a literal", () => {
+    const product = getProduct("story-5-letter-to")!;
+    // The registry's Story-5 slot list is the cover portrait + the figure-free
+    // belief wash — the same imagery shape as Story 2.
+    const slots = getStory("story-5").illustrationSlots;
+    expect(product.illustrationCount).toBe(slots.length);
+    expect(slots.length).toBe(2);
+    expect(product.illustrationCount).toBe(2);
+  });
+
+  it("uses the $29 placeholder display price (2900 cents)", () => {
+    expect(getProduct("story-5-letter-to")!.priceUsd).toBe(2900);
+  });
+
+  it("has non-empty marketing copy (title, tagline, description)", () => {
+    const product = getProduct("story-5-letter-to")!;
+    expect(product.title.trim().length).toBeGreaterThan(0);
+    expect(product.tagline.trim().length).toBeGreaterThan(0);
+    expect(product.description.trim().length).toBeGreaterThan(0);
+  });
+
+  it("has a unique id/storyType not shared with Stories 1, 2 or 4", () => {
+    const ids = getProducts().map((p) => p.productId);
+    const types = getProducts().map((p) => p.storyType);
+    expect(ids.filter((id) => id === "story-5-letter-to")).toHaveLength(1);
+    expect(types.filter((t) => t === "story-5")).toHaveLength(1);
   });
 });

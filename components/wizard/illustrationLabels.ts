@@ -53,6 +53,18 @@ export const TALK_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
   "talk-page-4",
 ];
 
+/**
+ * The Story-5 ordered set of slots — the two Premium "A Letter to [PET_NAME]"
+ * images (cover portrait + the figure-free belief-frame wash), the same imagery
+ * shape as Story 2. Declared here (not imported from story-5.ts) to keep this
+ * module client-safe; the story-5 tests assert these match the registry's
+ * `illustrationSlots`.
+ */
+export const NOTE_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
+  "note-cover",
+  "note-page-5",
+];
+
 /** The progress-checklist slot list for a product (default Story 1). */
 export function illustrationSlotsFor(
   storyType: StoryType,
@@ -62,6 +74,9 @@ export function illustrationSlotsFor(
   }
   if (storyType === "story-4") {
     return TALK_ILLUSTRATION_SLOTS;
+  }
+  if (storyType === "story-5") {
+    return NOTE_ILLUSTRATION_SLOTS;
   }
   return ILLUSTRATION_SLOTS;
 }
@@ -120,6 +135,19 @@ function story4LabelsFor(name: string): Partial<Record<IllustrationSlot, string>
 }
 
 /**
+ * Story-5 labels — the two Premium "A Letter to [PET_NAME]" images, in the warm,
+ * owner-voiced tone of the letter written TO the pet. The cover portrait is the
+ * pet looking back; the belief-frame wash is the soft sunlit / quiet page (no pet
+ * figure), the same imagery shape as Story 2.
+ */
+function story5LabelsFor(name: string): Partial<Record<IllustrationSlot, string>> {
+  return {
+    "note-cover": `Cover portrait — ${name}, as you remember them`,
+    "note-page-5": "A soft wash for where you keep them",
+  };
+}
+
+/**
  * Resolve a slot's human-friendly checklist label for a given pet name + product.
  * Defaults to the Story-1 labels for a missing/Story-1 type.
  */
@@ -134,6 +162,8 @@ export function illustrationLabel(
     labels = story2LabelsFor(name);
   } else if (storyType === "story-4") {
     labels = story4LabelsFor(name);
+  } else if (storyType === "story-5") {
+    labels = story5LabelsFor(name);
   } else {
     labels = story1LabelsFor(name);
   }

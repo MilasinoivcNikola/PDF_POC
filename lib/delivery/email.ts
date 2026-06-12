@@ -58,9 +58,13 @@ export interface DeliveryEmailPayload {
   text: string;
 }
 
-/** "letter" (Story 2 / Story 4) or "book" (Story 1) — the noun the copy uses. */
+/** "letter" (Story 2 / Story 4 / Story 5) or "book" (Story 1) — the copy's noun. */
 function keepsakeNoun(storyType: StoryType): string {
-  return storyType === "story-2" || storyType === "story-4" ? "letter" : "book";
+  return storyType === "story-2" ||
+    storyType === "story-4" ||
+    storyType === "story-5"
+    ? "letter"
+    : "book";
 }
 
 /**

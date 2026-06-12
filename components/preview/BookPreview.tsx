@@ -359,10 +359,13 @@ export function BookPreview({ sessionId, renderActions }: BookPreviewProps) {
   }
 
   const petName = data.petName.trim() || "your pet";
-  // Both letter products (Story 2 grief letter, Story 4 celebration letter)
-  // render single-column sheets, not facing-page spreads.
+  // All three letter products (Story 2 grief letter, Story 4 celebration letter,
+  // Story 5 letter to the pet) render single-column sheets, not facing-page
+  // spreads.
   const isLetter =
-    data.storyType === "story-2" || data.storyType === "story-4";
+    data.storyType === "story-2" ||
+    data.storyType === "story-4" ||
+    data.storyType === "story-5";
 
   // Per-story dispatch: which pages carry a regenerate-able illustration, and the
   // "edit your own words" contract (editable fields, required check, copy). Both
@@ -526,6 +529,9 @@ function fallbackFilename(storyType: StoryType | undefined): string {
   }
   if (storyType === "story-4") {
     return "If-Your-Pet-Could-Talk.pdf";
+  }
+  if (storyType === "story-5") {
+    return "Letter-to.pdf";
   }
   return "Saying-Goodbye.pdf";
 }

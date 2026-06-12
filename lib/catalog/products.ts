@@ -83,10 +83,15 @@ export interface Product {
 // - Story 4 ("If [PET_NAME] Could Talk") lists $27-29 PDF in its master template,
 //   with $29 the explicit recommendation (matching Story 2, undercutting the
 //   printed incumbents) — 2900 ($29) is the placeholder.
+// - Story 5 ("A Letter to [PET_NAME]") lists $29 PDF in its master template (same
+//   as Story 2 — identical form, illustration count, and fulfillment effort) —
+//   2900 ($29) is the placeholder. The Stories 2 + 5 companion BUNDLE is out of
+//   scope (a separate, PM-gated multi-product commerce decision).
 
 const PLACEHOLDER_STORY_1_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_2_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_4_PRICE_USD = 2900;
+const PLACEHOLDER_STORY_5_PRICE_USD = 2900;
 
 // ---------------------------------------------------------------------------
 // The catalog
@@ -175,6 +180,25 @@ function buildCatalog(): Product[] {
       sampleImages: [
         "/samples/story-4-talk/talk-cover.jpg",
         "/samples/story-4-talk/talk-page-4.jpg",
+      ],
+    }),
+    buildProduct("story-5-letter-to", "story-5", {
+      title: "A Letter to Your Pet",
+      tagline: "A letter, in your voice — the things you didn't get to say.",
+      description:
+        "A 6-page personalized letter written, this time, by you. A gentle, " +
+        "guided way to say the things you didn't get to say to your pet: the " +
+        "thank-you, the apology that lifts the weight, the last good day, and " +
+        "what you're keeping. We write the connective words with care; you " +
+        "supply the specifics that make it yours. The companion to A Letter " +
+        "from Your Pet — one letter from them, one from you. Illustrated with a " +
+        "watercolor portrait painted from your photo. Designed to be printed on " +
+        "cardstock and framed. Written with care by people who have been on the " +
+        "other side of this.",
+      priceUsd: PLACEHOLDER_STORY_5_PRICE_USD,
+      sampleImages: [
+        "/samples/story-5-letter-to/note-cover.jpg",
+        "/samples/story-5-letter-to/note-page-5.jpg",
       ],
     }),
   ];

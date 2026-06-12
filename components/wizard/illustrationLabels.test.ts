@@ -6,6 +6,7 @@ import {
   ILLUSTRATION_SLOTS,
   LETTER_ILLUSTRATION_SLOTS,
   TALK_ILLUSTRATION_SLOTS,
+  NOTE_ILLUSTRATION_SLOTS,
   illustrationLabel,
   illustrationSlotsFor,
 } from "./illustrationLabels";
@@ -92,6 +93,30 @@ describe("TALK_ILLUSTRATION_SLOTS", () => {
 });
 
 // ---------------------------------------------------------------------------
+// NOTE_ILLUSTRATION_SLOTS — Story 5's two note slots, registry-locked
+// ---------------------------------------------------------------------------
+
+describe("NOTE_ILLUSTRATION_SLOTS", () => {
+  it("is exactly the two Premium note slots (no `reference` anchor)", () => {
+    expect([...NOTE_ILLUSTRATION_SLOTS]).toEqual([
+      "note-cover",
+      "note-page-5",
+    ]);
+  });
+
+  it("equals the registry's Story-5 illustrationSlots (drift guard)", () => {
+    // The checklist the owner watches must match what the pipeline actually
+    // generates. The slots are declared in illustrationLabels.ts (to keep it
+    // client-safe) but MUST stay in lockstep with the registry's source of truth —
+    // if someone edits one list and not the other, this fails. Mirrors the
+    // Story-2 / Story-4 drift guards.
+    expect([...NOTE_ILLUSTRATION_SLOTS]).toEqual([
+      ...getStory("story-5").illustrationSlots,
+    ]);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // illustrationSlotsFor — per-product checklist slot list
 // ---------------------------------------------------------------------------
 
@@ -109,6 +134,11 @@ describe("illustrationSlotsFor", () => {
   it("returns the 2 talk slots for story-4", () => {
     expect(illustrationSlotsFor("story-4")).toBe(TALK_ILLUSTRATION_SLOTS);
     expect(illustrationSlotsFor("story-4")).toHaveLength(2);
+  });
+
+  it("returns the 2 note slots for story-5", () => {
+    expect(illustrationSlotsFor("story-5")).toBe(NOTE_ILLUSTRATION_SLOTS);
+    expect(illustrationSlotsFor("story-5")).toHaveLength(2);
   });
 });
 
@@ -220,6 +250,33 @@ describe("illustrationLabel", () => {
   it("returns a non-empty string for every slot in TALK_ILLUSTRATION_SLOTS", () => {
     for (const slot of TALK_ILLUSTRATION_SLOTS) {
       const label = illustrationLabel(slot, "Biscuit", "story-4");
+      expect(label.length).toBeGreaterThan(0);
+      expect(label).not.toContain("undefined");
+    }
+  });
+
+  // Story 5 (the owner's letter TO the pet): the two note slots, owner-toned.
+  it("uses the Story-5 cover label (pet name woven in) for story-5", () => {
+    expect(illustrationLabel("note-cover", "Murphy", "story-5")).toBe(
+      "Cover portrait — Murphy, as you remember them",
+    );
+  });
+
+  it("uses the Story-5 belief-wash label (name-free) for story-5", () => {
+    expect(illustrationLabel("note-page-5", "Murphy", "story-5")).toBe(
+      "A soft wash for where you keep them",
+    );
+  });
+
+  it("substitutes the gentle default for a blank pet name in story-5 labels", () => {
+    expect(illustrationLabel("note-cover", "  ", "story-5")).toBe(
+      "Cover portrait — your pet, as you remember them",
+    );
+  });
+
+  it("returns a non-empty string for every slot in NOTE_ILLUSTRATION_SLOTS", () => {
+    for (const slot of NOTE_ILLUSTRATION_SLOTS) {
+      const label = illustrationLabel(slot, "Murphy", "story-5");
       expect(label.length).toBeGreaterThan(0);
       expect(label).not.toContain("undefined");
     }

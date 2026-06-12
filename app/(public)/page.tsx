@@ -65,9 +65,10 @@ export default function Home() {
 
           <p className={`lede ${styles.landingLede} fade-in fade-in-3`}>
             Personalized pet keepsakes, illustrated from a photo of your own pet
-            and written with care. A story to read with your child, a goodbye
-            letter in your pet&apos;s own voice, or a joyful letter for the one
-            still curled up beside you — made by hand, for you.
+            and written with care. A story to read with your child, a pair of
+            goodbye letters — one in your pet&apos;s voice, one in yours — or a
+            joyful letter for the one still curled up beside you. Made by hand, for
+            you.
           </p>
 
           <div className={`${styles.landingCta} fade-in fade-in-3`}>
@@ -83,7 +84,7 @@ export default function Home() {
               </svg>
             </Link>
             <p className={styles.landingCtaMeta}>
-              Three keepsakes, each made to order. Delivered as a print-quality
+              Four keepsakes, each made to order. Delivered as a print-quality
               PDF.
             </p>
           </div>
@@ -113,7 +114,7 @@ export default function Home() {
             </Link>
 
             <Link href="/books/story-2-letter" className={styles.chooserCard}>
-              <span className={styles.chooserKicker}>In memory</span>
+              <span className={styles.chooserKicker}>In memory · from them</span>
               <h2 className={styles.chooserTitle}>
                 A goodbye, in <em>their voice</em>.
               </h2>
@@ -121,6 +122,29 @@ export default function Home() {
                 A keepsake letter written from your pet&apos;s perspective at the
                 Rainbow Bridge, addressed to you by name. Made to be printed,
                 framed, and kept.
+              </p>
+              <span className={styles.chooserLink}>
+                See the letter
+                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
+                  <path
+                    d="M1 6h16m0 0L12 1m5 5l-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            </Link>
+
+            <Link href="/books/story-5-letter-to" className={styles.chooserCard}>
+              <span className={styles.chooserKicker}>In memory · from you</span>
+              <h2 className={styles.chooserTitle}>
+                A goodbye, in <em>your voice</em>.
+              </h2>
+              <p className={styles.chooserBody}>
+                The companion letter — written this time by you, to the pet who is
+                gone. The thank-you, the apology, the last good day. One from them,
+                one from you.
               </p>
               <span className={styles.chooserLink}>
                 See the letter

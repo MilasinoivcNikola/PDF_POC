@@ -42,8 +42,8 @@ export default function BooksPage() {
           <p className="lede">
             Each keepsake is illustrated from a photo of your own pet and written
             with care. Choose the one that fits — a story to read with your
-            child, a goodbye letter in your pet&apos;s own voice, or a joyful
-            letter for the one still curled up beside you.
+            child, a pair of goodbye letters (one in your pet&apos;s voice, one in
+            yours), or a joyful letter for the one still curled up beside you.
           </p>
         </section>
 

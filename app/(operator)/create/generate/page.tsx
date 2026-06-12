@@ -18,6 +18,7 @@ import {
   type RequiredField,
   type Story2RequiredField,
   type Story4RequiredField,
+  type Story5RequiredField,
 } from "@/lib/session/draft";
 
 interface FieldFix {
@@ -104,6 +105,28 @@ const STORY4_FIELD_FIX: Record<Story4RequiredField, FieldFix> = {
   },
 };
 
+/** Which step a missing Story-5 required field lives on, for the "go fix it" link. */
+const STORY5_FIELD_FIX: Record<Story5RequiredField, FieldFix> = {
+  petName: { label: "your pet's name", href: "/create/pet", step: "Step 2" },
+  species: { label: "what kind of pet they were", href: "/create/pet", step: "Step 2" },
+  photo: { label: "a photo of your pet", href: "/create/upload", step: "Step 1" },
+  ownerNames: {
+    label: "the name to sign the letter with",
+    href: "/create/owner",
+    step: "Step 3",
+  },
+  favoriteRitual: {
+    label: "a ritual you shared",
+    href: "/create/letter",
+    step: "Step 4",
+  },
+  favoriteSpots: {
+    label: "the spots that were theirs",
+    href: "/create/letter",
+    step: "Step 4",
+  },
+};
+
 type Phase = "idle" | "writing" | "generating" | "error";
 
 export default function GeneratePage() {
@@ -120,18 +143,26 @@ export default function GeneratePage() {
   const storyType = draft?.storyType ?? "story-1";
   const isStory2 = storyType === "story-2";
   const isStory4 = storyType === "story-4";
-  // Both letters (Story 2 / Story 4) are first-person, photo-led keepsakes.
-  const isLetter = isStory2 || isStory4;
+  const isStory5 = storyType === "story-5";
+  // All three letters (Story 2 / Story 4 / Story 5) are photo-led keepsakes.
+  const isLetter = isStory2 || isStory4 || isStory5;
   // The previous step differs by product (Story 1: style; the letters: tone).
   const backHref = isLetter ? "/create/tone" : "/create/style";
   const fieldFix = isStory4
     ? STORY4_FIELD_FIX
-    : isStory2
-      ? STORY2_FIELD_FIX
-      : STORY1_FIELD_FIX;
+    : isStory5
+      ? STORY5_FIELD_FIX
+      : isStory2
+        ? STORY2_FIELD_FIX
+        : STORY1_FIELD_FIX;
 
   const missing = useMemo<
-    (RequiredField | Story2RequiredField | Story4RequiredField)[]
+    (
+      | RequiredField
+      | Story2RequiredField
+      | Story4RequiredField
+      | Story5RequiredField
+    )[]
   >(() => (draft ? missingRequiredFieldsForDraft(draft) : []), [draft]);
 
   const petName = draft?.pet.name?.trim() ? draft.pet.name.trim() : "your pet";
@@ -309,7 +340,7 @@ export default function GeneratePage() {
             <p className="lede mt-4" style={{ margin: "1rem auto 0" }}>
               {isStory4
                 ? "We'll paint the cover portrait and one scene from the photo you shared, then typeset the six-page letter. This usually takes a minute or two."
-                : isStory2
+                : isStory2 || isStory5
                   ? "We'll paint the cover portrait from the photo you shared and typeset the six-page letter. This usually takes a minute or two."
                   : "We'll paint each illustration from the photo you shared and assemble the twelve-page book. This usually takes a minute or two."}
             </p>

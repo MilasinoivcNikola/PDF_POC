@@ -9,6 +9,17 @@ interface DetailProps {
   params: Promise<{ productId: string }>;
 }
 
+/**
+ * The Story 2 ↔ Story 5 companion pairing — "one letter from them, one from you."
+ * Each maps to the OTHER product's id; the detail page surfaces a copy-only
+ * cross-link (no bundle SKU, no combined-price cart — that is out of scope). Other
+ * products have no companion.
+ */
+const COMPANION_PRODUCT_ID: Record<string, string> = {
+  "story-2-letter": "story-5-letter-to",
+  "story-5-letter-to": "story-2-letter",
+};
+
 /** Prerender both catalog products as static pages. */
 export function generateStaticParams(): { productId: string }[] {
   return getProducts().map((product) => ({ productId: product.productId }));
@@ -35,6 +46,10 @@ export default async function BookDetailPage({ params }: DetailProps) {
   if (!product) {
     notFound();
   }
+
+  const companion = COMPANION_PRODUCT_ID[product.productId]
+    ? getProduct(COMPANION_PRODUCT_ID[product.productId])
+    : null;
 
   return (
     <div className="page-wrap">
@@ -125,6 +140,33 @@ export default async function BookDetailPage({ params }: DetailProps) {
                 print-quality PDF.
               </p>
             </div>
+
+            {companion ? (
+              <div className={styles.companion}>
+                <span className={styles.companionKicker}>
+                  One from them, one from you
+                </span>
+                <p className={styles.companionBody}>
+                  {product.storyType === "story-5"
+                    ? "This is the letter you write to them. Its companion is the letter they write to you — at the Rainbow Bridge, in their own voice."
+                    : "This is the letter they write to you. Its companion is the one you write to them — the thank-you, the apology, the last good day."}
+                </p>
+                <Link
+                  href={`/books/${companion.productId}`}
+                  className={styles.companionLink}
+                >
+                  See &ldquo;{companion.title}&rdquo;
+                  <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
+                    <path
+                      d="M1 6h16m0 0L12 1m5 5l-5 5"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            ) : null}
           </div>
         </article>
       </main>

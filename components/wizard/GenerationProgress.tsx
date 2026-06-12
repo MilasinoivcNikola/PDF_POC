@@ -125,7 +125,7 @@ export function GenerationProgress({
           Bringing <em>{name}</em> to life.
         </h1>
         <p className="gen-subtitle">
-          {storyType === "story-2"
+          {storyType === "story-2" || storyType === "story-5"
             ? "The cover portrait is painted from the photo you uploaded. This usually takes a minute or two — please don't close the window."
             : storyType === "story-4"
               ? "The cover portrait and the scene are painted from the photo you uploaded. This usually takes a minute or two — please don't close the window."
@@ -202,7 +202,7 @@ export function GenerationProgress({
           Using gpt-image-2-2026-04-21 · Low quality
         </p>
         <p className="label">
-          {storyType === "story-2"
+          {storyType === "story-2" || storyType === "story-5"
             ? "~$0.02 per letter · From your own credits"
             : storyType === "story-4"
               ? "~$0.01 per letter · From your own credits"

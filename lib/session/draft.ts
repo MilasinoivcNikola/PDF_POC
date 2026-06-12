@@ -19,6 +19,7 @@ import type {
   Story4Draft,
   Story4Session,
   Story5Draft,
+  Story5Session,
   WizardDraft,
   AgeBracket,
   DeathType,
@@ -390,6 +391,122 @@ export function draftToSessionStory4(draft: Story4Draft): Story4Session {
 }
 
 // ===========================================================================
+// Story 5 — "A Letter to [PET_NAME]" draft → session bridge
+// ===========================================================================
+//
+// Story 5 is the inverse/companion of Story 2 (the OWNER's second-person voice
+// writing a letter TO the pet who died, single-tense past). It REUSES Story 2's
+// `Owner` group and shares Story 2's letter memories PLUS the two genuinely new
+// fields `lastGoodDay` + `whatIKeep` (`Story5Memories`). SIX fields are required:
+// pet name, owner names, species, photo (the Premium cover uses it), plus the two
+// personal free-text fields the letter merges as live placeholders with NO
+// fallback — favoriteRitual, favoriteSpots. One fewer than Story 2 because
+// `quirks` is optional-with-fallback here (the variant layer supplies a stock
+// Page-3 line when it is blank), as are `lastGoodDay` / `whatIKeep` — so they are
+// dropped-when-blank rather than required. The optional nicknames/dateAdopted/
+// datePassed stay optional too — merge drops a blank one rather than printing an
+// empty line — and the toggle/enum fields have non-empty defaults that never
+// break merge.
+//
+// Toggles are the simplest of the letter products: just `deathType` +
+// `beliefFrame` (no `giftFor`, no `newPet`, no `livingOrMemorial`).
+
+/** A required field the Story-5 wizard gates Generate on. */
+export type Story5RequiredField =
+  | "petName"
+  | "ownerNames"
+  | "species"
+  | "photo"
+  | "favoriteRitual"
+  | "favoriteSpots";
+
+/**
+ * The required Story-5 fields still missing from a draft, in display order. Empty
+ * array means the draft can be finalized. Required = pet name, owner names,
+ * species, photo, and the two personal free-text fields (favoriteRitual,
+ * favoriteSpots) the letter merges as live placeholders with no fallback. `quirks`
+ * / `lastGoodDay` / `whatIKeep` are optional-with-fallback, so they are NOT here.
+ */
+export function missingRequiredFieldsStory5(
+  draft: Story5Draft,
+): Story5RequiredField[] {
+  const missing: Story5RequiredField[] = [];
+  if (!present(draft.pet.name)) {
+    missing.push("petName");
+  }
+  if (!present(draft.owner.names)) {
+    missing.push("ownerNames");
+  }
+  if (!present(draft.pet.species)) {
+    missing.push("species");
+  }
+  if (!present(draft.pet.photo)) {
+    missing.push("photo");
+  }
+  if (!present(draft.memories.favoriteRitual)) {
+    missing.push("favoriteRitual");
+  }
+  if (!present(draft.memories.favoriteSpots)) {
+    missing.push("favoriteSpots");
+  }
+  return missing;
+}
+
+/**
+ * Assemble a finalized `Story5Session` from a complete Story-5 draft, filling any
+ * skipped optional fields with the master-template defaults. Throws if a required
+ * field (pet name, owner names, species, photo, favoriteRitual, favoriteSpots) is
+ * missing — callers should gate on `missingRequiredFieldsStory5` first. Free-text
+ * fields are trimmed; the optional-with-fallback (quirks, lastGoodDay, whatIKeep)
+ * and the optional nickname/date fields are dropped rather than stored as "" so
+ * merge applies its fallback / never prints an empty line.
+ */
+export function draftToSessionStory5(draft: Story5Draft): Story5Session {
+  const missing = missingRequiredFieldsStory5(draft);
+  if (missing.length > 0) {
+    throw new Error(`missing_required_fields: ${missing.join(", ")}`);
+  }
+
+  const { quirks, lastGoodDay, whatIKeep, nicknames, dateAdopted, datePassed } =
+    draft.memories;
+
+  return {
+    id: draft.id,
+    createdAt: draft.createdAt,
+    status: "generating",
+    storyType: "story-5",
+    pet: {
+      name: draft.pet.name!.trim(),
+      species: draft.pet.species ?? DEFAULT_SPECIES,
+      breedColor: draft.pet.breedColor?.trim() ?? "",
+      pronoun: draft.pet.pronoun ?? DEFAULT_PRONOUN,
+      illustrationStyle:
+        draft.pet.illustrationStyle ?? DEFAULT_ILLUSTRATION_STYLE,
+      photo: draft.pet.photo!,
+    },
+    owner: {
+      names: draft.owner.names!.trim(),
+      relationship: draft.owner.relationship ?? DEFAULT_RELATIONSHIP,
+    },
+    memories: {
+      quirks: present(quirks) ? quirks.trim() : "",
+      favoriteRitual: draft.memories.favoriteRitual!.trim(),
+      favoriteSpots: draft.memories.favoriteSpots!.trim(),
+      ...(present(lastGoodDay) ? { lastGoodDay: lastGoodDay.trim() } : {}),
+      ...(present(whatIKeep) ? { whatIKeep: whatIKeep.trim() } : {}),
+      ...(present(nicknames) ? { nicknames: nicknames.trim() } : {}),
+      ...(present(dateAdopted) ? { dateAdopted: dateAdopted.trim() } : {}),
+      ...(present(datePassed) ? { datePassed: datePassed.trim() } : {}),
+    },
+    toggles: {
+      deathType: draft.toggles.deathType ?? DEFAULT_LETTER_DEATH_TYPE,
+      beliefFrame: draft.toggles.beliefFrame ?? DEFAULT_LETTER_BELIEF_FRAME,
+    },
+    images: [],
+  };
+}
+
+// ===========================================================================
 // Story-type dispatchers — branch on the draft's storyType
 // ===========================================================================
 //
@@ -422,41 +539,35 @@ export function isStory1Draft(draft: WizardDraft): draft is StoryDraft {
 /**
  * The required fields still missing from a draft of a wired product, as string
  * codes (the union of `RequiredField` | `Story2RequiredField` |
- * `Story4RequiredField`). The Generate step + the public order form use this to
- * gate and to drive the "go fix it" links per product.
- *
- * Story 5's draft→session bridge is PR 24's job (the wizard/order form is not yet
- * built), so an (unreachable today — no catalog/SSG route mints a Story-5 draft)
- * Story-5 draft throws here rather than silently mis-gating.
+ * `Story4RequiredField` | `Story5RequiredField`). The Generate step + the public
+ * order form use this to gate and to drive the "go fix it" links per product.
  */
 export function missingRequiredFieldsForDraft(
   draft: WizardDraft,
-): (RequiredField | Story2RequiredField | Story4RequiredField)[] {
+): (
+  | RequiredField
+  | Story2RequiredField
+  | Story4RequiredField
+  | Story5RequiredField
+)[] {
   if (isStory2Draft(draft)) return missingRequiredFieldsStory2(draft);
   if (isStory4Draft(draft)) return missingRequiredFieldsStory4(draft);
-  if (isStory5Draft(draft)) {
-    throw new Error("Story-5 draft bridge is not wired yet (PR 24)");
-  }
+  if (isStory5Draft(draft)) return missingRequiredFieldsStory5(draft);
   return missingRequiredFields(draft);
 }
 
 /**
  * Assemble the finalized session for a draft of a wired product. Throws if a
  * required field is missing — callers gate on `missingRequiredFieldsForDraft`
- * first. Returns the `StorySession | Story2Session | Story4Session` union; the
- * POST body the /api/session + /api/order routes validate carries `storyType` so
- * the server re-branches.
- *
- * Story 5's draft→session bridge is PR 24's job (genuinely unreachable today — no
- * catalog/SSG route mints a Story-5 draft), so it throws here.
+ * first. Returns the `StorySession | Story2Session | Story4Session |
+ * Story5Session` union; the POST body the /api/session + /api/order routes
+ * validate carries `storyType` so the server re-branches.
  */
 export function draftToSessionForDraft(
   draft: WizardDraft,
-): StorySession | Story2Session | Story4Session {
+): StorySession | Story2Session | Story4Session | Story5Session {
   if (isStory2Draft(draft)) return draftToSessionStory2(draft);
   if (isStory4Draft(draft)) return draftToSessionStory4(draft);
-  if (isStory5Draft(draft)) {
-    throw new Error("Story-5 draft bridge is not wired yet (PR 24)");
-  }
+  if (isStory5Draft(draft)) return draftToSessionStory5(draft);
   return draftToSession(draft);
 }

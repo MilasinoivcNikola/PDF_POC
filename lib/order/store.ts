@@ -16,6 +16,7 @@ import type {
   StorySession,
   Story2Session,
   Story4Session,
+  Story5Session,
 } from "@/lib/session/types";
 
 /** The Postgres table name. */
@@ -32,7 +33,7 @@ export interface OrderRow {
   story_type: Order["storyType"];
   status: OrderStatus;
   customer_email: string;
-  inputs: StorySession | Story2Session | Story4Session;
+  inputs: StorySession | Story2Session | Story4Session | Story5Session;
   photo_key: string;
   pdf_key: string | null;
   ls_order_id: string | null;
