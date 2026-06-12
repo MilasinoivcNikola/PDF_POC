@@ -70,7 +70,7 @@ Not Started
 - [ ] Optional fields (`nicknames`, `dateAdopted`, `datePassed`) omit cleanly (no dangling dash, no empty line); the memorial date line appears only when **both** dates are present.
 - [ ] Missing required field → `MergeError`, never a literal token.
 - [ ] `getStory("story-4")` resolves; a hand-authored Story-4 fixture renders a **6-page** PDF via `npm run render:test` ($0, placeholder SVGs).
-- [ ] **Story 1 AND Story 2 PDFs are byte-identical** (no shared renderer/CSS touched — verify both fixtures: length + timestamp-normalized SHA).
+- [ ] **Story 1 AND Story 2 PDFs are byte-identical** (no shared **CSS**, `PageLayout`, or `renderPage` switch touched; the sibling letter renderer's sign-off detection was generalized in a byte-preserving way — `LETTER_SIGNOFFS` set) — verified by render:test: length + timestamp-normalized SHA on both fixtures.
 - [ ] `npm run build` + `npm run test:run` + `npx tsc --noEmit` pass; the public-boundary test still passes.
 
 ## Tests

@@ -22,6 +22,7 @@ import { newDraft } from "@/lib/session/storage";
 import { isValidEmail } from "@/lib/order/email";
 import {
   draftToSessionForDraft,
+  isStory1Draft,
   isStory2Draft,
   missingRequiredFieldsForDraft,
 } from "@/lib/session/draft";
@@ -102,9 +103,10 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
 
   const isStory2 = storyType === "story-2";
 
-  // Narrow the draft per product for typed group access.
+  // Narrow the draft per product for typed group access. Story 4 has no order
+  // form yet (PR 22), so a Story-4 draft narrows to neither story1 nor story2.
   const story2 = draft && isStory2Draft(draft) ? draft : null;
-  const story1 = draft && !isStory2Draft(draft) ? draft : null;
+  const story1 = draft && isStory1Draft(draft) ? draft : null;
 
   const petName = draft?.pet.name ?? "";
   const species = draft?.pet.species ?? "dog";

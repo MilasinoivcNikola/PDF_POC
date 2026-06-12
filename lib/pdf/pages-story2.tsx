@@ -17,6 +17,21 @@
 
 import type { ResolvedPage } from "@/lib/story/merge";
 import { LETTER_SIGNOFF } from "@/lib/story/story2/master-text";
+import { TALK_SIGNOFF } from "@/lib/story/story4/master-text";
+
+// The sign-off sentinels that mark the start of a letter's signature block, across
+// every product that renders with the `letter` layout. The body is split at the
+// first paragraph equal to one of these; everything from it onward is the signature
+// block. Each is invariant across that product's variants (it carries no merge
+// field). Story 2 signs "Yours, always,"; Story 4 signs "Yours,". Story 2's body is
+// unaffected — its sentinel is still found at the same index, so its output stays
+// byte-identical.
+const LETTER_SIGNOFFS: readonly string[] = [LETTER_SIGNOFF, TALK_SIGNOFF];
+
+/** The index of the signature sign-off in a body, or -1 if the page has none. */
+function signoffIndexOf(body: string[]): number {
+  return body.findIndex((line) => LETTER_SIGNOFFS.includes(line));
+}
 
 // The single body page that carries the optional belief-frame wash (master
 // template Page 5, "Where I Am Now"). Only this page renders the wash slot; the
@@ -85,16 +100,17 @@ function LetterCoverPage({ page, src }: { page: ResolvedPage; src?: string }) {
  * cap (those are children's-book furniture; the letter's design is white space).
  *
  * The final letter page (Page 6) ends in a signature block. We find it WITHOUT
- * coupling to a page id or to literal resolved copy: split the body at the
- * `LETTER_SIGNOFF` sentinel (single-sourced from the master text; it carries no
- * merge field, so it is invariant across every variant). Everything before it is
- * prose; the sign-off line, the pet-name signature, and the optional nickname +
- * date lines after it form the signature block with its own hierarchy (sign-off
- * italic, name in the serif, nickname/date smaller). Pages without a sign-off
- * (2–5) render every paragraph as prose and have no signature block.
+ * coupling to a page id or to literal resolved copy: split the body at the first
+ * sign-off sentinel (one of `LETTER_SIGNOFFS`, single-sourced from each product's
+ * master text; each carries no merge field, so it is invariant across that
+ * product's variants). Everything before it is prose; the sign-off line, the
+ * pet-name signature, and the optional nickname + date lines after it form the
+ * signature block with its own hierarchy (sign-off italic, name in the serif,
+ * nickname/date smaller). Pages without a sign-off (2–5) render every paragraph as
+ * prose and have no signature block.
  */
 function LetterBodyPage({ page, src }: { page: ResolvedPage; src?: string }) {
-  const signoffIndex = page.body.indexOf(LETTER_SIGNOFF);
+  const signoffIndex = signoffIndexOf(page.body);
   const hasSignature = signoffIndex !== -1;
   const prose = hasSignature ? page.body.slice(0, signoffIndex) : page.body;
   // Signature run: [sign-off, petName, (nickname?), (date?)].

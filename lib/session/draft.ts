@@ -16,6 +16,7 @@ import type {
   StorySession,
   Story2Draft,
   Story2Session,
+  Story4Draft,
   WizardDraft,
   AgeBracket,
   DeathType,
@@ -271,28 +272,48 @@ export function isStory2Draft(draft: WizardDraft): draft is Story2Draft {
 }
 
 /**
- * The required fields still missing from a draft of EITHER product, as string
+ * True if the draft is a Story-4 draft (narrows the union for callers). Story 4's
+ * wizard/order assembly is owned by a later PR (PR 22); until then no UI ever
+ * creates a Story-4 draft, so the dispatchers below treat one as not-yet-wired.
+ */
+export function isStory4Draft(draft: WizardDraft): draft is Story4Draft {
+  return draft.storyType === "story-4";
+}
+
+/** True if the draft is a Story-1 draft (the default — no/legacy `storyType`). */
+export function isStory1Draft(draft: WizardDraft): draft is StoryDraft {
+  return !isStory2Draft(draft) && !isStory4Draft(draft);
+}
+
+/**
+ * The required fields still missing from a draft of a wired product, as string
  * codes (the union of `RequiredField` | `Story2RequiredField`). The Generate step
- * uses this to gate and to drive the "go fix it" links per product.
+ * uses this to gate and to drive the "go fix it" links per product. Story 4's
+ * wizard is not wired yet (PR 22); a Story-4 draft is unreachable here.
  */
 export function missingRequiredFieldsForDraft(
   draft: WizardDraft,
 ): (RequiredField | Story2RequiredField)[] {
-  return isStory2Draft(draft)
-    ? missingRequiredFieldsStory2(draft)
-    : missingRequiredFields(draft);
+  if (isStory2Draft(draft)) return missingRequiredFieldsStory2(draft);
+  if (isStory4Draft(draft)) {
+    throw new Error("Story 4 draft assembly is not wired yet (PR 22)");
+  }
+  return missingRequiredFields(draft);
 }
 
 /**
- * Assemble the finalized session for a draft of EITHER product. Throws if a
+ * Assemble the finalized session for a draft of a wired product. Throws if a
  * required field is missing — callers gate on `missingRequiredFieldsForDraft`
  * first. Returns the `StorySession | Story2Session` union; the POST body the
  * /api/session route validates carries `storyType` so the server re-branches.
+ * Story 4's draft→session assembly is not wired yet (PR 22).
  */
 export function draftToSessionForDraft(
   draft: WizardDraft,
 ): StorySession | Story2Session {
-  return isStory2Draft(draft)
-    ? draftToSessionStory2(draft)
-    : draftToSession(draft);
+  if (isStory2Draft(draft)) return draftToSessionStory2(draft);
+  if (isStory4Draft(draft)) {
+    throw new Error("Story 4 draft assembly is not wired yet (PR 22)");
+  }
+  return draftToSession(draft);
 }

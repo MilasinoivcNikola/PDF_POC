@@ -1,0 +1,33 @@
+{
+  "id": "test-biscuit-living",
+  "createdAt": "2026-06-12T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-4",
+  "pet": {
+    "name": "Biscuit",
+    "species": "dog",
+    "breedColor": "rescue mutt with the lopsided grin",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/biscuit.jpg"
+  },
+  "owner": {
+    "names": "Sarah",
+    "relationship": "single"
+  },
+  "memories": {
+    "quirks": "the way I lose my mind when you pick up the leash",
+    "favoriteRitual": "our walk before coffee, every single morning",
+    "favoriteSpots": "the spot by the back door where the sun lands at 4pm",
+    "favoriteActivity": "stealing one sock and running a victory lap",
+    "nicknames": "Biscy, the gremlin, sir",
+    "dateAdopted": "March 2023"
+  },
+  "toggles": {
+    "livingOrMemorial": "living",
+    "giftFor": "self",
+    "deathType": "peaceful",
+    "beliefFrame": "rainbow-bridge"
+  },
+  "images": []
+}
