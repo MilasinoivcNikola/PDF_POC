@@ -63,3 +63,16 @@ export function letterToPdfFilename(petName: string): string {
   const slug = slugify(petName) || "Pet";
   return `Letter-to-${slug}.pdf`;
 }
+
+/**
+ * The output filename for a rendered Story-6 living tribute ("While You're Still
+ * Here, [PET_NAME]"), per that template's production checklist:
+ * `While-Youre-Still-Here-[PET_NAME].pdf`. The "While-Youre-Still-Here-" prefix is
+ * the template's exact filename (the apostrophe in "You're" is dropped, matching
+ * the checklist). Same path-safe slugify as `storyPdfFilename`, with the same
+ * `Pet` fallback for an empty/symbol-only name.
+ */
+export function tributePdfFilename(petName: string): string {
+  const slug = slugify(petName) || "Pet";
+  return `While-Youre-Still-Here-${slug}.pdf`;
+}

@@ -31,6 +31,15 @@ export type BeliefFrame = "rainbow-bridge" | "heaven" | "secular" | "none";
 /** Whether other pets remain in the home — adjusts Page 11 phrasing. */
 export type OtherPetsInHome = "yes" | "no";
 
+/**
+ * The Story-6 transition-frame toggle ("While You're Still Here") — sets the
+ * register of Page 5. `still-here` (default) celebrates the present and never
+ * looks past today; `road-ahead` adds a single plain, forward-looking sentence
+ * for owners holding a terminal/hard diagnosis. Even in `road-ahead`, gratitude
+ * dominates and death is never named (see story6/variants.ts).
+ */
+export type TransitionFrame = "still-here" | "road-ahead";
+
 /** Lifecycle of a session as it moves from wizard to generated book. */
 export type SessionStatus = "draft" | "generating" | "ready";
 
@@ -40,7 +49,9 @@ export type SessionStatus = "draft" | "generating" | "ready";
  * "story-4" is the celebration twin ("If [PET_NAME] Could Talk" — a living pet's
  * present-tense letter, with a memorial past-tense toggle; feature 20); "story-5"
  * is the inverse of Story 2 ("A Letter to [PET_NAME]" — the owner's second-person
- * voice writing TO the pet who died; feature 23). The registry
+ * voice writing TO the pet who died; feature 23); "story-6" is the living tribute
+ * ("While You're Still Here, [PET_NAME]" — a present-tense NARRATIVE book for a
+ * pet who is STILL ALIVE, reusing Story 1's layouts; feature 25). The registry
  * (lib/story/registry.ts) maps each value to its resolver, illustration plan, and
  * PDF-filename builder.
  *
@@ -49,7 +60,12 @@ export type SessionStatus = "draft" | "generating" | "ready";
  * `session.storyType ?? "story-1"`. That is what makes the field zero-migration
  * for on-disk `./sessions/*.json`.
  */
-export type StoryType = "story-1" | "story-2" | "story-4" | "story-5";
+export type StoryType =
+  | "story-1"
+  | "story-2"
+  | "story-4"
+  | "story-5"
+  | "story-6";
 
 // ---------------------------------------------------------------------------
 // Input groups (collected by the wizard)
@@ -468,6 +484,118 @@ export interface Story5Session {
 }
 
 // ===========================================================================
+// Story 6 — "While You're Still Here, [PET_NAME]" (living tribute)
+// ===========================================================================
+//
+// The sixth product (feature 25). The first NARRATIVE-layout new book since
+// Story 1: an 8-page living tribute (cover + page-1 dedication + pages 2-6 + back
+// cover) whose present-tense narrator speaks TO and ABOUT a pet who is STILL
+// ALIVE — a senior pet, or one with a hard/terminal diagnosis. It REUSES Story 1's
+// `cover` / `dedication` / `narrative` / `love` / `back-cover` layouts wholesale
+// (no new `PageLayout`, no renderer case). Field coverage maps 1:1 to the master
+// template's "Merge fields" + "Special-case toggles" tables
+// (context/masterstories/story-6-master-template.md).
+//
+// REUSES the Story-1 `Pet` group IN FULL (name, species, breedColor, pronoun,
+// illustrationStyle, photo) — unlike the letters, it keeps `pronoun` + the
+// `illustrationStyle` choice, because it is a narrative book like Story 1. It also
+// REUSES the Story-2 `Owner` group (the owner whose voice narrates); `relationship`
+// defaults to "single" and is never read by the variant engine. There is NO child.
+//
+// SCOPE NOTE (PM, 2026-06-12): the memorial-conversion / "second life" of this
+// order — the `DEATH_TYPE` / `BELIEF_FRAME` toggles + the `truth` death layout —
+// is DROPPED ENTIRELY. Story 6 carries NO `deathType`/`beliefFrame`, and the
+// `truth` layout never appears for a Story-6 order. This is a pure living tribute.
+
+/**
+ * The customer's free-text inputs that personalize the living tribute. Three
+ * genuinely-new fields (`ageOrStage`, `stillLoves`, `ownerMessage`) join free-text
+ * names reused from the other books. `ageOrStage` + the required day-to-day fields
+ * back live `{placeholder}`s; `quirks`/`stillLoves` are optional-with-fallback (a
+ * stock line replaces them when blank); `ownerMessage`/`nicknames`/`dateAdopted`/
+ * `favoriteSpots`/`sleepingSpot` are optional-omit (no dangling artifact when
+ * blank). The wizard required gate (PR 26) keys on the same split.
+ */
+export interface Story6Memories {
+  /** [AGE_OR_STAGE] — NEW, e.g. "13 years young", "a grand old senior". Required. */
+  ageOrStage: string;
+  /** [QUIRKS] — 1-3 sentences. Optional-with-fallback on Page 4. */
+  quirks: string;
+  /** [STILL_LOVES] — NEW, present tense, e.g. "still waits at the window at four". Optional-with-fallback on Page 3. */
+  stillLoves: string;
+  /** [FAVORITE_ACTIVITY] — e.g. "the slow morning walk we still take". Required (Page 3). */
+  favoriteActivity: string;
+  /** [FAVORITE_RITUAL] — e.g. "the coffee I drink with my hand on your back". Required (Page 3). */
+  favoriteRitual: string;
+  /** [SLEEPING_SPOT] — e.g. "the warm square of sun by the back door". Optional (feeds art briefs). */
+  sleepingSpot: string;
+  /** [FAVORITE_SPOTS] — 1-3 spots. Optional (feeds art briefs + the stillLoves fallback). */
+  favoriteSpots: string;
+  /** [OWNER_MESSAGE] — NEW, optional free-text printed on the dedication. */
+  ownerMessage?: string;
+  /** [PET_NICKNAMES] — optional, up to 3. */
+  nicknames?: string;
+  /** [DATE_ADOPTED] — optional, e.g. "Spring 2013". */
+  dateAdopted?: string;
+}
+
+/**
+ * The Story-6 toggles collected as short follow-up questions. `transitionFrame`
+ * is the defining toggle (the register of Page 5); `otherPetsInHome` reuses the
+ * Story-1 union and optionally appends a Page-4 line. There is deliberately NO
+ * `deathType`/`beliefFrame` — the memorial conversion is dropped (see the section
+ * header).
+ */
+export interface Story6Toggles {
+  /** [TRANSITION_FRAME] — sets Page 5's register. Default "still-here". */
+  transitionFrame: TransitionFrame;
+  /** [OTHER_PETS_IN_HOME] — optionally appends a Page-4 line. */
+  otherPetsInHome: OtherPetsInHome;
+}
+
+/**
+ * The in-progress Story-6 order the wizard holds in `localStorage`. Mirrors the
+ * `StoryDraft` shape: every input group is `Partial` because the user fills them
+ * step by step; `id`/`createdAt`/`status` exist from creation onward. Required-
+ * field validation happens at the wizard boundary (PR 26), not in the type.
+ *
+ * Discriminated by the literal `storyType: "story-6"` (not optional — a Story-6
+ * draft always knows it is one).
+ */
+export interface Story6Draft {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-6";
+  pet: Partial<Pet>;
+  owner: Partial<Owner>;
+  memories: Partial<Story6Memories>;
+  toggles: Partial<Story6Toggles>;
+}
+
+/**
+ * A finalized Story-6 order written to `./sessions/[id].json` at Generate time.
+ * Mirrors `StorySession`: all input groups are complete (required fields
+ * present); generation state fills in as illustrations and the PDF are produced.
+ * Discriminated by the literal `storyType: "story-6"`, so the registry routes it
+ * to `resolveStory6`.
+ */
+export interface Story6Session {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-6";
+  pet: Pet;
+  owner: Owner;
+  memories: Story6Memories;
+  toggles: Story6Toggles;
+  /** Per-page generated-illustration manifest (empty until generation runs). */
+  images: GeneratedImage[];
+  /** Path to the rendered PDF under ./output, once produced. */
+  pdfPath?: string;
+}
+
+// ===========================================================================
 // Wizard draft union — what the in-browser wizard holds (any product)
 // ===========================================================================
 
@@ -476,11 +604,18 @@ export interface Story5Session {
  * `storyType` discriminant decides which groups are present: a `StoryDraft`
  * (Story 1, with `child`/`memories: Memories`), a `Story2Draft` (Story 2, with
  * `owner`/`memories: LetterMemories`), a `Story4Draft` (Story 4, with
- * `owner`/`memories: Story4Memories`), or a `Story5Draft` (Story 5, with
- * `owner`/`memories: Story5Memories`). Consumers branch on `storyType` (a missing
- * one is Story 1, via `?? "story-1"`, since legacy Story-1 drafts omit it).
+ * `owner`/`memories: Story4Memories`), a `Story5Draft` (Story 5, with
+ * `owner`/`memories: Story5Memories`), or a `Story6Draft` (Story 6, the living
+ * tribute, with `owner`/`memories: Story6Memories`). Consumers branch on
+ * `storyType` (a missing one is Story 1, via `?? "story-1"`, since legacy Story-1
+ * drafts omit it).
  *
  * `loadDraft()` returns this union so a single localStorage entry can hold any
  * product without crashing the other products' readers.
  */
-export type WizardDraft = StoryDraft | Story2Draft | Story4Draft | Story5Draft;
+export type WizardDraft =
+  | StoryDraft
+  | Story2Draft
+  | Story4Draft
+  | Story5Draft
+  | Story6Draft;

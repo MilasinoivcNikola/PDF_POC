@@ -24,15 +24,19 @@ import type { StorySession } from "@/lib/session/types";
 /**
  * The full set of images a book produces — the count the progress UI polls
  * against. The slots come from the session's story definition (the registry), so
- * the count is product-specific. Story 1 also writes a separate `reference.png`
- * anchor that is not one of its slots, so it is `slots + 1` (13 scenes + 1 = 14);
- * Story 2's two slots ARE the images (no separate reference), so it is exactly
- * `slots` (= 2). The `+ 1` is gated on the story actually having that anchor.
+ * the count is product-specific. The reference-anchored narrative products (Story
+ * 1 and Story 6) also write a separate `reference.png` anchor that is not one of
+ * their slots, so they are `slots + 1` (Story 1 = 13 + 1 = 14; Story 6 = 7 + 1 =
+ * 8); the letter products (Story 2/4/5) have no separate reference — their two
+ * slots ARE the images — so it is exactly `slots` (= 2). The `+ 1` is gated on the
+ * story actually having that anchor.
  */
+const REFERENCE_ANCHOR_STORIES = new Set(["story-1", "story-6"]);
+
 function totalImages(session: StorySession): number {
   const storyType = session.storyType ?? "story-1";
   const slots = getStory(storyType).illustrationSlots.length;
-  return storyType === "story-1" ? slots + 1 : slots;
+  return REFERENCE_ANCHOR_STORIES.has(storyType) ? slots + 1 : slots;
 }
 
 /** Live status of a generation run. "error" lives here, never on the session. */
