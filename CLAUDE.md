@@ -12,31 +12,23 @@
 
 ## Context Files
 
-Read the following to get the full context of teh project:
+The live docs — always loaded, read these for the full context of the project:
 
-- @context/local-prototype-plan.md
-- @context/commerce-roadmap.md (current direction — supersedes the "out of scope: payments / accounts / database / deployment / email" lines in the plan above)
 - @context/coding-standards.md
 - @context/ai-interaction.md
+- @context/commerce-roadmap.md (current direction — supersedes the "out of scope: payments / accounts / database / deployment / email" lines in the historical plan)
 - @context/current-feature.md
-- @context/history.md
+- @context/history.md (lean changelog index; the full per-entry write-up for each line lives in `context/history/` — open the one you need)
 
-## Masterstories templates
+## Load on demand (referenced by path, not `@`-loaded)
 
-- @context/masterstories/story-1-master-template.md
-- @context/masterstories/story-2-master-template.md
-- @context/masterstories/story-3-master-template.md
+Kept out of the always-loaded set so every session stays lean (feature 27). Open the
+one that matters when you touch that surface:
 
-## HTML prototypes - that needs to be builded
-
-- @prototypes/index.html
-- @prototypes/generating.html
-- @prototypes/preview.html
-- @prototypes/wizard.html
-
-## PDF example for master story 1
-
-- @context/saying-goodbye-to-otis.pdf
+- `context/local-prototype-plan.md` — the original Story-1 plan; historical, superseded by `commerce-roadmap.md`.
+- `context/masterstories/story-1-master-template.md`, `story-2-master-template.md`, `story-3-master-template.md` — the per-story source-of-truth wording (Stories 1–2 complete, Story 3 illustrative). Load when authoring or altering that story's text. **The in-progress story's masterstory stays `@`-loaded for the duration of its milestone** — add it to the always-loaded list above while building it, remove it on completion.
+- `prototypes/index.html`, `generating.html`, `preview.html`, `wizard.html` — the design prototypes. Load when building or restyling the screen they correspond to.
+- `context/saying-goodbye-to-otis.pdf` — the Story-1 print sample. Load when checking print fidelity.
 
 ## Get the latest doc
 

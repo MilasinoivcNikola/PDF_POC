@@ -105,7 +105,9 @@ framework beyond this list without approval. The plan in
 - **Commerce data layer** (`lib/order/` + `lib/supabase/` + `supabase/migrations/`):
   `lib/order/types.ts` owns the `Order` / `OrderStatus` contract every later commerce PR
   imports; `lib/order/state.ts` is the **single source of truth** for legal status
-  transitions (mirror it in the migration's `CHECK` constraint, never fork it).
+  transitions (mirror it in the migration's `CHECK` constraint, never fork it) — the full
+  transition matrix and the spend-guard invariants (no unpaid order can reach `generating`)
+  are exercised in `lib/order/state.test.ts`, so read those rather than restating them.
   `lib/supabase/` holds the server-only service-role client (`server.ts`), the
   `isSafeOrderId` guard (`ids.ts`), Storage helpers (`storage.ts`), and — since PR-08 —
   the **operator auth-session client** (`auth.ts`). **Two distinct Supabase clients live
@@ -154,41 +156,35 @@ framework beyond this list without approval. The plan in
   `token.ts` is pure and client-safe.
 - **Deploy-surface boundary** (`lib/runtime/surface.ts` + the `app/(public)`/`app/(operator)`
   route groups): the single most important security boundary in the build (PR-03). One
-  codebase, two run modes via `DEPLOY_TARGET` (`public` | `operator`, default `operator`):
-  the **operator** surface runs locally and holds the **engine** (OpenAI key + Puppeteer +
-  the generation graph); the **public** surface is the always-on Vercel storefront and must
-  never **generate** — but it *may persist intent*: a public server-side API route writes
-  the `pending_payment` order row + uploaded photo to Supabase (PR-05), so the public
-  deploy holds the **service-role** key too — never the engine. `surface.ts` exports
-  `deployTarget()` / `isOperator()` / `isPublic()` / `assertOperator()`. Operator API
-  routes call `assertOperator()` (404 under public); the `app/(operator)/layout.tsx`
-  `notFound()`s the whole operator page group under public, and is `export const dynamic =
-  "force-dynamic"` so that page gate is evaluated **per-request** (build-env-independent),
-  not baked at prerender time — so `(operator)` pages are dynamic (`ƒ`) while the `(public)`
-  landing + storefront (`/books`, `/books/[productId]`, `/order/[productId]`, `/policies`)
-  stay static/SSG (`○`/`●`; PR-04 added them to the guard's `PUBLIC_ENTRIES`). PR-09 added
-  the client-safe public **download page** `app/(public)/download/[token]/page.tsx` to
-  `PUBLIC_ENTRIES` — it's dynamic (`ƒ`, a `fetch`-on-mount client page) but holds no
-  service-role/engine import (all DB + signing lives in its API route below). The
-  load-bearing guard (`lib/runtime/surface.boundary.test.ts`) is **two-tier** since PR-05
-  added the first public *API* route (`app/(public)/api/order/route.ts`; PR-06 added two
-  more — `app/(public)/api/checkout/route.ts`, which holds an LS secret but touches no DB,
-  and `app/(public)/api/webhooks/lemonsqueezy/route.ts`, which uses the service-role client
-  to advance a paid order; PR-09 added `app/(public)/api/download/[token]/route.ts`, which
-  holds the service-role key purely to **read + sign** — look an order up by its delivery
-  token and mint a short-lived signed PDF URL): **public pages**
-  (`PUBLIC_ENTRIES`) must be fully client-safe — no engine **and** no `lib/supabase/server`;
-  **public API routes** (`PUBLIC_API_ENTRIES`) may import the service-role Supabase client
-  (`lib/supabase/server` + `@supabase/supabase-js`) but still must be **engine-free** (no
-  `lib/ai/*` / `lib/pdf/render` / Puppeteer / `lib/session/disk`). Public API routes do
-  **not** call `assertOperator()` (they run on the public host). Net of all three tiers —
-  public page (client-safe) · public API route (service-role OK, engine banned) · operator
-  (everything) — **no `(public)` route transitively imports the engine** — same discipline
-  as "no Puppeteer/fs in the client bundle" and the `lib/catalog/` client-safe rule above.
-  (Note: under a public Vercel build
-  the operator routes still *ship* as gated 404 functions — the guarantee is that the
-  public route *graph* never imports the engine and the keys are never set on that deploy,
-  not that the engine code is build-excluded.)
+  codebase, two run modes via `DEPLOY_TARGET` (`public` | `operator`, **default `operator`**,
+  fail-closed — only the exact string `"public"` locks down, so a forgotten env can only ever
+  make the public surface *more* restrictive): the **operator** surface runs locally and holds
+  the **engine** (OpenAI key + Puppeteer + the generation graph); the **public** surface is the
+  always-on Vercel storefront and must never **generate** — but it *may persist intent* (a
+  public server-side API route writes the `pending_payment` order row + photo to Supabase),
+  so the public deploy holds the **service-role** key too — never the engine. `surface.ts`
+  exports `deployTarget()` / `isOperator()` / `isPublic()` / `assertOperator()`. Operator API
+  routes call `assertOperator()` as the **first statement of every verb** (404 under public);
+  `app/(operator)/layout.tsx` `notFound()`s the whole operator page group and is `export const
+  dynamic = "force-dynamic"` so the page gate evaluates **per-request** (build-env-independent),
+  not baked at prerender — so `(operator)` pages are dynamic (`ƒ`) while the `(public)`
+  storefront stays static/SSG (`○`/`●`). **Three tiers:** public **page** (`PUBLIC_ENTRIES`) —
+  fully client-safe, no engine **and** no `lib/supabase/server`; public **API route**
+  (`PUBLIC_API_ENTRIES`) — may import the service-role client (`lib/supabase/server` +
+  `@supabase/supabase-js`) but must stay **engine-free**, and does **not** call
+  `assertOperator()` (it runs on the public host); **operator** — everything. Net invariant:
+  **no `(public)` route transitively imports the engine** — same discipline as "no
+  Puppeteer/fs in the client bundle" and the `lib/catalog/` client-safe rule above.
+  **The live membership of each tier and every operator route's 404-gate are test-enforced
+  — don't re-enumerate them in prose here:** `lib/runtime/surface.boundary.test.ts` walks
+  the public import closure (both tiers) and fails on any engine / `lib/supabase/server` leak;
+  `lib/runtime/all-operator-routes-gate.test.ts` asserts every operator verb 404s under public
+  **and** drift-guards that a newly added operator route is registered + gated. So: a new
+  public route → add it to the right `PUBLIC_*` list in the boundary test; a new operator
+  route → the gate test fails until it calls `assertOperator()`. (Note: under a public Vercel
+  build the operator routes still *ship* as gated 404 functions — the guarantee is that the
+  public route *graph* never imports the engine and the keys are never set on that deploy, not
+  that the engine code is build-excluded.)
 - Secrets come from `.env.local` (`OPENAI_API_KEY`; the commerce `SUPABASE_SERVICE_ROLE_KEY`;
   the Lemon Squeezy `LEMONSQUEEZY_API_KEY` / `LEMONSQUEEZY_STORE_ID` /
   `LEMONSQUEEZY_WEBHOOK_SECRET`, server-only — read on the public host that takes/confirms
@@ -242,6 +238,12 @@ These three areas have rules that general web code doesn't.
 ### PDF pipeline (`lib/pdf/`)
 - The screen preview and the PDF render from the **same** React template
   (`template.tsx`) — one source of truth for layout. Differences are print CSS only.
+  **Byte-identity rule:** a change that touches the shared template must leave every
+  *existing* product's PDF output byte-identical (verified by raw length + a
+  timestamp-normalized SHA — headless Chrome stamps a per-second `/CreationDate`). The
+  structural half is test-enforced: `lib/pdf/template.test.tsx` / `template.story2.test.tsx`
+  lock each product's section count + layout tags, so re-run them rather than restating which
+  pages exist.
 - Print CSS owns page geometry: `@page` size + margins, `break-inside: avoid` /
   `break-before: page` for page boundaries, `preferCSSPageSize: true` in Puppeteer.
 - Output is 8.5×11 (or 8×8 square), **≥300 DPI**. Size raster images for 300 DPI at
@@ -274,6 +276,8 @@ These three areas have rules that general web code doesn't.
   wording. `master-text.ts` holds the text with `[MERGE_FIELDS]`; `merge.ts`
   substitutes; `variants.ts` composes age / death-type / belief-frame variants
   **before** merge.
-- After merge, **no literal `[FIELD]` may survive** into output — assert this.
+- After merge, **no literal `[FIELD]` may survive** into output — every merge/variant test
+  asserts zero surviving placeholders (`lib/story/**/merge.test.ts` over a full variant
+  matrix), so a new story's tests must too rather than the doc re-describing the check.
 - Honor the master template's "Quality bar / what to avoid": e.g. use the word
   "died," never "passed away." These are product requirements, not style preferences.
