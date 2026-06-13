@@ -21,7 +21,7 @@ This is the common workflow that we will use for every single feature/fix:
 7. **Merge** - Merge to main
 8. **Delete Branch** - Delete branch after merge
 9. **Review** - Review AI-generated code periodically and on demand.
-10. **Complete** - Push summary to @context/history,
+10. **Complete** - Append a one-line entry to the lean `@context/history.md` index and write the full write-up to a new file under `context/history/`. Any durable deferral from the work (a "carried forward / not a blocker" note that outlives the branch) goes in `context/debt.md` as a triage row — not buried in the history write-up.
 
 Do NOT commit without permission and until the build passes. If build fails, fix the issues first.
 
