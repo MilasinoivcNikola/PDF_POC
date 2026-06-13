@@ -1,7 +1,7 @@
 "use client";
 
-// Step 5 of 6 — the sensitivity / belief / gift toggles. Shared by both letter
-// products, with different toggle sets:
+// Step 5 of 6 (Story 1/2/4/5) or step 4 of 5 (Story 6) — the sensitivity / belief /
+// gift / frame toggles. The toggle set differs by product:
 //   - Story 2 (the grief letter): how the pet died (Page 4), the comfort frame
 //     (Page 5), whether it's a gift, and whether another pet has come home (Page
 //     6). All have defaults, so it never gates Continue. Story 1 uses /create/style.
@@ -10,6 +10,10 @@
 //     memorial (past tense, grief). Choosing memorial REVEALS the memorial-only
 //     fields (how they died, the comfort frame, and an optional "until" date);
 //     they stay hidden in the living path. Plus the gift toggle. No `newPet`.
+//   - Story 5 (the letter TO the pet): how they died + the comfort frame only.
+//   - Story 6 (the living tribute): the `transitionFrame` toggle (still-here vs
+//     road-ahead) + `otherPetsInHome` only — NO death/belief/gift toggles (the
+//     memorial path is dropped). Its previous step is /create/tribute, not /letter.
 
 import { StepShell } from "@/components/wizard/StepShell";
 import { useWizard } from "@/components/wizard/WizardProvider";
@@ -18,6 +22,7 @@ import {
   isStory2Draft,
   isStory4Draft,
   isStory5Draft,
+  isStory6Draft,
 } from "@/lib/session/draft";
 import type {
   GiftFor,
@@ -25,6 +30,8 @@ import type {
   LetterDeathType,
   LivingOrMemorial,
   NewPet,
+  OtherPetsInHome,
+  TransitionFrame,
 } from "@/lib/session/types";
 
 const DEATH_OPTIONS: { value: LetterDeathType; label: string }[] = [
@@ -55,12 +62,29 @@ const LIVING_OR_MEMORIAL_OPTIONS: { value: LivingOrMemorial; label: string }[] =
   { value: "memorial", label: "a keepsake — they have died" },
 ];
 
+const TRANSITION_FRAME_OPTIONS: { value: TransitionFrame; label: string }[] = [
+  {
+    value: "still-here",
+    label: "just celebrate the time we have",
+  },
+  {
+    value: "road-ahead",
+    label: "gently acknowledge the road ahead",
+  },
+];
+
+const OTHER_PETS_OPTIONS: { value: OtherPetsInHome; label: string }[] = [
+  { value: "no", label: "no" },
+  { value: "yes", label: "yes" },
+];
+
 export default function TonePage() {
   const { draft } = useWizard();
 
   const storyType = draft?.storyType ?? "story-2";
   const isStory4 = storyType === "story-4";
   const isStory5 = storyType === "story-5";
+  const isStory6 = storyType === "story-6";
   const total = getWizardConfig(storyType).total;
   const petLabel = draft?.pet.name?.trim() ? draft.pet.name.trim() : "your pet";
 
@@ -69,6 +93,9 @@ export default function TonePage() {
   }
   if (isStory5) {
     return <Story5Tone draft={draft} total={total} petLabel={petLabel} />;
+  }
+  if (isStory6) {
+    return <Story6Tone draft={draft} total={total} petLabel={petLabel} />;
   }
   return <Story2Tone draft={draft} total={total} petLabel={petLabel} />;
 }
@@ -477,6 +504,98 @@ function Story5Tone({
                 checked={beliefFrame === opt.value}
                 onChange={() =>
                   updateDraft({ toggles: { beliefFrame: opt.value } })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </StepShell>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Story 6 — the living-tribute toggles (transition frame + other pets)
+// ---------------------------------------------------------------------------
+
+function Story6Tone({
+  draft,
+  total,
+  petLabel,
+}: {
+  draft: ReturnType<typeof useWizard>["draft"];
+  total: number;
+  petLabel: string;
+}) {
+  const { updateDraft } = useWizard();
+  const toggles = draft && isStory6Draft(draft) ? draft.toggles : {};
+  const transitionFrame = toggles.transitionFrame ?? "still-here";
+  const otherPetsInHome = toggles.otherPetsInHome ?? "no";
+
+  return (
+    <StepShell
+      step={4}
+      total={total}
+      introQuote="One gentle choice, and then we'll bring it to life."
+      introAttribution="The same book, however you need it to hold this moment."
+      sectionLabel="Section · Four"
+      sectionHeading={
+        <>
+          How it <em>holds</em> the time.
+        </>
+      }
+      sectionDescription="This book lives in the present — it celebrates the time you have. You can keep it entirely in the now, or let one quiet line acknowledge the road ahead. There are no wrong answers here."
+      backHref="/create/tribute"
+      continueHref="/create/generate"
+      continueLabel="Continue to generate"
+      footerNote="Step 04 · Gentle choices"
+    >
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">01</span>
+          How should the book hold this time with {petLabel}?
+        </label>
+        <p className="field__hint">
+          The book stays grateful and present either way. This only sets whether
+          one closing line looks softly toward the days ahead.
+        </p>
+        <div className="radio-group">
+          {TRANSITION_FRAME_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="transitionFrame"
+                value={opt.value}
+                checked={transitionFrame === opt.value}
+                onChange={() =>
+                  updateDraft({ toggles: { transitionFrame: opt.value } })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">02</span>
+          Are there other pets at home with {petLabel}?
+        </label>
+        <p className="field__hint">
+          If so, the book adds a gentle line about the company they keep.
+        </p>
+        <div className="radio-group">
+          {OTHER_PETS_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="otherPetsInHome"
+                value={opt.value}
+                checked={otherPetsInHome === opt.value}
+                onChange={() =>
+                  updateDraft({ toggles: { otherPetsInHome: opt.value } })
                 }
               />
               <span className="radio-option__label">{opt.label}</span>

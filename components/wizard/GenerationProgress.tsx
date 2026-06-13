@@ -131,6 +131,8 @@ export function GenerationProgress({
               ? "The cover portrait and the scene are painted from the photo you uploaded. This usually takes a minute or two — please don't close the window."
               : "Each illustration is painted from the photo you uploaded. This usually takes a few minutes — please don't close the window."}
         </p>
+        {/* Story 6 (the living tribute) is a narrative book — same imagery shape as
+            Story 1, so its subtitle is the shared "Each illustration…" branch above. */}
 
         {error ? (
           <div className="fade-in" style={{ textAlign: "center" }}>
@@ -206,7 +208,9 @@ export function GenerationProgress({
             ? "~$0.02 per letter · From your own credits"
             : storyType === "story-4"
               ? "~$0.01 per letter · From your own credits"
-              : "~$0.07 per book · From your own credits"}
+              : storyType === "story-6"
+                ? "~$0.05 per book · From your own credits"
+                : "~$0.07 per book · From your own credits"}
         </p>
       </footer>
     </div>

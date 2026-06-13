@@ -8,6 +8,7 @@ import type {
   Story2Session,
   Story4Session,
   Story5Session,
+  Story6Session,
 } from "@/lib/session/types";
 
 // The /api/session boundary is the high-value surface: a malformed body, an
@@ -25,7 +26,12 @@ const writeSessionMock = vi.fn();
 
 vi.mock("@/lib/session/disk", () => ({
   writeSession: (
-    session: StorySession | Story2Session | Story4Session | Story5Session,
+    session:
+      | StorySession
+      | Story2Session
+      | Story4Session
+      | Story5Session
+      | Story6Session,
   ) => writeSessionMock(session),
 }));
 
@@ -163,6 +169,42 @@ function validStory5Session(id = "story5-id-note101"): Story5Session {
     toggles: {
       deathType: "peaceful",
       beliefFrame: "rainbow-bridge",
+    },
+    images: [],
+  };
+}
+
+/** A complete, valid finalized Story-6 session payload (the living tribute). */
+function validStory6Session(id = "story6-id-tribute202"): Story6Session {
+  return {
+    id,
+    createdAt: "2026-06-13T09:00:00.000Z",
+    status: "generating",
+    storyType: "story-6",
+    pet: {
+      name: "Otis",
+      species: "dog",
+      breedColor: "a grey-muzzled rescue mutt with soft brown eyes",
+      pronoun: "he",
+      illustrationStyle: "watercolor",
+      photo: "uploads/sess/otis.jpg",
+    },
+    owner: { names: "Sarah", relationship: "single" },
+    memories: {
+      ageOrStage: "thirteen years young",
+      // quirks / stillLoves / favoriteSpots / sleepingSpot are optional-with-
+      // fallback for Story 6 — present here as "" but the route does not validate
+      // them.
+      quirks: "",
+      stillLoves: "",
+      favoriteActivity: "the slow morning walk we still take",
+      favoriteRitual: "the coffee I drink with my hand on your back",
+      sleepingSpot: "",
+      favoriteSpots: "",
+    },
+    toggles: {
+      transitionFrame: "still-here",
+      otherPetsInHome: "no",
     },
     images: [],
   };
@@ -822,6 +864,172 @@ describe("POST /api/session — Story 5 happy path", () => {
         favoriteSpots: expect.any(String),
       },
       toggles: { deathType: "peaceful", beliefFrame: "rainbow-bridge" },
+    });
+  });
+});
+
+// A "story-6" body validates the Story-6 required set (pet name, species, photo,
+// breedColor, owner names, ageOrStage, favoriteRitual, favoriteActivity) and writes
+// a Story6Session. It is the FIRST narrative storefront book, so it keeps the Story-1
+// pet group (pronoun + style). Crucially `quirks` is OPTIONAL for Story 6 (variant
+// fallback), so a body with a blank quirks but every required field present must be
+// ACCEPTED — proving the route ran validateStory6, not validateStory2/4 (which would
+// have rejected it). The id traversal guard is shared.
+
+describe("POST /api/session — Story 6 validation", () => {
+  it("rejects a missing pet name with 400 missing_pet_name", async () => {
+    const body = validStory6Session();
+    body.pet.name = "   ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_pet_name",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing species with 400 missing_species", async () => {
+    const body = validStory6Session();
+    body.pet.species = "" as Story6Session["pet"]["species"];
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_species",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing photo with 400 missing_photo", async () => {
+    const body = validStory6Session();
+    body.pet.photo = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_photo",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing breed color with 400 missing_breed_color (narrative placeholder)", async () => {
+    const body = validStory6Session();
+    body.pet.breedColor = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_breed_color",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing owner names with 400 missing_owner_names", async () => {
+    const body = validStory6Session();
+    body.owner.names = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_owner_names",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing ageOrStage with 400 missing_age_or_stage", async () => {
+    const body = validStory6Session();
+    body.memories.ageOrStage = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_age_or_stage",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing favorite ritual with 400 missing_favorite_ritual", async () => {
+    const body = validStory6Session();
+    body.memories.favoriteRitual = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_favorite_ritual",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing favorite activity with 400 missing_favorite_activity", async () => {
+    const body = validStory6Session();
+    body.memories.favoriteActivity = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_favorite_activity",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("ACCEPTS a body with a blank quirks (optional-with-fallback — proves validateStory6 ran, not validateStory2)", async () => {
+    const body = validStory6Session("blank-quirks-ok6");
+    body.memories.quirks = "   ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      id: "blank-quirks-ok6",
+    });
+    expect(writeSessionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a path-traversal id for a Story-6 body (shared guard) and writes nothing", async () => {
+    const malicious = "../../../tmp/evil-story6";
+    expect(isSafeSessionId(malicious)).toBe(false);
+    const res = await POST(
+      jsonRequest({ ...validStory6Session(), id: malicious }),
+    );
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "invalid_session_id",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/session — Story 6 happy path", () => {
+  it("writes the Story-6 session and returns { ok:true, id }", async () => {
+    const body = validStory6Session("good-story6-id");
+    const res = await POST(jsonRequest(body));
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      id: "good-story6-id",
+    });
+
+    expect(writeSessionMock).toHaveBeenCalledTimes(1);
+    expect(writeSessionMock.mock.calls[0][0]).toMatchObject({
+      id: "good-story6-id",
+      storyType: "story-6",
+      // Keeps the Story-1 pet group: pronoun + illustrationStyle present.
+      pet: {
+        name: "Otis",
+        species: "dog",
+        photo: "uploads/sess/otis.jpg",
+        pronoun: "he",
+        illustrationStyle: "watercolor",
+      },
+      owner: { names: "Sarah", relationship: "single" },
+      memories: {
+        ageOrStage: expect.any(String),
+        favoriteRitual: expect.any(String),
+        favoriteActivity: expect.any(String),
+      },
+      toggles: { transitionFrame: "still-here", otherPetsInHome: "no" },
     });
   });
 });

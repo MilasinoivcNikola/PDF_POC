@@ -13,6 +13,7 @@ const ALL_STORY_TYPES: StoryType[] = [
   "story-2",
   "story-4",
   "story-5",
+  "story-6",
 ];
 
 // The product catalog (PR-02) under test: a pure, client-safe data module that
@@ -23,19 +24,21 @@ const ALL_STORY_TYPES: StoryType[] = [
 // prices and that lookups behave.
 
 describe("getProducts", () => {
-  it("lists exactly the live books (story-1 + story-2 + story-4 + story-5)", () => {
+  it("lists exactly the live books (story-1 + story-2 + story-4 + story-5 + story-6)", () => {
     const products = getProducts();
     expect(products.map((p) => p.productId)).toEqual([
       "story-1-book",
       "story-2-letter",
       "story-4-talk",
       "story-5-letter-to",
+      "story-6-tribute",
     ]);
     expect(products.map((p) => p.storyType)).toEqual([
       "story-1",
       "story-2",
       "story-4",
       "story-5",
+      "story-6",
     ]);
   });
 
@@ -216,5 +219,62 @@ describe("story-5-letter-to catalog entry", () => {
     const types = getProducts().map((p) => p.storyType);
     expect(ids.filter((id) => id === "story-5-letter-to")).toHaveLength(1);
     expect(types.filter((t) => t === "story-5")).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story 6 — "While You're Still Here, [PET_NAME]" (the living tribute)
+// ---------------------------------------------------------------------------
+//
+// Story 6 is the catalog's first narrative-spread storefront book and its only
+// LIVING keepsake (made before a pet dies). It carries the most illustration slots
+// of the storefront books (7), priced at the top of band ($32). Beyond the generic
+// list/no-drift guards above, assert the entry exists with the right storyType, its
+// illustrationCount is the registry's 7 (derived, not a literal), the placeholder
+// price is in place, marketing copy + sampleImages are non-empty, and its
+// id/storyType are unique.
+
+describe("story-6-tribute catalog entry", () => {
+  it("is present in the catalog with storyType 'story-6'", () => {
+    const product = getProduct("story-6-tribute");
+    expect(product).not.toBeNull();
+    expect(product?.productId).toBe("story-6-tribute");
+    expect(product?.storyType).toBe("story-6");
+  });
+
+  it("derives illustrationCount from the registry (= 7 tribute slots), not a literal", () => {
+    const product = getProduct("story-6-tribute")!;
+    // The registry's Story-6 slot list is the cover + 6 narrative scenes — the
+    // most of any storefront book.
+    const slots = getStory("story-6").illustrationSlots;
+    expect(product.illustrationCount).toBe(slots.length);
+    expect(slots.length).toBe(7);
+    expect(product.illustrationCount).toBe(7);
+  });
+
+  it("uses the $32 top-of-band placeholder display price (3200 cents)", () => {
+    expect(getProduct("story-6-tribute")!.priceUsd).toBe(3200);
+  });
+
+  it("has non-empty marketing copy (title, tagline, description)", () => {
+    const product = getProduct("story-6-tribute")!;
+    expect(product.title.trim().length).toBeGreaterThan(0);
+    expect(product.tagline.trim().length).toBeGreaterThan(0);
+    expect(product.description.trim().length).toBeGreaterThan(0);
+  });
+
+  it("references non-empty sample images", () => {
+    const product = getProduct("story-6-tribute")!;
+    expect(product.sampleImages.length).toBeGreaterThan(0);
+    for (const src of product.sampleImages) {
+      expect(src.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it("has a unique id/storyType not shared with the other books", () => {
+    const ids = getProducts().map((p) => p.productId);
+    const types = getProducts().map((p) => p.storyType);
+    expect(ids.filter((id) => id === "story-6-tribute")).toHaveLength(1);
+    expect(types.filter((t) => t === "story-6")).toHaveLength(1);
   });
 });

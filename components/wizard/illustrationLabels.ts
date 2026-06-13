@@ -65,6 +65,26 @@ export const NOTE_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
   "note-page-5",
 ];
 
+/**
+ * The Story-6 ordered set of slots — the living tribute is a NARRATIVE book with
+ * the SAME imagery shape as Story 1: a `reference` portrait anchor (generated
+ * first, not a book page) PLUS the seven `tribute-*` page slots = EIGHT images. The
+ * seven page ids are declared here (not imported from story-6.ts) to keep this
+ * module client-safe; the story-6 tests assert the page slots match the registry's
+ * `illustrationSlots` (which is the 7 page ids — the `reference` anchor is not a
+ * registry slot, exactly like Story 1).
+ */
+export const TRIBUTE_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
+  "reference",
+  "tribute-cover",
+  "tribute-page-1",
+  "tribute-page-2",
+  "tribute-page-3",
+  "tribute-page-4",
+  "tribute-page-5",
+  "tribute-page-6",
+];
+
 /** The progress-checklist slot list for a product (default Story 1). */
 export function illustrationSlotsFor(
   storyType: StoryType,
@@ -77,6 +97,9 @@ export function illustrationSlotsFor(
   }
   if (storyType === "story-5") {
     return NOTE_ILLUSTRATION_SLOTS;
+  }
+  if (storyType === "story-6") {
+    return TRIBUTE_ILLUSTRATION_SLOTS;
   }
   return ILLUSTRATION_SLOTS;
 }
@@ -148,6 +171,24 @@ function story5LabelsFor(name: string): Partial<Record<IllustrationSlot, string>
 }
 
 /**
+ * Story-6 labels — the living-tribute slots, in a warm, PRESENT-tense voice (a pet
+ * who is still here). The reference portrait anchors the look; then the cover, the
+ * dedication portrait, and the five tribute scenes — each painted from the photo.
+ */
+function story6LabelsFor(name: string): Partial<Record<IllustrationSlot, string>> {
+  return {
+    reference: `Reference portrait — ${name}, as they are now`,
+    "tribute-cover": "Cover illustration",
+    "tribute-page-1": `A portrait of ${name}`,
+    "tribute-page-2": `${name} at home, in the everyday light`,
+    "tribute-page-3": `${name} doing what they still love`,
+    "tribute-page-4": `${name} and the small things only they do`,
+    "tribute-page-5": `${name} in a quiet, peaceful moment`,
+    "tribute-page-6": "The time you have together",
+  };
+}
+
+/**
  * Resolve a slot's human-friendly checklist label for a given pet name + product.
  * Defaults to the Story-1 labels for a missing/Story-1 type.
  */
@@ -164,6 +205,8 @@ export function illustrationLabel(
     labels = story4LabelsFor(name);
   } else if (storyType === "story-5") {
     labels = story5LabelsFor(name);
+  } else if (storyType === "story-6") {
+    labels = story6LabelsFor(name);
   } else {
     labels = story1LabelsFor(name);
   }

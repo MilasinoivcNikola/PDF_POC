@@ -18,6 +18,10 @@
 //   - Story 5: pet name, species, photo, owner names, plus the two personal
 //     free-text fields (favoriteRitual, favoriteSpots) the letter TO the pet
 //     merges with no fallback (quirks is optional-with-fallback here).
+//   - Story 6 (the living tribute, a NARRATIVE book): pet name, species, photo,
+//     breedColor (the narrative book merges it as a live placeholder, like Story 1),
+//     owner names, plus ageOrStage + favoriteRitual + favoriteActivity (the three
+//     live-placeholder tribute fields). No child, no death/belief toggles.
 // Anything else is trusted to have been defaulted by the assembler.
 
 import { NextResponse } from "next/server";
@@ -29,6 +33,7 @@ import type {
   Story2Session,
   Story4Session,
   Story5Session,
+  Story6Session,
 } from "@/lib/session/types";
 
 /** Whether a value is a non-empty trimmed string. */
@@ -135,6 +140,43 @@ function validateStory5(session: Partial<Story5Session>): string | null {
 }
 
 /**
+ * Validate a Story-6 body ("While You're Still Here, [PET_NAME]", the living
+ * tribute). Required: pet name, species, photo, breedColor (the narrative book
+ * merges it as a live placeholder, like Story 1), owner names, and the three
+ * live-placeholder tribute fields (ageOrStage, favoriteRitual, favoriteActivity).
+ * `stillLoves`/`quirks` are optional-with-fallback; `favoriteSpots`/`sleepingSpot`/
+ * the owner message + nickname/date fields are optional-omit. Returns an error code
+ * (the missing field), or null when valid.
+ */
+function validateStory6(session: Partial<Story6Session>): string | null {
+  if (!nonEmpty(session.pet?.name)) {
+    return "missing_pet_name";
+  }
+  if (!nonEmpty(session.pet?.species)) {
+    return "missing_species";
+  }
+  if (!nonEmpty(session.pet?.photo)) {
+    return "missing_photo";
+  }
+  if (!nonEmpty(session.pet?.breedColor)) {
+    return "missing_breed_color";
+  }
+  if (!nonEmpty(session.owner?.names)) {
+    return "missing_owner_names";
+  }
+  if (!nonEmpty(session.memories?.ageOrStage)) {
+    return "missing_age_or_stage";
+  }
+  if (!nonEmpty(session.memories?.favoriteRitual)) {
+    return "missing_favorite_ritual";
+  }
+  if (!nonEmpty(session.memories?.favoriteActivity)) {
+    return "missing_favorite_activity";
+  }
+  return null;
+}
+
+/**
  * Validate a Story-1 body. Required: pet name, child name, photo, and the four
  * personal free-text fields (breedColor, favoriteActivity, sleepingSpot,
  * favoriteMemory). Returns an error code (the missing field), or null when valid.
@@ -180,7 +222,11 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const base = body as Partial<
-    StorySession | Story2Session | Story4Session | Story5Session
+    | StorySession
+    | Story2Session
+    | Story4Session
+    | Story5Session
+    | Story6Session
   >;
 
   if (!nonEmpty(base.id) || !isSafeSessionId(base.id.trim())) {
@@ -196,6 +242,8 @@ export async function POST(request: Request): Promise<Response> {
     error = validateStory4(body as Partial<Story4Session>);
   } else if (storyType === "story-5") {
     error = validateStory5(body as Partial<Story5Session>);
+  } else if (storyType === "story-6") {
+    error = validateStory6(body as Partial<Story6Session>);
   } else {
     error = validateStory1(body as Partial<StorySession>);
   }

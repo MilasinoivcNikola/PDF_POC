@@ -39,6 +39,8 @@ import type {
   Story4Toggles,
   Story5Memories,
   Story5Toggles,
+  Story6Memories,
+  Story6Toggles,
   Toggles,
   WizardDraft,
 } from "@/lib/session/types";
@@ -54,9 +56,11 @@ import {
  * uses `pet`/`child`/`memories: Memories`/`toggles: Toggles`; Story 2 uses
  * `pet`/`owner`/`memories: LetterMemories`/`toggles: Story2Toggles`; Story 4 uses
  * `pet`/`owner`/`memories: Story4Memories`/`toggles: Story4Toggles`; Story 5 uses
- * `pet`/`owner`/`memories: Story5Memories`/`toggles: Story5Toggles`. The union of
- * the per-group types is intentional — a step only ever patches the groups its own
- * product has, and the merge below applies only the named groups.
+ * `pet`/`owner`/`memories: Story5Memories`/`toggles: Story5Toggles`; Story 6 (the
+ * living tribute) uses `pet`/`owner`/`memories: Story6Memories`/`toggles:
+ * Story6Toggles`. The union of the per-group types is intentional — a step only
+ * ever patches the groups its own product has, and the merge below applies only the
+ * named groups.
  */
 export interface DraftPatch {
   pet?: Partial<Pet>;
@@ -66,12 +70,14 @@ export interface DraftPatch {
     | Partial<Memories>
     | Partial<LetterMemories>
     | Partial<Story4Memories>
-    | Partial<Story5Memories>;
+    | Partial<Story5Memories>
+    | Partial<Story6Memories>;
   toggles?:
     | Partial<Toggles>
     | Partial<Story2Toggles>
     | Partial<Story4Toggles>
-    | Partial<Story5Toggles>;
+    | Partial<Story5Toggles>
+    | Partial<Story6Toggles>;
 }
 
 interface WizardContextValue {

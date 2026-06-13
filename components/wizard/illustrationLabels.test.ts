@@ -7,6 +7,7 @@ import {
   LETTER_ILLUSTRATION_SLOTS,
   TALK_ILLUSTRATION_SLOTS,
   NOTE_ILLUSTRATION_SLOTS,
+  TRIBUTE_ILLUSTRATION_SLOTS,
   illustrationLabel,
   illustrationSlotsFor,
 } from "./illustrationLabels";
@@ -117,6 +118,50 @@ describe("NOTE_ILLUSTRATION_SLOTS", () => {
 });
 
 // ---------------------------------------------------------------------------
+// TRIBUTE_ILLUSTRATION_SLOTS — Story 6's reference + 7 tribute slots
+// ---------------------------------------------------------------------------
+//
+// Story 6 is a NARRATIVE book like Story 1: a `reference` portrait anchor (NOT a
+// registry slot) followed by the seven `tribute-*` page slots = EIGHT images. So
+// the drift guard strips the leading `reference` (exactly as Story 1 does) and
+// compares the page slots to the registry's `illustrationSlots` (the 7 page ids).
+
+describe("TRIBUTE_ILLUSTRATION_SLOTS", () => {
+  it("is exactly `reference` + the 7 tribute page slots (8 total)", () => {
+    expect([...TRIBUTE_ILLUSTRATION_SLOTS]).toEqual([
+      "reference",
+      "tribute-cover",
+      "tribute-page-1",
+      "tribute-page-2",
+      "tribute-page-3",
+      "tribute-page-4",
+      "tribute-page-5",
+      "tribute-page-6",
+    ]);
+    expect(TRIBUTE_ILLUSTRATION_SLOTS).toHaveLength(8);
+  });
+
+  it("puts `reference` first, then the page slots in registry order", () => {
+    expect(TRIBUTE_ILLUSTRATION_SLOTS[0]).toBe("reference");
+  });
+
+  it("equals the registry's Story-6 illustrationSlots once the reference anchor is dropped (drift guard)", () => {
+    // The `reference` portrait is generated first but is NOT a registry slot (same
+    // as Story 1). Strip it, and the remaining page slots MUST match the registry's
+    // source of truth — if someone edits one list and not the other, this fails.
+    const slots = getStory("story-6").illustrationSlots;
+    expect(slots).toHaveLength(7);
+    expect(TRIBUTE_ILLUSTRATION_SLOTS.slice(1)).toEqual([...slots]);
+  });
+
+  it("contains no duplicate slots", () => {
+    expect(new Set(TRIBUTE_ILLUSTRATION_SLOTS).size).toBe(
+      TRIBUTE_ILLUSTRATION_SLOTS.length,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
 // illustrationSlotsFor — per-product checklist slot list
 // ---------------------------------------------------------------------------
 
@@ -139,6 +184,11 @@ describe("illustrationSlotsFor", () => {
   it("returns the 2 note slots for story-5", () => {
     expect(illustrationSlotsFor("story-5")).toBe(NOTE_ILLUSTRATION_SLOTS);
     expect(illustrationSlotsFor("story-5")).toHaveLength(2);
+  });
+
+  it("returns the 8 tribute slots (reference + 7) for story-6", () => {
+    expect(illustrationSlotsFor("story-6")).toBe(TRIBUTE_ILLUSTRATION_SLOTS);
+    expect(illustrationSlotsFor("story-6")).toHaveLength(8);
   });
 });
 
@@ -277,6 +327,34 @@ describe("illustrationLabel", () => {
   it("returns a non-empty string for every slot in NOTE_ILLUSTRATION_SLOTS", () => {
     for (const slot of NOTE_ILLUSTRATION_SLOTS) {
       const label = illustrationLabel(slot, "Murphy", "story-5");
+      expect(label.length).toBeGreaterThan(0);
+      expect(label).not.toContain("undefined");
+    }
+  });
+
+  // Story 6 (the living tribute): the reference anchor + the 7 tribute scenes,
+  // present-tense, narrative voice.
+  it("uses the Story-6 reference + cover + scene labels (pet name woven in) for story-6", () => {
+    expect(illustrationLabel("reference", "Biscuit", "story-6")).toBe(
+      "Reference portrait — Biscuit, as they are now",
+    );
+    expect(illustrationLabel("tribute-cover", "Biscuit", "story-6")).toBe(
+      "Cover illustration",
+    );
+    expect(illustrationLabel("tribute-page-2", "Biscuit", "story-6")).toBe(
+      "Biscuit at home, in the everyday light",
+    );
+  });
+
+  it("substitutes the gentle default for a blank pet name in story-6 labels", () => {
+    expect(illustrationLabel("reference", "  ", "story-6")).toBe(
+      "Reference portrait — your pet, as they are now",
+    );
+  });
+
+  it("returns a non-empty string for every slot in TRIBUTE_ILLUSTRATION_SLOTS", () => {
+    for (const slot of TRIBUTE_ILLUSTRATION_SLOTS) {
+      const label = illustrationLabel(slot, "Biscuit", "story-6");
       expect(label.length).toBeGreaterThan(0);
       expect(label).not.toContain("undefined");
     }
