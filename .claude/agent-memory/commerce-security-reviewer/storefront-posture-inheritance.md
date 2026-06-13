@@ -10,7 +10,24 @@ component + `Story*Session` widening) inherits the proven Story-1/2 commerce
 security posture **without touching the trust boundary**, because the boundary is
 structural, not per-product. Verified on Story 4 (PR-22), Story 5 (PR-24), and
 again on Story 6 (PR-26) — all ran the recipe below fully green with zero findings,
-so the inheritance is now thrice-confirmed. (PR-26 specifics: `/api/order/route.ts`
+so the inheritance is now thrice-confirmed.
+
+**Story 7 PR-A (feature 28, 2026-06-13) — authoring-ONLY, NOT yet creatable/sellable
+(no wizard/storefront/order route; that's PR-B):** PASS. Commerce surface touched was
+only the two type widenings (`lib/order/types.ts` + `lib/order/store.ts` admit
+`Story7Session` in the `inputs` union — purely additive, `NewOrderInput` still
+excludes status/pdfKey, `createOrder` still hard-codes `pending_payment`). `/api/order`
+diff empty; state.ts/webhook/delivery/auth/RLS/migrations untouched; no new spend path
+(generate.ts `case "story-7"` is engine/operator-only, never gates on a client status).
+Two NOTABLE-but-OK Story-7 specifics: (1) the `lib/session/draft.ts` Story-7
+dispatchers THROW "not wired until PR-B" — a closed half-door, not a half-open intake
+path (fail-closed). (2) `lib/ai/story7-prompts` was NOT added to `FORBIDDEN_LOCAL` in
+surface.boundary.test.ts — but NOT an actual leak: story-7.ts + the catalog/registry
+public chain never import it (only generate.ts + its own test do), and all 230
+boundary/draft/catalog tests pass green. It's a defense-in-depth drift-guard gap to
+close in PR-B (when the wizard/storefront land), flagged as hardening, not blocking.
+fixture `welcome-home-biscuit.json` is a synthetic `fixture-`-prefixed test session,
+no real PII, no secrets. (PR-26 specifics: `/api/order/route.ts`
 diff empty; `NewOrderInput` still excludes status/pdfKey; `createOrder` still
 hard-codes `pending_payment`; `draftToSessionStory6` builds fresh field-by-field +
 hard-codes `storyType:"story-6"`; `lib/ai/story6-prompts` already in

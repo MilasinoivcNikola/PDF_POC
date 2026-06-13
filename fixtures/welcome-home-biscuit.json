@@ -1,0 +1,35 @@
+{
+  "id": "fixture-welcome-home-biscuit",
+  "createdAt": "2026-06-13T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-7",
+  "pet": {
+    "name": "Biscuit",
+    "species": "dog",
+    "breedColor": "scruffy terrier mix with one ear that won't stay down",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/biscuit.jpg"
+  },
+  "owner": {
+    "names": "Maria and James",
+    "relationship": "couple"
+  },
+  "memories": {
+    "favoriteActivity": "stealing socks and parading them around the kitchen",
+    "sleepingSpot": "in the crook of the couch by the window",
+    "quirks": "the head-tilt when you say 'walk'; the sigh before sleep",
+    "homecomingMemory": "He shook the whole car ride and then fell asleep on Leo's lap before we hit the driveway.",
+    "familyMembers": "Maria, James, and the cat Pepper",
+    "childName": "Leo",
+    "nicknames": "Biscuit-boy, the gremlin",
+    "dateAdopted": "March 2023"
+  },
+  "toggles": {
+    "occasion": "gotcha-day-anniversary",
+    "adoptionSource": "shelter",
+    "lifeStage": "adult",
+    "yearsHome": "3"
+  },
+  "images": []
+}

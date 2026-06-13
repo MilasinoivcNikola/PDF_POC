@@ -71,6 +71,10 @@ page ids, and add it to the product-agnostic union:
 per-product layout maps stay narrowed (`Record<Story1PageId, …>`, `Record<Story2PageId, …>`)
 so no existing book's typing changes.
 
+> **Convention — prefix every page id with a book-unique stem** (`otis-*` Story 1,
+> `letter-*` Story 2, `welcome-*` Story 7, …) so ids never collide across the shared
+> `PageId` union. Pick the stem once and use it for every page.
+
 ### Quality bar (a product requirement, not style)
 
 Honour the relevant master template's "Quality bar / what to avoid":
@@ -116,6 +120,15 @@ The registry is the single seam that makes the app multi-product. Two edits:
        photo passed via `generateSceneIllustration` / `images.edit` — Story 4's `talk-page-4`).
        Pick per the template's illustration brief; reference-anchored makes likeness drift more
        visible on a full-width slot, so QA it explicitly.
+     - **A book may *mix* both shapes** (Story 7 = 7 reference-anchored slots + 1 figure-free
+       `welcome-before` wash). The `generate.ts` case then combines the Story-1 (reference) and
+       Story-2 (figure-free) dispatch paths, routing per-slot on a `useReference` flag from the
+       prompt builder.
+     - **Reference-image accounting:** a book whose pet is anchored to a locked reference
+       generates `illustrationSlots.length + 1` API images (the reference + each slot). If the
+       book is reference-anchored, **add its `storyType` to `REFERENCE_ANCHOR_STORIES`** in
+       `app/(operator)/api/generate-illustrations/route.ts` (a hand-maintained set, not derived)
+       so the wizard progress bar counts the `+1`. Easy to forget — it bites in the wizard PR.
    - **`pdfFilename(session): string`** — build it with a helper in **`lib/pdf/filename.ts`**
      (pure string module, kept out of `lib/pdf/render.ts` so the registry stays
      puppeteer-free — see Step 4's client-safe note). Add a `<book>PdfFilename(petName)`

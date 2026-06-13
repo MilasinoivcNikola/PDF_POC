@@ -30,6 +30,7 @@ import type {
   Story4Session,
   Story5Session,
   Story6Session,
+  Story7Session,
 } from "@/lib/session/types";
 import type {
   PageId,
@@ -37,6 +38,7 @@ import type {
   Story4PageId,
   Story5PageId,
   Story6PageId,
+  Story7PageId,
 } from "@/lib/story/master-text";
 import { getOpenAI, photoToFile } from "@/lib/ai/client";
 import { buildScenePrompts, SCENE_PAGE_IDS } from "@/lib/ai/prompts";
@@ -56,6 +58,10 @@ import {
   buildStory6SlotPrompts,
   type Story6SlotPrompt,
 } from "@/lib/ai/story6-prompts";
+import {
+  buildStory7SlotPrompts,
+  type Story7SlotPrompt,
+} from "@/lib/ai/story7-prompts";
 import { getStory } from "@/lib/story/registry";
 import {
   findCachedImage,
@@ -425,6 +431,9 @@ export async function generateAllIllustrations(
   }
   if (storyType === "story-6") {
     return generateStory6Illustrations(session as unknown as Story6Session, options);
+  }
+  if (storyType === "story-7") {
+    return generateStory7Illustrations(session as unknown as Story7Session, options);
   }
 
   const approach = options.approach ?? "A";
@@ -879,6 +888,143 @@ async function generateStory6Illustrations(
   return [referenceEntry, ...sceneEntries];
 }
 
+// ---------------------------------------------------------------------------
+// Story 7 — "Welcome Home" imagery (a MIXED set: reference + 7 scenes + 1 wash)
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate (or reuse from cache) one Story-7 slot, save it, and return its manifest
+ * entry. Story 7 is the FIRST mixed set, so this combines the two prior shapes: most
+ * slots are reference-anchored (the pet is the hero — `[photo, reference]` via
+ * `images.edit`), but `welcome-before` is the figure-free empty-house wash (NO
+ * reference, via `images.generate` — the Story-2 belief-wash path; the pet is absent
+ * by design). The slot's `useReference` flag (from `buildStory7SlotPrompts`) routes
+ * which path runs. Same cache contract as every other product: same page + prompt
+ * hash + reference hash + file on disk ⇒ a pure lookup, zero spend. The figure-free
+ * wash's reference set is empty, so its reference hash is the hash of `[]`.
+ */
+async function generateAndSaveStory7Scene(
+  session: Story7Session,
+  slot: Story7PageId,
+  slotPrompt: Story7SlotPrompt,
+  bundle: ReferenceBundle,
+  quality: Quality,
+): Promise<GeneratedImage> {
+  const references = slotPrompt.useReference
+    ? [bundle.photo, bundle.reference]
+    : [];
+  const promptHash = hashPrompt(slotPrompt.prompt);
+  const referenceHash = hashReferenceSet(references);
+
+  const cached = await findCachedImage(session.images, slot, promptHash, referenceHash);
+  if (cached) {
+    return cached;
+  }
+
+  const bytes = slotPrompt.useReference
+    ? await generateSceneIllustration(references, slotPrompt.prompt, quality)
+    : await generateImageFromPrompt(slotPrompt.prompt, quality);
+  const path = await saveImage(session.id, `${slot}.png`, bytes);
+  return { page: slot, path, promptHash, referenceHash };
+}
+
+/**
+ * Generate Story 7's "Welcome Home" imagery: a locked reference illustration + the
+ * EIGHT scene slots (cover + pages 2-8). This is a MIXED set — the spec's noted
+ * novelty — combining the Story-1/6 reference-anchored shape with the Story-2
+ * figure-free wash:
+ *
+ *   1. Generate the locked reference illustration (the consistency anchor) and save
+ *      it as `reference.png` — cached on the photo + reference prompt, like Story 1/6.
+ *   2. Build every brief-driven slot prompt (`buildStory7SlotPrompts`).
+ *   3. Generate the 8 slots through the bounded worker pool (the same rate-limit
+ *      guard the other paths use): SEVEN anchored on `[photo, reference]` via
+ *      `images.edit`, and the ONE figure-free `welcome-before` via `images.generate`
+ *      (the empty-house page — the pet is deliberately absent). Each call is wrapped
+ *      in withRetry; every write goes through the traversal guards.
+ *
+ * The DEDICATION page reuses the locked reference image — it is NOT a slot and gets
+ * NO separate generation (the dedication layout renders no image anyway), so no extra
+ * API call is spent on it. The closing/back-cover get decorative/reused treatments,
+ * also not slots.
+ *
+ * The slot list comes from the registry (`getStory("story-7").illustrationSlots` =
+ * the 8 `welcome-*` slots), so the total is `slots + 1 = 9` (the +1 is the separate
+ * `reference` anchor — like Story 1's 14 and Story 6's 8, NOT the letters'
+ * total = slots). A re-run with an unchanged session is a pure $0 cache hit.
+ */
+async function generateStory7Illustrations(
+  session: Story7Session,
+  options: GenerateOptions,
+): Promise<GeneratedImage[]> {
+  const sceneQuality = options.sceneQuality ?? "low";
+  const referenceQuality = options.referenceQuality ?? "low";
+
+  if (!isSafeSessionId(session.id)) {
+    throw new Error(`Unsafe session id: ${session.id}`);
+  }
+
+  const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+  if (!photoPath) {
+    throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+  }
+
+  const petDescription = `${session.pet.breedColor} ${session.pet.species}`.trim();
+
+  // 1. Locked reference illustration (the consistency anchor), cached like Story 1/6.
+  const referencePrompt = buildReferencePrompt(petDescription, session.pet.illustrationStyle);
+  const photoBytes = await readImage(photoPath);
+  const referencePromptHash = hashPrompt(referencePrompt);
+  const referenceRefHash = hashReferenceSet([photoBytes]);
+
+  let referenceEntry: GeneratedImage;
+  let referenceBytes: Buffer;
+  const cachedReference = await findCachedImage(
+    session.images,
+    "reference",
+    referencePromptHash,
+    referenceRefHash,
+  );
+  if (cachedReference) {
+    referenceEntry = cachedReference;
+    referenceBytes = await readImage(cachedReference.path);
+  } else {
+    referenceBytes = await generateReferenceIllustration(
+      photoPath,
+      petDescription,
+      session.pet.illustrationStyle,
+      referenceQuality,
+    );
+    const referencePath = await saveImage(session.id, "reference.png", referenceBytes);
+    referenceEntry = {
+      page: "reference",
+      path: referencePath,
+      promptHash: referencePromptHash,
+      referenceHash: referenceRefHash,
+    };
+  }
+
+  // 2 + 3. Brief-driven slot prompts, then the 8 slots (7 reference-anchored on
+  //        [photo, reference] + the 1 figure-free welcome-before wash).
+  const bundle: ReferenceBundle = { photo: photoBytes, reference: referenceBytes };
+  const slots = getStory("story-7").illustrationSlots as readonly Story7PageId[];
+  const prompts = buildStory7SlotPrompts(session);
+
+  const sceneEntries = await mapWithConcurrency(
+    slots,
+    DEFAULT_CONCURRENCY,
+    async (slot) => {
+      const slotPrompt = prompts[slot];
+      if (!slotPrompt) {
+        throw new Error(`No Story-7 prompt builder for slot: ${slot}`);
+      }
+      return generateAndSaveStory7Scene(session, slot, slotPrompt, bundle, sceneQuality);
+    },
+  );
+
+  return [referenceEntry, ...sceneEntries];
+}
+
 /**
  * Regenerate a SINGLE page's illustration, re-using the reference illustration
  * already on disk (no second reference generation). Feeds feature 10's
@@ -937,6 +1083,14 @@ export async function regenerateSceneIllustration(
     return regenerateStory6Slot(
       session as unknown as Story6Session,
       page as Story6PageId,
+      sceneQuality,
+    );
+  }
+
+  if (storyType === "story-7") {
+    return regenerateStory7Slot(
+      session as unknown as Story7Session,
+      page as Story7PageId,
       sceneQuality,
     );
   }
@@ -1103,6 +1257,49 @@ async function regenerateStory6Slot(
   return { page: slot, path, promptHash, referenceHash };
 }
 
+/**
+ * Regenerate a SINGLE Story-7 slot, bypassing the cache (an explicit fresh render).
+ * Story 7 is a MIXED set: the reference-anchored slots re-use the `reference`
+ * illustration already on disk (no second reference generation) and anchor on
+ * `[photo, reference]` via `images.edit`, while the figure-free `welcome-before` wash
+ * passes NO reference and routes through `generateImageFromPrompt` (`images.generate`)
+ * — exactly as the full Story-7 run does, following the slot's `useReference` flag.
+ * Saves over the old PNG and returns the updated manifest entry for the caller to
+ * splice.
+ */
+async function regenerateStory7Slot(
+  session: Story7Session,
+  slot: Story7PageId,
+  quality: Quality,
+): Promise<GeneratedImage> {
+  const slotPrompt = buildStory7SlotPrompts(session)[slot];
+  if (!slotPrompt) {
+    throw new Error(`No Story-7 prompt builder for slot: ${slot}`);
+  }
+
+  const references: Buffer[] = [];
+  if (slotPrompt.useReference) {
+    const referenceManifest = session.images.find((image) => image.page === "reference");
+    if (!referenceManifest) {
+      throw new Error("No reference illustration on the session — run generateAllIllustrations first.");
+    }
+    const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+    if (!photoPath) {
+      throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+    }
+    references.push(await readImage(photoPath));
+    references.push(await readImage(referenceManifest.path));
+  }
+
+  const promptHash = hashPrompt(slotPrompt.prompt);
+  const referenceHash = hashReferenceSet(references);
+  const bytes = slotPrompt.useReference
+    ? await generateSceneIllustration(references, slotPrompt.prompt, quality)
+    : await generateImageFromPrompt(slotPrompt.prompt, quality);
+  const path = await saveImage(session.id, `${slot}.png`, bytes);
+  return { page: slot, path, promptHash, referenceHash };
+}
+
 // ---------------------------------------------------------------------------
 // Manifest → renderer input
 // ---------------------------------------------------------------------------
@@ -1115,9 +1312,10 @@ async function regenerateStory6Slot(
  * product's `illustrationSlots` (the registry), so the Story-1 anchor "reference"
  * and the writing-only "back-cover" are both excluded (neither is an illustration
  * slot), while Story-2's `letter-cover`/`letter-page-5`, Story-4's
- * `talk-cover`/`talk-page-4`, Story-5's `note-cover`/`note-page-5`, and Story-6's
- * seven `tribute-*` page slots pass through (Story 6's `reference` anchor and its
- * writing-only `tribute-back-cover` are still excluded — neither is a slot).
+ * `talk-cover`/`talk-page-4`, Story-5's `note-cover`/`note-page-5`, Story-6's
+ * seven `tribute-*` page slots, and Story-7's eight `welcome-*` slots pass through
+ * (Story 6/7's `reference` anchor and their writing-only back covers — and Story 7's
+ * `welcome-dedication`, which reuses the reference and is not a slot — are excluded).
  * Reads each saved PNG back from disk; missing files are skipped so the template
  * falls back to its placeholder art for that page.
  */
@@ -1131,6 +1329,7 @@ export async function manifestToImageMap(
     ...getStory("story-4").illustrationSlots,
     ...getStory("story-5").illustrationSlots,
     ...getStory("story-6").illustrationSlots,
+    ...getStory("story-7").illustrationSlots,
   ]);
   await Promise.all(
     manifest

@@ -18,6 +18,7 @@ import type {
   Story4Session,
   Story5Session,
   Story6Session,
+  Story7Session,
 } from "@/lib/session/types";
 
 /** The Postgres table name. */
@@ -39,7 +40,8 @@ export interface OrderRow {
     | Story2Session
     | Story4Session
     | Story5Session
-    | Story6Session;
+    | Story6Session
+    | Story7Session;
   photo_key: string;
   pdf_key: string | null;
   ls_order_id: string | null;

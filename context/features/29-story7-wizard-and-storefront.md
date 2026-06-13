@@ -80,6 +80,7 @@ All product-specific logic is **dispatched** (an `isStory7`/`storyType === "stor
 - `components/wizard/illustrationLabels.ts` (+ `illustrationLabels.test.ts`) — slots + labels + dispatch.
 - `components/wizard/WizardProvider.tsx` — `DraftPatch` union widen.
 - `components/preview/BookPreview.tsx` — verify/confirm narrative-spread branch.
+- `app/(operator)/api/generate-illustrations/route.ts` — **add `"story-7"` to `REFERENCE_ANCHOR_STORIES`** so the wizard progress bar counts the locked reference (`slots + 1 = 9`). Carried forward from feature 28's review (latent in PR-A because the book was non-creatable; see `context/debt.md`). The hand-maintained set is not derived — easy to miss.
 - `.env.local.example` — `LEMONSQUEEZY_VARIANT_STORY_7_WELCOME`.
 
 ---

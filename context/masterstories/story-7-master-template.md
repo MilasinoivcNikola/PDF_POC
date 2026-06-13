@@ -179,7 +179,7 @@ And out of every [SPECIES] in the whole wide world, it was you. It was always go
 - **shelter:** "We went to the shelter not quite sure what we were looking for — and there you were, looking right back at us. Whoever cared for you before we met, thank you. We took it from there."
 - **rescue:** "A rescue had been keeping you safe until the right family came along. That family turned out to be us. To everyone who looked after you before we did — thank you. We are so glad you held on."
 - **breeder:** "We had been counting the days until we could meet you. And when we did — small, brand new, entirely yourself — there was no question. You were coming home with us."
-- **found-as-stray:** "You found *us*, really. One day you simply appeared — a little lost, a little hungry, looking for somebody. We decided that somebody would be us."
+- **found-as-stray:** "You found *us*, really. One day you simply appeared — a little lost, a little hungry, looking for somebody. To whoever fed you or kept you safe out there before we met — thank you. We decided that somebody would be us."
 - **other:** "However you came to us — and it's a good story, the way you tell it — the ending is the same. You were ours, and we were yours."
 
 *If `[HOMECOMING_MEMORY]` is sparse or blank, this page must still stand on its own — it does, because the origin sentence is template-driven. `[HOMECOMING_MEMORY]` is used on Pages 4–5, not here.*

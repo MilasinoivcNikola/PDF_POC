@@ -76,3 +76,14 @@ export function tributePdfFilename(petName: string): string {
   const slug = slugify(petName) || "Pet";
   return `While-Youre-Still-Here-${slug}.pdf`;
 }
+
+/**
+ * The output filename for a rendered Story-7 storybook ("Welcome Home —
+ * [PET_NAME]'s Gotcha Day"), per that template's production checklist:
+ * `Welcome-Home-[PET_NAME].pdf`. Same path-safe slugify as `storyPdfFilename`,
+ * with the same `Pet` fallback for an empty/symbol-only name.
+ */
+export function welcomeHomePdfFilename(petName: string): string {
+  const slug = slugify(petName) || "Pet";
+  return `Welcome-Home-${slug}.pdf`;
+}

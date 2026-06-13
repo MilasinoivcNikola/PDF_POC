@@ -19,6 +19,7 @@ The live docs — always loaded, read these for the full context of the project:
 - @context/commerce-roadmap.md (current direction — supersedes the "out of scope: payments / accounts / database / deployment / email" lines in the historical plan)
 - @context/current-feature.md
 - @context/history.md (lean changelog index; the full per-entry write-up for each line lives in `context/history/` — open the one you need)
+- @context/masterstories/story-7-master-template.md (in-progress milestone — Story 7 "Welcome Home"; PR-A done, PR-B/feature 29 pending. Remove on milestone completion.)
 
 ## Load on demand (referenced by path, not `@`-loaded)
 
