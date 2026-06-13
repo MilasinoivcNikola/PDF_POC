@@ -78,6 +78,7 @@ const FORBIDDEN_LOCAL = [
   "lib/ai/story4-prompts", // Story-4 prompt builders (PR 21)
   "lib/ai/story5-prompts", // Story-5 prompt builders (PR 23)
   "lib/ai/story6-prompts", // Story-6 prompt builders (PR 25)
+  "lib/ai/story7-prompts", // Story-7 prompt builders (feature 28)
   "lib/pdf/render", // Puppeteer
   "lib/pdf/template", // pulls react-dom/server via render path
   "lib/supabase/server", // reads SUPABASE_SERVICE_ROLE_KEY

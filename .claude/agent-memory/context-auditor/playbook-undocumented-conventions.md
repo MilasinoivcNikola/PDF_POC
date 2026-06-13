@@ -25,11 +25,26 @@ imagery-shape note (lines ~113–118) frames only figure-free vs reference-ancho
 slot, not the separate-reference-anchor count a Story-1-shaped book needs. Story 6 is
 the first reference-anchored new book since Story 1.
 
-**Why:** both surfaced as low-priority nice-to-haves in the PR-25 (Story 6) audit —
-in-spec work the doc just doesn't yet name. Not blockers; PR-25 was correct without them.
+**2b. `REFERENCE_ANCHOR_STORIES` is a hand-maintained set, not derived.** The `slots + 1`
+accounting in `app/(operator)/api/generate-illustrations/route.ts` (the WIZARD progress
+endpoint) is gated on a hardcoded `REFERENCE_ANCHOR_STORIES = {story-1, story-6}`. A new
+reference-anchored narrative book must be ADDED to that set or its wizard progress UI
+under-counts by one (the separate `reference.png`). Story 7 (feature 28 PR-A) is
+reference-anchored (`slots + 1 = 9`) but was NOT added — latent, because PR-A makes the
+book non-creatable (draft handling throws "not wired yet in PR-B"), so the wizard route
+never fires. It bites in PR-B (feature 29) when Story 7 becomes creatable. The worker
+(`lib/order/worker.ts`) does NOT duplicate this count — it relies on
+`generateAllIllustrations` directly — so only the wizard route is affected.
+
+**Why:** all surfaced as low-priority nice-to-haves in the Story 6 (PR-25) + Story 7 (PR-A,
+feature 28) audits — in-spec work the doc just doesn't yet name. Not blockers; the PRs were
+correct without them. Story 7 is also the FIRST **mixed** imagery set (reference-anchored +
+one figure-free `welcome-before` wash) — the playbook's imagery-shape note frames per-slot
+figure-free vs reference but never names a mixed-set book; worth a one-liner too.
 
 **How to apply:** on the next new-book branch that reuses a narrative layout or is
 reference-anchored, propose adding these one-liners to the playbook (Step 1a + the
-imagery-shape note) so the convention stops living only in code. See
-[[canonical-doc-map]] (playbook = canonical add-a-book recipe) and
+imagery-shape note) so the convention stops living only in code, AND check whether the new
+story needs adding to `REFERENCE_ANCHOR_STORIES` (flag for the PR that makes it creatable).
+See [[canonical-doc-map]] (playbook = canonical add-a-book recipe) and
 [[masterstory-slot-id-lag]] (related: template slot-id guesses vs the registry).

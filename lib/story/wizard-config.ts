@@ -100,12 +100,31 @@ const STORY_6_STEPS: readonly WizardStep[] = [
   { id: "generate", step: 5 },
 ];
 
+/**
+ * Story 7's five steps: upload → pet → homecoming → tone → generate. "Welcome
+ * Home" is a NARRATIVE book (like Story 1/6, it keeps the pet's pronoun + the
+ * illustration-style choice), but it has no separate child/memories/style steps:
+ * the `homecoming` step collects the homecoming fields (the adoption memory,
+ * quirks, favorite activity, sleeping spot, optional child/family) and the `tone`
+ * step collects the occasion + adoption-source + life-stage toggles. The wizard UI
+ * (PR-B) reads its own field set per step; this config carries only the ordering +
+ * count.
+ */
+const STORY_7_STEPS: readonly WizardStep[] = [
+  { id: "upload", step: 1 },
+  { id: "pet", step: 2 },
+  { id: "homecoming", step: 3 },
+  { id: "tone", step: 4 },
+  { id: "generate", step: 5 },
+];
+
 const WIZARD_CONFIG: Record<StoryType, WizardConfig> = {
   "story-1": { steps: STORY_1_STEPS, total: STORY_1_STEPS.length },
   "story-2": { steps: STORY_2_STEPS, total: STORY_2_STEPS.length },
   "story-4": { steps: STORY_4_STEPS, total: STORY_4_STEPS.length },
   "story-5": { steps: STORY_5_STEPS, total: STORY_5_STEPS.length },
   "story-6": { steps: STORY_6_STEPS, total: STORY_6_STEPS.length },
+  "story-7": { steps: STORY_7_STEPS, total: STORY_7_STEPS.length },
 };
 
 /** The wizard configuration for a product (default Story 1 for a missing type). */

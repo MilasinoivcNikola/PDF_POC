@@ -1,9 +1,13 @@
-// Milestone-1 CLI: render a Story-1 PDF from a JSON `StorySession` fixture with
-// zero AI dependency, and write it to ./output/. This is the script that proves
-// the whole craft-area-1 chain end to end:
+// Milestone-1 CLI: render a PDF from a JSON session fixture with zero AI
+// dependency, and write it to ./output/. This is the script that proves the whole
+// craft-area-1 chain end to end:
 //
 //   fixtures/otis.json → JSON.parse → renderStoryPdf (resolve → HTML → Chrome)
 //   → ./output/Saying-Goodbye-to-Otis.pdf
+//
+// Product-aware: the story type is read from the fixture's `storyType`, so any
+// registered book renders (e.g. fixtures/welcome-home-biscuit.json → Story 7 →
+// ./output/Welcome-Home-Biscuit.pdf), using the registry's per-story `pdfFilename`.
 //
 // Image slots are left empty: `renderStoryPdf` is called with an empty
 // `PageImageMap`, so feature 04's template fills every illustration slot with its
@@ -16,7 +20,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { renderStoryPdf, storyPdfFilename } from "@/lib/pdf/render";
+import { renderStoryPdf } from "@/lib/pdf/render";
+import { getStory } from "@/lib/story/registry";
 import type { StorySession } from "@/lib/session/types";
 
 const OUTPUT_DIR = path.join(process.cwd(), "output");
@@ -56,7 +61,10 @@ async function run(): Promise<string> {
   // the render needs no generated illustrations (feature 07).
   const pdf = await renderStoryPdf(session, {});
 
-  const filename = storyPdfFilename(session.pet?.name ?? "");
+  // Product-aware output name: the registry's per-story `pdfFilename` (so Story 2's
+  // letter, Story 6's tribute, Story 7's "Welcome Home", etc. each get their own
+  // checklist filename) rather than always the Story-1 "Saying-Goodbye-to-…" name.
+  const filename = getStory(session.storyType ?? "story-1").pdfFilename(session);
   const outputPath = path.join(OUTPUT_DIR, filename);
   await mkdir(OUTPUT_DIR, { recursive: true });
   await writeFile(outputPath, pdf);

@@ -40,6 +40,33 @@ export type OtherPetsInHome = "yes" | "no";
  */
 export type TransitionFrame = "still-here" | "road-ahead";
 
+/**
+ * The Story-7 occasion toggle ("Welcome Home") — `new-arrival` (default) tells
+ * the homecoming in past-tense origin pages / present-tense belonging pages;
+ * `gotcha-day-anniversary` reframes the cover/dedication/Page-7/closing/back cover
+ * to "[N] years ago today…" and requires `yearsHome` (see story7/variants.ts).
+ */
+export type Occasion = "new-arrival" | "gotcha-day-anniversary";
+
+/**
+ * The Story-7 adoption-source toggle — drives Page 3's origin sentence (the 5
+ * variants), the warm "thank you to whoever had you before" line (only
+ * `shelter`/`rescue`/`found-as-stray`), and Page 4's stray softening.
+ */
+export type AdoptionSource =
+  | "shelter"
+  | "rescue"
+  | "breeder"
+  | "found-as-stray"
+  | "other";
+
+/**
+ * The Story-7 life-stage toggle — `adult` (default) is neutral; `senior-adoption`
+ * adds the Page-2 "you were waiting too" + Page-5 "a lot of places that weren't
+ * home" beats; `puppy-kitten` leans younger on Pages 4/5.
+ */
+export type LifeStage = "puppy-kitten" | "adult" | "senior-adoption";
+
 /** Lifecycle of a session as it moves from wizard to generated book. */
 export type SessionStatus = "draft" | "generating" | "ready";
 
@@ -65,7 +92,8 @@ export type StoryType =
   | "story-2"
   | "story-4"
   | "story-5"
-  | "story-6";
+  | "story-6"
+  | "story-7";
 
 // ---------------------------------------------------------------------------
 // Input groups (collected by the wizard)
@@ -596,6 +624,117 @@ export interface Story6Session {
 }
 
 // ===========================================================================
+// Story 7 — "Welcome Home — [PET_NAME]'s Gotcha Day" (joyful, non-memorial)
+// ===========================================================================
+//
+// The seventh product (feature 28) and the catalog's FIRST joyful, non-memorial
+// book: a personalized 11-page narrative storybook celebrating a pet's adoption /
+// arrival (cover + page-1 dedication + pages 2-8 + closing + back cover). It REUSES
+// Story 1's NARRATIVE layouts wholesale (`cover`/`dedication`/`narrative`/
+// `closing`/`back-cover`) — there is NO `truth` (death) page, so no new
+// `PageLayout`, no renderer case, no CSS. Field coverage maps 1:1 to the master
+// template's "Merge fields" + "Special-case toggles" tables
+// (context/masterstories/story-7-master-template.md).
+//
+// REUSES the Story-1 `Pet` group IN FULL (name, species, breedColor, pronoun,
+// illustrationStyle, photo) — it is a narrative book like Story 1/6, so it keeps
+// `pronoun` + the `illustrationStyle` choice. It also REUSES the Story-2 `Owner`
+// group (the family the pet came home to); `relationship` defaults to "single" and
+// is never read by the variant engine. It does NOT reuse the full `Child` group
+// (that forces an unused `ageBracket`) — Story 7 carries only an OPTIONAL
+// `childName` in its memories group. Novelty: the first book to carry an optional
+// child name AND an owner at once, plus three new toggles (occasion / adoption
+// source / life stage) and three new merge fields (homecoming memory / family
+// members / adoption source).
+
+/**
+ * The customer's free-text inputs that personalize the homecoming story.
+ * `favoriteActivity` + `sleepingSpot` are required (Pages 5 & 7); `quirks` +
+ * `homecomingMemory` are optional-with-fallback (a stock line replaces them when
+ * blank/sparse); `familyMembers`/`childName`/`nicknames`/`dateAdopted` are
+ * optional-omit (no dangling artifact when blank). The wizard required gate (PR-B)
+ * keys on the same split.
+ */
+export interface Story7Memories {
+  /** [FAVORITE_ACTIVITY] — e.g. "stealing socks and parading them". Required (Page 7). */
+  favoriteActivity: string;
+  /** [SLEEPING_SPOT] — e.g. "in the crook of the couch by the window". Required (Pages 5 & 7). */
+  sleepingSpot: string;
+  /** [QUIRKS] — 1-3 short phrases. Optional-with-fallback on Page 6. */
+  quirks: string;
+  /** [HOMECOMING_MEMORY] — NEW, optional free-text, 1-2 sentences. Optional-with-fallback on Page 4 (<~4 words → fallback). */
+  homecomingMemory: string;
+  /** [FAMILY_MEMBERS] — NEW, optional; humans + pets already in the home. Optional-omit (Page 7 swap). */
+  familyMembers?: string;
+  /** [CHILD_NAME] — optional child name. Optional-omit (Pages 6 & 8 beats). */
+  childName?: string;
+  /** [PET_NICKNAMES] — optional, up to 3. */
+  nicknames?: string;
+  /** [DATE_ADOPTED] — optional, e.g. "March 2026". Dedication dated line. */
+  dateAdopted?: string;
+}
+
+/**
+ * The Story-7 toggles collected as short follow-up questions. `occasion` reframes
+ * the cover/dedication/Page-7/closing/back cover; `adoptionSource` drives Page 3's
+ * origin sentence (+ thank-you line) and Page 4's stray softening; `lifeStage`
+ * adds the Page-2 & Page-5 beats. `yearsHome` is present ONLY when occasion =
+ * gotcha-day-anniversary (asked directly, not derived).
+ */
+export interface Story7Toggles {
+  /** [OCCASION] — reframes cover/dedication/Page 7/closing/back cover. Default "new-arrival". */
+  occasion: Occasion;
+  /** [ADOPTION_SOURCE] — Page 3 origin sentence (+ thank-you line) & Page 4 stray softening. */
+  adoptionSource: AdoptionSource;
+  /** [LIFE_STAGE] — Page 2 & Page 5 beats. Default "adult". */
+  lifeStage: LifeStage;
+  /** [YEARS_HOME] — present ONLY when occasion = gotcha-day-anniversary. */
+  yearsHome?: string;
+}
+
+/**
+ * The in-progress Story-7 order the wizard holds in `localStorage`. Mirrors the
+ * `StoryDraft` shape: every input group is `Partial` because the user fills them
+ * step by step; `id`/`createdAt`/`status` exist from creation onward. Required-
+ * field validation happens at the wizard boundary (PR-B), not in the type.
+ *
+ * Discriminated by the literal `storyType: "story-7"` (not optional — a Story-7
+ * draft always knows it is one).
+ */
+export interface Story7Draft {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-7";
+  pet: Partial<Pet>;
+  owner: Partial<Owner>;
+  memories: Partial<Story7Memories>;
+  toggles: Partial<Story7Toggles>;
+}
+
+/**
+ * A finalized Story-7 order written to `./sessions/[id].json` at Generate time.
+ * Mirrors `StorySession`: all input groups are complete (required fields
+ * present); generation state fills in as illustrations and the PDF are produced.
+ * Discriminated by the literal `storyType: "story-7"`, so the registry routes it
+ * to `resolveStory7`.
+ */
+export interface Story7Session {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-7";
+  pet: Pet;
+  owner: Owner;
+  memories: Story7Memories;
+  toggles: Story7Toggles;
+  /** Per-page generated-illustration manifest (empty until generation runs). */
+  images: GeneratedImage[];
+  /** Path to the rendered PDF under ./output, once produced. */
+  pdfPath?: string;
+}
+
+// ===========================================================================
 // Wizard draft union — what the in-browser wizard holds (any product)
 // ===========================================================================
 
@@ -618,4 +757,5 @@ export type WizardDraft =
   | Story2Draft
   | Story4Draft
   | Story5Draft
-  | Story6Draft;
+  | Story6Draft
+  | Story7Draft;

@@ -22,6 +22,7 @@ import type {
   Story5Session,
   Story6Draft,
   Story6Session,
+  Story7Draft,
   WizardDraft,
   AgeBracket,
   DeathType,
@@ -684,13 +685,19 @@ export function isStory6Draft(draft: WizardDraft): draft is Story6Draft {
   return draft.storyType === "story-6";
 }
 
+/** True if the draft is a Story-7 draft (the homecoming book; narrows the union). */
+export function isStory7Draft(draft: WizardDraft): draft is Story7Draft {
+  return draft.storyType === "story-7";
+}
+
 /** True if the draft is a Story-1 draft (the default — no/legacy `storyType`). */
 export function isStory1Draft(draft: WizardDraft): draft is StoryDraft {
   return (
     !isStory2Draft(draft) &&
     !isStory4Draft(draft) &&
     !isStory5Draft(draft) &&
-    !isStory6Draft(draft)
+    !isStory6Draft(draft) &&
+    !isStory7Draft(draft)
   );
 }
 
@@ -714,6 +721,11 @@ export function missingRequiredFieldsForDraft(
   if (isStory4Draft(draft)) return missingRequiredFieldsStory4(draft);
   if (isStory5Draft(draft)) return missingRequiredFieldsStory5(draft);
   if (isStory6Draft(draft)) return missingRequiredFieldsStory6(draft);
+  // Story 7's draft→session bridge + required-field gate land in PR-B (feature 29);
+  // the text engine (PR-A) registers the product but does not yet make it creatable.
+  if (isStory7Draft(draft)) {
+    throw new Error("Story-7 draft handling is not wired yet (lands in PR-B).");
+  }
   return missingRequiredFields(draft);
 }
 
@@ -736,5 +748,10 @@ export function draftToSessionForDraft(
   if (isStory4Draft(draft)) return draftToSessionStory4(draft);
   if (isStory5Draft(draft)) return draftToSessionStory5(draft);
   if (isStory6Draft(draft)) return draftToSessionStory6(draft);
+  // Story 7's draft→session bridge lands in PR-B (feature 29); the text engine
+  // (PR-A) registers the product but does not yet make it creatable.
+  if (isStory7Draft(draft)) {
+    throw new Error("Story-7 draft handling is not wired yet (lands in PR-B).");
+  }
   return draftToSession(draft);
 }
