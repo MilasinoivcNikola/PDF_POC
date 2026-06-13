@@ -33,3 +33,7 @@ one that matters when you touch that surface:
 ## Get the latest doc
 
 context7 mcp is available when needed use it to fetch the latest docs
+
+## Workflow
+
+When we discuss a new feature or a fix, treat the conversation as the design phase for a written spec rather than an invitation to start coding. The goal of the discussion is to produce a spec file that captures the intent, scope, constraints, and implementation plan before any code is written. Assess the scope before drafting: if the work can land in a single pull request, write one spec file; if it is too large for one PR, split it into the smallest set of independently shippable PRs and write a separate spec file for each. Save feature specs to /context/features/ and fix specs to /context/fixes/.
