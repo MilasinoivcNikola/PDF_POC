@@ -29,12 +29,14 @@ import type {
   Story2Session,
   Story4Session,
   Story5Session,
+  Story6Session,
 } from "@/lib/session/types";
 import type {
   PageId,
   Story2PageId,
   Story4PageId,
   Story5PageId,
+  Story6PageId,
 } from "@/lib/story/master-text";
 import { getOpenAI, photoToFile } from "@/lib/ai/client";
 import { buildScenePrompts, SCENE_PAGE_IDS } from "@/lib/ai/prompts";
@@ -50,6 +52,10 @@ import {
   buildStory5SlotPrompts,
   type Story5SlotPrompt,
 } from "@/lib/ai/story5-prompts";
+import {
+  buildStory6SlotPrompts,
+  type Story6SlotPrompt,
+} from "@/lib/ai/story6-prompts";
 import { getStory } from "@/lib/story/registry";
 import {
   findCachedImage,
@@ -417,6 +423,9 @@ export async function generateAllIllustrations(
   if (storyType === "story-5") {
     return generateStory5Illustrations(session as unknown as Story5Session, options);
   }
+  if (storyType === "story-6") {
+    return generateStory6Illustrations(session as unknown as Story6Session, options);
+  }
 
   const approach = options.approach ?? "A";
   const sceneQuality = options.sceneQuality ?? "low";
@@ -746,6 +755,130 @@ async function generateStory5Illustrations(
   });
 }
 
+// ---------------------------------------------------------------------------
+// Story 6 — living-tribute imagery (Story 1's shape: reference + 7 scenes)
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate (or reuse from cache) one Story-6 scene, save it, and return its manifest
+ * entry. The clone of `generateAndSaveScene` for the Story-6 path: every Story-6 slot
+ * is reference-anchored (the living tribute shows the actual pet on every page — Story
+ * 1's shape, not a letter's figure-free wash), so the references are always
+ * `[photo, reference]` and the call always routes through `generateSceneIllustration`
+ * (`images.edit`) — `generateImageFromPrompt` (`images.generate`) is NEVER reached for
+ * Story 6. Same cache contract as the Story-1 scenes: same page + prompt hash +
+ * reference hash + file on disk ⇒ a pure lookup, zero spend.
+ */
+async function generateAndSaveStory6Scene(
+  session: Story6Session,
+  slot: Story6PageId,
+  slotPrompt: Story6SlotPrompt,
+  references: readonly Buffer[],
+  quality: Quality,
+): Promise<GeneratedImage> {
+  const promptHash = hashPrompt(slotPrompt.prompt);
+  const referenceHash = hashReferenceSet(references);
+
+  const cached = await findCachedImage(session.images, slot, promptHash, referenceHash);
+  if (cached) {
+    return cached;
+  }
+
+  const bytes = await generateSceneIllustration(references, slotPrompt.prompt, quality);
+  const path = await saveImage(session.id, `${slot}.png`, bytes);
+  return { page: slot, path, promptHash, referenceHash };
+}
+
+/**
+ * Generate Story 6's living-tribute imagery: a locked reference illustration + the
+ * SEVEN reference-anchored scenes (cover portrait, the page-1 dedication portrait,
+ * and pages 2-6). This is STORY 1'S SHAPE, not the letters' two-image shape — every
+ * page shows the actual pet via `images.edit` (Approach A), with NO figure-free wash.
+ * So it mirrors `generateAllIllustrations`' Story-1 body:
+ *
+ *   1. Generate the locked reference illustration (the consistency anchor) and save
+ *      it as `reference.png` — cached on the photo + reference prompt, like Story 1.
+ *   2. Build every brief-driven scene prompt (`buildStory6SlotPrompts`).
+ *   3. Generate the 7 scenes anchored on `[photo, reference]`, through the bounded
+ *      worker pool (the same rate-limit guard the Story-1 path uses), each call
+ *      wrapped in withRetry. Every write goes through the traversal guards.
+ *
+ * The slot list comes from the registry (`getStory("story-6").illustrationSlots` =
+ * the 7 `tribute-*` page slots), so the count is `slots + 1 = 8` (the +1 is the
+ * separate `reference` anchor — like Story 1's 14 = 13 slots + 1, NOT the letters'
+ * total = slots). A re-run with an unchanged session is a pure $0 cache hit.
+ */
+async function generateStory6Illustrations(
+  session: Story6Session,
+  options: GenerateOptions,
+): Promise<GeneratedImage[]> {
+  const sceneQuality = options.sceneQuality ?? "low";
+  const referenceQuality = options.referenceQuality ?? "low";
+
+  if (!isSafeSessionId(session.id)) {
+    throw new Error(`Unsafe session id: ${session.id}`);
+  }
+
+  const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+  if (!photoPath) {
+    throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+  }
+
+  const petDescription = `${session.pet.breedColor} ${session.pet.species}`.trim();
+
+  // 1. Locked reference illustration (the consistency anchor), cached like Story 1.
+  const referencePrompt = buildReferencePrompt(petDescription, session.pet.illustrationStyle);
+  const photoBytes = await readImage(photoPath);
+  const referencePromptHash = hashPrompt(referencePrompt);
+  const referenceRefHash = hashReferenceSet([photoBytes]);
+
+  let referenceEntry: GeneratedImage;
+  let referenceBytes: Buffer;
+  const cachedReference = await findCachedImage(
+    session.images,
+    "reference",
+    referencePromptHash,
+    referenceRefHash,
+  );
+  if (cachedReference) {
+    referenceEntry = cachedReference;
+    referenceBytes = await readImage(cachedReference.path);
+  } else {
+    referenceBytes = await generateReferenceIllustration(
+      photoPath,
+      petDescription,
+      session.pet.illustrationStyle,
+      referenceQuality,
+    );
+    const referencePath = await saveImage(session.id, "reference.png", referenceBytes);
+    referenceEntry = {
+      page: "reference",
+      path: referencePath,
+      promptHash: referencePromptHash,
+      referenceHash: referenceRefHash,
+    };
+  }
+
+  // 2 + 3. Brief-driven scene prompts, then the 7 scenes anchored on [photo, reference].
+  const references = [photoBytes, referenceBytes];
+  const slots = getStory("story-6").illustrationSlots as readonly Story6PageId[];
+  const prompts = buildStory6SlotPrompts(session);
+
+  const sceneEntries = await mapWithConcurrency(
+    slots,
+    DEFAULT_CONCURRENCY,
+    async (slot) => {
+      const slotPrompt = prompts[slot];
+      if (!slotPrompt) {
+        throw new Error(`No Story-6 prompt builder for slot: ${slot}`);
+      }
+      return generateAndSaveStory6Scene(session, slot, slotPrompt, references, sceneQuality);
+    },
+  );
+
+  return [referenceEntry, ...sceneEntries];
+}
+
 /**
  * Regenerate a SINGLE page's illustration, re-using the reference illustration
  * already on disk (no second reference generation). Feeds feature 10's
@@ -796,6 +929,14 @@ export async function regenerateSceneIllustration(
     return regenerateStory5Slot(
       session as unknown as Story5Session,
       page as Story5PageId,
+      sceneQuality,
+    );
+  }
+
+  if (storyType === "story-6") {
+    return regenerateStory6Slot(
+      session as unknown as Story6Session,
+      page as Story6PageId,
       sceneQuality,
     );
   }
@@ -924,6 +1065,44 @@ async function regenerateStory5Slot(
   return { page: slot, path, promptHash, referenceHash };
 }
 
+/**
+ * Regenerate a SINGLE Story-6 scene, bypassing the cache (an explicit fresh render).
+ * Story 6 is Story 1's reference-anchored shape, so this mirrors the Story-1 default
+ * path: it re-uses the `reference` illustration already on disk (no second reference
+ * generation), anchors on `[photo, reference]`, and always routes through
+ * `generateSceneIllustration` (`images.edit`) — there is no figure-free path. Saves
+ * over the old PNG and returns the updated manifest entry for the caller to splice.
+ */
+async function regenerateStory6Slot(
+  session: Story6Session,
+  slot: Story6PageId,
+  quality: Quality,
+): Promise<GeneratedImage> {
+  const slotPrompt = buildStory6SlotPrompts(session)[slot];
+  if (!slotPrompt) {
+    throw new Error(`No Story-6 prompt builder for slot: ${slot}`);
+  }
+
+  const referenceManifest = session.images.find((image) => image.page === "reference");
+  if (!referenceManifest) {
+    throw new Error("No reference illustration on the session — run generateAllIllustrations first.");
+  }
+  const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+  if (!photoPath) {
+    throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+  }
+
+  const photoBytes = await readImage(photoPath);
+  const referenceBytes = await readImage(referenceManifest.path);
+  const references = [photoBytes, referenceBytes];
+
+  const promptHash = hashPrompt(slotPrompt.prompt);
+  const referenceHash = hashReferenceSet(references);
+  const bytes = await generateSceneIllustration(references, slotPrompt.prompt, quality);
+  const path = await saveImage(session.id, `${slot}.png`, bytes);
+  return { page: slot, path, promptHash, referenceHash };
+}
+
 // ---------------------------------------------------------------------------
 // Manifest → renderer input
 // ---------------------------------------------------------------------------
@@ -936,7 +1115,9 @@ async function regenerateStory5Slot(
  * product's `illustrationSlots` (the registry), so the Story-1 anchor "reference"
  * and the writing-only "back-cover" are both excluded (neither is an illustration
  * slot), while Story-2's `letter-cover`/`letter-page-5`, Story-4's
- * `talk-cover`/`talk-page-4`, and Story-5's `note-cover`/`note-page-5` pass through.
+ * `talk-cover`/`talk-page-4`, Story-5's `note-cover`/`note-page-5`, and Story-6's
+ * seven `tribute-*` page slots pass through (Story 6's `reference` anchor and its
+ * writing-only `tribute-back-cover` are still excluded — neither is a slot).
  * Reads each saved PNG back from disk; missing files are skipped so the template
  * falls back to its placeholder art for that page.
  */
@@ -949,6 +1130,7 @@ export async function manifestToImageMap(
     ...getStory("story-2").illustrationSlots,
     ...getStory("story-4").illustrationSlots,
     ...getStory("story-5").illustrationSlots,
+    ...getStory("story-6").illustrationSlots,
   ]);
   await Promise.all(
     manifest

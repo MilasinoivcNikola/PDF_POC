@@ -1,0 +1,35 @@
+{
+  "id": "fixture-biscuit-tribute",
+  "createdAt": "2026-06-12T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-6",
+  "pet": {
+    "name": "Biscuit",
+    "species": "dog",
+    "breedColor": "Jack Russell gone soft and silver at the muzzle",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/biscuit.jpg"
+  },
+  "owner": {
+    "names": "Sarah",
+    "relationship": "single"
+  },
+  "memories": {
+    "ageOrStage": "13 years young",
+    "quirks": "the way you sigh like a person when you lie down",
+    "stillLoves": "still waits at the window every afternoon at four",
+    "favoriteActivity": "the slow morning walk we still take, just shorter now",
+    "favoriteRitual": "the cup of coffee I drink with my hand on your back",
+    "sleepingSpot": "the warm square of sun by the back door",
+    "favoriteSpots": "the back step at four o'clock, where the light is",
+    "ownerMessage": "Thank you for every ordinary afternoon.",
+    "nicknames": "Bis, the old man",
+    "dateAdopted": "Spring 2013"
+  },
+  "toggles": {
+    "transitionFrame": "still-here",
+    "otherPetsInHome": "no"
+  },
+  "images": []
+}

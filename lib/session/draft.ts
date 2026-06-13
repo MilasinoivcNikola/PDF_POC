@@ -20,6 +20,7 @@ import type {
   Story4Session,
   Story5Draft,
   Story5Session,
+  Story6Draft,
   WizardDraft,
   AgeBracket,
   DeathType,
@@ -529,10 +530,18 @@ export function isStory5Draft(draft: WizardDraft): draft is Story5Draft {
   return draft.storyType === "story-5";
 }
 
+/** True if the draft is a Story-6 draft (the living tribute; narrows the union). */
+export function isStory6Draft(draft: WizardDraft): draft is Story6Draft {
+  return draft.storyType === "story-6";
+}
+
 /** True if the draft is a Story-1 draft (the default — no/legacy `storyType`). */
 export function isStory1Draft(draft: WizardDraft): draft is StoryDraft {
   return (
-    !isStory2Draft(draft) && !isStory4Draft(draft) && !isStory5Draft(draft)
+    !isStory2Draft(draft) &&
+    !isStory4Draft(draft) &&
+    !isStory5Draft(draft) &&
+    !isStory6Draft(draft)
   );
 }
 
@@ -553,6 +562,12 @@ export function missingRequiredFieldsForDraft(
   if (isStory2Draft(draft)) return missingRequiredFieldsStory2(draft);
   if (isStory4Draft(draft)) return missingRequiredFieldsStory4(draft);
   if (isStory5Draft(draft)) return missingRequiredFieldsStory5(draft);
+  if (isStory6Draft(draft)) {
+    // Story 6 (the living tribute) is text+registry-only in PR 25 — its required
+    // gate + draft→session bridge land in PR 26 (the wizard/order PR). No route or
+    // catalog reaches a Story-6 draft yet, so this branch is unreachable today.
+    throw new Error("Story 6 draft is not wired into the wizard yet (PR 26)");
+  }
   return missingRequiredFields(draft);
 }
 
@@ -569,5 +584,11 @@ export function draftToSessionForDraft(
   if (isStory2Draft(draft)) return draftToSessionStory2(draft);
   if (isStory4Draft(draft)) return draftToSessionStory4(draft);
   if (isStory5Draft(draft)) return draftToSessionStory5(draft);
+  if (isStory6Draft(draft)) {
+    // Story 6 (the living tribute) is text+registry-only in PR 25 — its
+    // draft→session bridge lands in PR 26 (the wizard/order PR). Unreachable today
+    // (no route or catalog reaches a Story-6 draft).
+    throw new Error("Story 6 draft is not wired into the wizard yet (PR 26)");
+  }
   return draftToSession(draft);
 }

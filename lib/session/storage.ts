@@ -13,6 +13,7 @@ import type {
   Story2Draft,
   Story4Draft,
   Story5Draft,
+  Story6Draft,
   StoryType,
   WizardDraft,
 } from "@/lib/session/types";
@@ -116,24 +117,52 @@ function newStory5Draft(): Story5Draft {
 }
 
 /**
+ * A fresh empty Story-6 draft ("While You're Still Here, [PET_NAME]", the living
+ * tribute). Discriminated by the literal `storyType: "story-6"`; it is a NARRATIVE
+ * book like Story 1, so it carries the same `pet` defaults but KEEPS the
+ * illustration-style choice — `illustrationStyle: "watercolor"` (the default the
+ * pet step shows). `species` is pre-seeded ("dog") for the same reason as Story 2:
+ * it IS a required field and the pet step's radio shows "dog" selected by default,
+ * so pre-seeding keeps the draft consistent with what the user sees if they never
+ * touch the radio. Its toggles default to `transitionFrame: "still-here"`
+ * (`otherPetsInHome` has its default applied by the draft bridge in PR 26). There
+ * is NO `deathType`/`beliefFrame` (the memorial conversion is dropped).
+ */
+function newStory6Draft(): Story6Draft {
+  return {
+    id: createSessionId(),
+    createdAt: new Date().toISOString(),
+    status: "draft",
+    storyType: "story-6",
+    pet: { species: "dog", illustrationStyle: "watercolor" },
+    owner: {},
+    memories: {},
+    toggles: { transitionFrame: "still-here" },
+  };
+}
+
+/**
  * A fresh empty draft for the given product (default Story 1). The landing page's
  * story picker seeds the correct shape so the wizard provider hydrates the right
  * product on first load.
  *
  * Overloaded so a known literal narrows the return: `newDraft()` /
  * `newDraft("story-1")` → `StoryDraft`, `newDraft("story-2")` → `Story2Draft`,
- * `newDraft("story-4")` → `Story4Draft`, `newDraft("story-5")` → `Story5Draft`, a
- * dynamic `StoryType` → the `WizardDraft` union.
+ * `newDraft("story-4")` → `Story4Draft`, `newDraft("story-5")` → `Story5Draft`,
+ * `newDraft("story-6")` → `Story6Draft`, a dynamic `StoryType` → the `WizardDraft`
+ * union.
  */
 export function newDraft(storyType?: "story-1"): StoryDraft;
 export function newDraft(storyType: "story-2"): Story2Draft;
 export function newDraft(storyType: "story-4"): Story4Draft;
 export function newDraft(storyType: "story-5"): Story5Draft;
+export function newDraft(storyType: "story-6"): Story6Draft;
 export function newDraft(storyType: StoryType): WizardDraft;
 export function newDraft(storyType: StoryType = "story-1"): WizardDraft {
   if (storyType === "story-2") return newStory2Draft();
   if (storyType === "story-4") return newStory4Draft();
   if (storyType === "story-5") return newStory5Draft();
+  if (storyType === "story-6") return newStory6Draft();
   return newStory1Draft();
 }
 

@@ -19,7 +19,11 @@ import { useState } from "react";
 import { StepShell } from "@/components/wizard/StepShell";
 import { useWizard } from "@/components/wizard/WizardProvider";
 import { getWizardConfig } from "@/lib/story/wizard-config";
-import { isStory4Draft, isStory5Draft } from "@/lib/session/draft";
+import {
+  isStory4Draft,
+  isStory5Draft,
+  isStory6Draft,
+} from "@/lib/session/draft";
 
 export default function LetterPage() {
   const { draft, updateDraft } = useWizard();
@@ -31,8 +35,11 @@ export default function LetterPage() {
   const total = getWizardConfig(storyType).total;
   // All three letter products keep their memories under the `owner`-bearing draft.
   // Only a Story-4 draft carries `favoriteActivity`; only a Story-5 draft carries
-  // `lastGoodDay` / `whatIKeep` on its memories group.
-  const memories = draft && "owner" in draft ? draft.memories : {};
+  // `lastGoodDay` / `whatIKeep` on its memories group. Story 6 also has an `owner`
+  // group but is NOT a letter product (it never reaches this step — its wizard has
+  // no `letter` step), so it is excluded here to keep the letter-memories shape.
+  const memories =
+    draft && "owner" in draft && !isStory6Draft(draft) ? draft.memories : {};
   const quirks = memories.quirks ?? "";
   const favoriteRitual = memories.favoriteRitual ?? "";
   const favoriteSpots = memories.favoriteSpots ?? "";

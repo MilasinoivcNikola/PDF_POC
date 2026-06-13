@@ -6,6 +6,17 @@
 > **Status:** Working v1 draft — spec for build
 > **Last updated:** 2026-06-12
 
+> **⚠️ BUILD SCOPE NOTE (PM, 2026-06-12 — applies to PR-25/26):** the
+> **memorial-conversion / "second life" of this order is DROPPED ENTIRELY.** Story 6
+> ships as a **pure living tribute** only. The sections below that describe the
+> later memorial re-render — the dormant `[DEATH_TYPE]` / `[BELIEF_FRAME]` toggles,
+> the `truth` (death) layout, and the "Memorial conversion (the second life of this
+> order)" variant — are **out of scope and not built**. The shipped
+> `Story6Session` carries **no** `deathType`/`beliefFrame`, and the `truth` layout
+> **never** appears for a Story-6 order. **Do not re-introduce these.** Everything
+> else (the living tribute itself, the `TRANSITION_FRAME` toggle, the age-band /
+> species / other-pets variants) is in scope.
+
 ---
 
 ## Where this sits in the catalog
@@ -99,8 +110,10 @@ Reuse existing field names wherever the data already exists; new fields are mark
 - `[SPECIES]` voice tweaks — small adjustments to Pages 3/4 (cat stillness, rabbit binky, bird song).
 - `[OTHER_PETS_IN_HOME]`: yes / no — optionally adds a line on Page 4.
 
-**Memorial-conversion fields (carried, dormant in the living book):**
-- `[DEATH_TYPE]`, `[BELIEF_FRAME]` — present in the session but unused while the book is a living tribute; activated only by the later memorial re-render.
+**Memorial-conversion fields — ⚠️ DROPPED, NOT BUILT (PM, 2026-06-12):**
+- `[DEATH_TYPE]`, `[BELIEF_FRAME]` — the memorial conversion is out of scope, so
+  these are **not** carried on the shipped `Story6Session`. (Historical: the v1 draft
+  proposed carrying them dormant; that path is dropped.)
 
 ---
 
@@ -276,6 +289,11 @@ And I am right here with you.
 - **no** — omit it.
 
 ### Memorial conversion (the second life of this order)
+> **⚠️ OUT OF SCOPE / NOT BUILT (PM, 2026-06-12).** This entire subsection — and the
+> `[DEATH_TYPE]` / `[BELIEF_FRAME]` toggles + `truth` layout it relies on — is
+> **dropped**. Story 6 is a pure living tribute. Kept here for historical context
+> only; do not implement.
+
 When the pet dies, the same captured order can be re-rendered as a memorial:
 - The dormant `[DEATH_TYPE]` and `[BELIEF_FRAME]` toggles activate.
 - `resolve` swaps to the memorial treatment (Story-1-style, including the `truth` death page and a closing that honors the loss), reusing the **same photo, pet details, quirks, and rituals already on file**.
@@ -295,11 +313,11 @@ Before delivering any PDF, verify:
 - [ ] `[TRANSITION_FRAME]` variant applied to Page 5 correctly; if `road-ahead`, the future is named once, plainly, with no euphemism
 - [ ] `[AGE_OR_STAGE]` and species variants applied
 - [ ] Page 4 quirks read as clean sentences (fix typos in customer free-text without changing meaning)
-- [ ] No death page in the living book (the `truth` layout must NOT be present unless this is a memorial re-render)
+- [ ] No death page in the living book — the `truth` layout must NEVER be present (the memorial re-render is DROPPED, out of scope per PM 2026-06-12; see the banner at the top of this file)
 - [ ] Read aloud start to finish — does it feel like *celebrating a pet who is here*, never like *pre-grieving*?
 - [ ] Final PDF is 8.5" × 11", at least 300 DPI, on cream/warm paper
 - [ ] File named: `While-Youre-Still-Here-[PET_NAME].pdf`
-- [ ] Memorial-conversion fields (`[DEATH_TYPE]`, `[BELIEF_FRAME]`) captured and stored, even though dormant
+  <!-- DROPPED (PM 2026-06-12): no memorial-conversion fields ([DEATH_TYPE]/[BELIEF_FRAME]) are captured or stored — Story6Toggles carries neither. The living tribute is the only path. -->
 
 ---
 

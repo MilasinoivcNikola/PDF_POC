@@ -83,11 +83,29 @@ const STORY_5_STEPS: readonly WizardStep[] = [
   { id: "generate", step: 6 },
 ];
 
+/**
+ * Story 6's five steps: upload → pet → tribute → tone → generate. The living
+ * tribute is a NARRATIVE book (like Story 1, it keeps the pet's pronoun + the
+ * illustration-style choice), but it has no child and no separate memories/style
+ * steps: the `tribute` step collects the living-tribute fields (age/stage, still
+ * loves, the ordinary rituals, the owner message) and the `tone` step collects the
+ * transition-frame + other-pets toggles. The wizard UI (PR 26) reads its own field
+ * set per step; this config carries only the ordering + count.
+ */
+const STORY_6_STEPS: readonly WizardStep[] = [
+  { id: "upload", step: 1 },
+  { id: "pet", step: 2 },
+  { id: "tribute", step: 3 },
+  { id: "tone", step: 4 },
+  { id: "generate", step: 5 },
+];
+
 const WIZARD_CONFIG: Record<StoryType, WizardConfig> = {
   "story-1": { steps: STORY_1_STEPS, total: STORY_1_STEPS.length },
   "story-2": { steps: STORY_2_STEPS, total: STORY_2_STEPS.length },
   "story-4": { steps: STORY_4_STEPS, total: STORY_4_STEPS.length },
   "story-5": { steps: STORY_5_STEPS, total: STORY_5_STEPS.length },
+  "story-6": { steps: STORY_6_STEPS, total: STORY_6_STEPS.length },
 };
 
 /** The wizard configuration for a product (default Story 1 for a missing type). */
