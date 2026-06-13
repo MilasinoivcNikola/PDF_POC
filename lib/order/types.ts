@@ -13,6 +13,7 @@ import type {
   Story2Session,
   Story4Session,
   Story5Session,
+  Story6Session,
   StoryType,
 } from "@/lib/session/types";
 
@@ -52,9 +53,10 @@ export type OrderStatus =
 
 /**
  * One book order. `inputs` reuses the existing session types VERBATIM
- * (`StorySession | Story2Session | Story4Session | Story5Session`) so the generation engine
- * consumes a paid order's captured inputs with no translation — the same shape
- * the local wizard already produces and `resolveStory*` already reads.
+ * (`StorySession | Story2Session | Story4Session | Story5Session | Story6Session`)
+ * so the generation engine consumes a paid order's captured inputs with no
+ * translation — the same shape the local wizard already produces and
+ * `resolveStory*` already reads.
  *
  * Storage keys (`photoKey`, `pdfKey`) are object paths inside the private
  * Supabase buckets, not URLs — delivery mints a short-lived signed URL on demand
@@ -75,7 +77,12 @@ export interface Order {
   /** Buyer email — where the finished book is delivered (PR-09). */
   customerEmail: string;
   /** Captured wizard inputs, reused verbatim by the engine. */
-  inputs: StorySession | Story2Session | Story4Session | Story5Session;
+  inputs:
+    | StorySession
+    | Story2Session
+    | Story4Session
+    | Story5Session
+    | Story6Session;
   /** Object key of the uploaded pet photo in the `order-photos` bucket. */
   photoKey: string;
   /** Object key of the rendered PDF in the `order-pdfs` bucket, once produced. */

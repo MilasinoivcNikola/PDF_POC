@@ -87,11 +87,17 @@ export interface Product {
 //   as Story 2 — identical form, illustration count, and fulfillment effort) —
 //   2900 ($29) is the placeholder. The Stories 2 + 5 companion BUNDLE is out of
 //   scope (a separate, PM-gated multi-product commerce decision).
+// - Story 6 ("While You're Still Here") is recommended at $32-35 PDF in its master
+//   template — the TOP of the catalog's PDF band (highest emotional weight, a
+//   differentiated almost-uncontested concept, the photo-likeness differentiator).
+//   3200 ($32) is the placeholder (top-of-band); confirm the exact number with the
+//   PM before configuring the LS variant.
 
 const PLACEHOLDER_STORY_1_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_2_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_4_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_5_PRICE_USD = 2900;
+const PLACEHOLDER_STORY_6_PRICE_USD = 3200;
 
 // ---------------------------------------------------------------------------
 // The catalog
@@ -199,6 +205,26 @@ function buildCatalog(): Product[] {
       sampleImages: [
         "/samples/story-5-letter-to/note-cover.jpg",
         "/samples/story-5-letter-to/note-page-5.jpg",
+      ],
+    }),
+    buildProduct("story-6-tribute", "story-6", {
+      title: "While You're Still Here",
+      tagline: "A living tribute — made while they're still curled up beside you.",
+      description:
+        "An 8-page personalized keepsake for a pet who is still with you — a " +
+        "senior companion, or one facing a hard diagnosis. While You're Still " +
+        "Here celebrates your pet and your bond in the present tense, while you " +
+        "can still hold the book beside them. Illustrated from a photo of your " +
+        "actual pet — their real coat, their real grey muzzle, their real face — " +
+        "in soft watercolor across every page. Customized with your pet's name, " +
+        "the ordinary rituals that are only yours, and the small things only they " +
+        "do. Written gently, honestly, and with love — for the time you have, not " +
+        "the time you're afraid of losing. Delivered as a print-ready PDF, " +
+        "lovingly hand-finished, within 24–48 hours.",
+      priceUsd: PLACEHOLDER_STORY_6_PRICE_USD,
+      sampleImages: [
+        "/samples/story-6-tribute/tribute-cover.jpg",
+        "/samples/story-6-tribute/tribute-page-3.jpg",
       ],
     }),
   ];

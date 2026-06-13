@@ -66,9 +66,9 @@ export default function Home() {
           <p className={`lede ${styles.landingLede} fade-in fade-in-3`}>
             Personalized pet keepsakes, illustrated from a photo of your own pet
             and written with care. A story to read with your child, a pair of
-            goodbye letters — one in your pet&apos;s voice, one in yours — or a
-            joyful letter for the one still curled up beside you. Made by hand, for
-            you.
+            goodbye letters — one in your pet&apos;s voice, one in yours — a joyful
+            letter for the one still curled up beside you, or a living tribute made
+            while they&apos;re still here. Made by hand, for you.
           </p>
 
           <div className={`${styles.landingCta} fade-in fade-in-3`}>
@@ -84,7 +84,7 @@ export default function Home() {
               </svg>
             </Link>
             <p className={styles.landingCtaMeta}>
-              Four keepsakes, each made to order. Delivered as a print-quality
+              Five keepsakes, each made to order. Delivered as a print-quality
               PDF.
             </p>
           </div>
@@ -171,6 +171,37 @@ export default function Home() {
               </p>
               <span className={styles.chooserLink}>
                 See the letter
+                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
+                  <path
+                    d="M1 6h16m0 0L12 1m5 5l-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            </Link>
+
+            {/* Story 6 — the one LIVING tribute, made before a pet dies. Set apart
+                from the four after-loss titles with its own accent. */}
+            <Link
+              href="/books/story-6-tribute"
+              className={`${styles.chooserCard} ${styles.chooserCardLiving}`}
+            >
+              <span className={styles.chooserKicker}>
+                Still here · a living tribute
+              </span>
+              <h2 className={styles.chooserTitle}>
+                While they&apos;re <em>still here</em>.
+              </h2>
+              <p className={styles.chooserBody}>
+                The one book made before goodbye — an illustrated tribute to a pet
+                who is still with you, a senior companion or one facing a hard
+                diagnosis. For the time you have, not the time you&apos;re afraid
+                of losing.
+              </p>
+              <span className={styles.chooserLink}>
+                See the book
                 <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
                   <path
                     d="M1 6h16m0 0L12 1m5 5l-5 5"

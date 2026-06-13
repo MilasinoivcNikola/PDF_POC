@@ -91,6 +91,26 @@
   color: var(--ink);
 }
 
+/* The one LIVING tribute — set apart from the four after-loss titles with a soft
+   sage wash + accent, so it reads as a different kind of keepsake (made before
+   goodbye, not after). */
+.chooserCardLiving {
+  background: linear-gradient(
+    160deg,
+    rgba(126, 141, 107, 0.12) 0%,
+    var(--paper) 70%
+  );
+  border-left: 3px solid var(--sage);
+}
+
+.chooserCardLiving:hover {
+  border-color: var(--sage);
+}
+
+.chooserCardLiving .chooserKicker {
+  color: var(--sage);
+}
+
 .chooserKicker {
   font-family: var(--font-mono);
   font-size: var(--t-xs);

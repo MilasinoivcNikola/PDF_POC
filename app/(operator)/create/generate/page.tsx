@@ -19,7 +19,9 @@ import {
   type Story2RequiredField,
   type Story4RequiredField,
   type Story5RequiredField,
+  type Story6RequiredField,
 } from "@/lib/session/draft";
+import { getWizardConfig } from "@/lib/story/wizard-config";
 
 interface FieldFix {
   label: string;
@@ -127,6 +129,42 @@ const STORY5_FIELD_FIX: Record<Story5RequiredField, FieldFix> = {
   },
 };
 
+/** Which step a missing Story-6 required field lives on, for the "go fix it" link. */
+const STORY6_FIELD_FIX: Record<Story6RequiredField, FieldFix> = {
+  petName: { label: "your pet's name", href: "/create/pet", step: "Step 2" },
+  species: {
+    label: "what kind of pet they are",
+    href: "/create/pet",
+    step: "Step 2",
+  },
+  breedColor: {
+    label: "a few words to describe your pet",
+    href: "/create/pet",
+    step: "Step 2",
+  },
+  ageOrStage: {
+    label: "where they are in life right now",
+    href: "/create/pet",
+    step: "Step 2",
+  },
+  photo: { label: "a photo of your pet", href: "/create/upload", step: "Step 1" },
+  ownerNames: {
+    label: "who the book is dedicated by",
+    href: "/create/tribute",
+    step: "Step 3",
+  },
+  favoriteRitual: {
+    label: "a ritual you share",
+    href: "/create/tribute",
+    step: "Step 3",
+  },
+  favoriteActivity: {
+    label: "something you still do together",
+    href: "/create/tribute",
+    step: "Step 3",
+  },
+};
+
 type Phase = "idle" | "writing" | "generating" | "error";
 
 export default function GeneratePage() {
@@ -144,17 +182,25 @@ export default function GeneratePage() {
   const isStory2 = storyType === "story-2";
   const isStory4 = storyType === "story-4";
   const isStory5 = storyType === "story-5";
+  const isStory6 = storyType === "story-6";
   // All three letters (Story 2 / Story 4 / Story 5) are photo-led keepsakes.
   const isLetter = isStory2 || isStory4 || isStory5;
-  // The previous step differs by product (Story 1: style; the letters: tone).
-  const backHref = isLetter ? "/create/tone" : "/create/style";
-  const fieldFix = isStory4
-    ? STORY4_FIELD_FIX
-    : isStory5
-      ? STORY5_FIELD_FIX
-      : isStory2
-        ? STORY2_FIELD_FIX
-        : STORY1_FIELD_FIX;
+  // The previous step differs by product (Story 1: style; the letters: tone;
+  // Story 6's tone step is also the previous one but its own back chain).
+  const backHref = isLetter || isStory6 ? "/create/tone" : "/create/style";
+  // The Generate step is the last step; its number differs by product (Story 6 has
+  // 5 steps, the others 6).
+  const totalSteps = getWizardConfig(storyType).total;
+  const stepLabel = `Step ${String(totalSteps).padStart(2, "0")} of ${String(totalSteps).padStart(2, "0")}`;
+  const fieldFix = isStory6
+    ? STORY6_FIELD_FIX
+    : isStory4
+      ? STORY4_FIELD_FIX
+      : isStory5
+        ? STORY5_FIELD_FIX
+        : isStory2
+          ? STORY2_FIELD_FIX
+          : STORY1_FIELD_FIX;
 
   const missing = useMemo<
     (
@@ -162,6 +208,7 @@ export default function GeneratePage() {
       | Story2RequiredField
       | Story4RequiredField
       | Story5RequiredField
+      | Story6RequiredField
     )[]
   >(() => (draft ? missingRequiredFieldsForDraft(draft) : []), [draft]);
 
@@ -285,7 +332,7 @@ export default function GeneratePage() {
           </svg>
           Quietly Kept
         </Link>
-        <div className="label">Generate · Step 06 of 06</div>
+        <div className="label">Generate · {stepLabel}</div>
       </header>
 
       <main
@@ -342,7 +389,9 @@ export default function GeneratePage() {
                 ? "We'll paint the cover portrait and one scene from the photo you shared, then typeset the six-page letter. This usually takes a minute or two."
                 : isStory2 || isStory5
                   ? "We'll paint the cover portrait from the photo you shared and typeset the six-page letter. This usually takes a minute or two."
-                  : "We'll paint each illustration from the photo you shared and assemble the twelve-page book. This usually takes a minute or two."}
+                  : isStory6
+                    ? "We'll paint each illustration from the photo you shared and assemble the eight-page tribute. This usually takes a minute or two."
+                    : "We'll paint each illustration from the photo you shared and assemble the twelve-page book. This usually takes a minute or two."}
             </p>
 
             {description ? (
@@ -378,7 +427,7 @@ export default function GeneratePage() {
       </main>
 
       <footer className="site-footer">
-        <p className="label">Step 06 · Generate</p>
+        <p className="label">Generate</p>
         <p className="label">Saved to this device only</p>
       </footer>
     </div>
