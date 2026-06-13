@@ -81,3 +81,7 @@ not buried in the write-up.
 
 - 2026-06-13 — Story 6 (PR-25): Living-Tribute Text, Registration & Imagery — `feature/story6-text` (6f0cb2a) — present-tense 8-page living tribute (Story-1 narrative shape) + registration + 8 reference-anchored images → [archive](history/2026-06-13-story-6-pr-25-living-tribute-text-registration-and-imagery.md)
 - 2026-06-13 — Story 6 (PR-26): Wizard, Storefront & Order Intake — `feature/story6-wizard` (022da44) — creatable + sellable, the first narrative-spread storefront book — **completes Story 6** → [archive](history/2026-06-13-story-6-pr-26-wizard-storefront-and-order-intake-creatable-sellable.md)
+
+## Dev-process & tooling
+
+- 2026-06-13 — Feature 27: Lean the Context System — `feature/lean-context-system` (8acefc3, merge 8ce2183) — docs-only, zero-loss: tiered the history into a lean index + `context/history/` archive (39 files, byte-identical), trimmed `CLAUDE.md` `@`-loads to 5 live docs, pointed test-restating prose at its tests, added the `context/debt.md` ledger → [archive](history/2026-06-13-lean-context-system.md)
