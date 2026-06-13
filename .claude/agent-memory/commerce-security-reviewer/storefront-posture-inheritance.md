@@ -1,6 +1,6 @@
 ---
 name: storefront-posture-inheritance
-description: Why adding a new public product (Story 4, PR-22) inherits the proven order-intake security posture for free — the structural invariants that close spend-guard / IDOR / status-injection at the type+route level, and the recipe to re-verify a future product
+description: Why adding a new public product (Story 4/5/6, PR-22/24/26) inherits the proven order-intake security posture for free — the structural invariants that close spend-guard / IDOR / status-injection at the type+route level, and the recipe to re-verify a future product
 metadata:
   type: project
 ---
@@ -8,13 +8,18 @@ metadata:
 A new sellable product (a new `storyType` + catalog entry + `Story*Fields` form
 component + `Story*Session` widening) inherits the proven Story-1/2 commerce
 security posture **without touching the trust boundary**, because the boundary is
-structural, not per-product. Verified on Story 4 (PR-22) and again on Story 5
-(PR-24) — both ran the recipe below fully green with zero findings, so the
-inheritance is now twice-confirmed. (PR-24 specifics: `/api/order/route.ts` diff
-empty; `NewOrderInput` still excludes status/pdfKey; `draftToSessionStory5` builds
-fresh field-by-field; `lib/ai/story5-prompts` in `FORBIDDEN_LOCAL`; the two
-`public/samples/story-5-letter-to/*.jpg` carried only the same clean 76-byte Exif
-stub + 56-byte empty 8BIM IPTC stub.)
+structural, not per-product. Verified on Story 4 (PR-22), Story 5 (PR-24), and
+again on Story 6 (PR-26) — all ran the recipe below fully green with zero findings,
+so the inheritance is now thrice-confirmed. (PR-26 specifics: `/api/order/route.ts`
+diff empty; `NewOrderInput` still excludes status/pdfKey; `createOrder` still
+hard-codes `pending_payment`; `draftToSessionStory6` builds fresh field-by-field +
+hard-codes `storyType:"story-6"`; `lib/ai/story6-prompts` already in
+`FORBIDDEN_LOCAL`; the two `public/samples/story-6-tribute/*.jpg` carried only the
+same clean Exif stub [single ExifIFD ptr → 3 benign tags: ColorSpace/PixelX/PixelY,
+NO GPS/Make/Model/Owner/Serial/DateTime/Artist] + empty 8BIM IPTC stub. NOTE: Story
+6 is the first NARRATIVE-SPREAD storefront product, so the `Order.inputs` widen
+admits `Story6Session` and `BookPreview`'s `isLetter` EXCLUDES story-6 — both purely
+type/presentation, no security bearing.)
 
 **Why these hold by construction (re-confirm, don't assume, on the next product):**
 

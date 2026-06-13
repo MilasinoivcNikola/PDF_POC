@@ -10,3 +10,4 @@ _Index of saved memories (one line each: `- [Title](file.md) — hook`)._
 - [Letter-layout reuse touches the shared renderer](letter-layout-reuse-renderer-touch.md) — a `letter`-reuse book legitimately edits pages-story2.tsx (sign-off sentinel); "no shared renderer touched" wording goes stale
 - [Masterstory slot-id / art-shape lag](masterstory-slot-id-lag.md) — a book's template guesses slot ids (`letter-*`) + offers "figureless"; the registry (`talk-*`) + spec (reference-anchored) win — bites on the imagery PR
 - [Playbook undocumented conventions](playbook-undocumented-conventions.md) — page-id prefix + Story-1-shape `slots+1` reference-anchor accounting followed in code (S4/5/6) but not in new-book-playbook.md
+- [Playbook Order.inputs union omission](playbook-order-inputs-union-omission.md) — every sellable book widens 3 inputs-unions (PR-22/24/26); reuse-guarantee omits it; nice-to-have not blocking
