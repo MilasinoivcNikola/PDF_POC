@@ -90,6 +90,7 @@ not buried in the write-up.
 ## Milestone 12 — Story 8 ("The Amazing Adventures of [PET_NAME]")
 
 - 2026-06-14 — Story 8 (PR-0): Approach-B Illustration Prototype (go/no-go gate) — `feature/story8-prototype` (5e91147, merge 9fb1253) — **GO**: the deletable gate proving the test pet stays on-model across 10 dynamic action poses under Approach B (net-new orchestration — only Story-1 ran it before); real `lib/ai/story8-prompts.ts` (10 Backyard-Mystery slots + pose discipline, carries into PR-A) + throwaway risk-ordered B-loop runner + contact sheet; no text/registry/wizard/PDF/commerce touch. Cost floor = climax at Medium. → proceed to PR-A (Feature 31) → [archive](history/2026-06-14-story-8-pr-0-approach-b-illustration-prototype-gate.md)
+- 2026-06-14 — Story 8 (PR-A): Text, Variants, Registration & Approach-B Imagery — `feature/story8-text` (fe556ae, merge 85d39cc) — the engine produces a correct Adventure PDF from a `Story8Session` (13 pages, 10 slots): namespaced text engine (`[SUPERPOWER]` fallback chain + conditional `childName` + theme/hero-count/age/species/sidekick variants), registration, and the catalog's first **Approach-B** book — `generateStory8Illustrations` self-selects B, calm→action→climax-last-at-Medium, pages 10/11 reuse art ($0); Step 3 skipped (reuses Story-1 layouts → all existing PDFs byte-identical); not yet sellable (PR-B) → [archive](history/2026-06-14-story-8-pr-a-text-registry-and-imagery.md)
 
 ## Dev-process & tooling
 
