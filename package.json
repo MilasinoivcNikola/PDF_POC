@@ -8,6 +8,7 @@
     "start": "next start",
     "render:test": "tsx --tsconfig scripts/tsconfig.json scripts/render-test.ts",
     "process:orders": "tsx --tsconfig scripts/tsconfig.json scripts/process-orders.ts",
+    "proto:story8": "tsx --env-file-if-exists=.env.local --tsconfig scripts/tsconfig.json scripts/story8-prototype.ts",
     "lint": "eslint .",
     "test": "vitest",
     "test:run": "vitest run"
