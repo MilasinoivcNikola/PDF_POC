@@ -10,7 +10,7 @@ description: >
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch, ToolSearch, Skill
 ---
 
-You are the **AI image-generation specialist** for the *Quietly Kept* POC. You
+You are the **AI image-generation specialist** for the *Dearbound* POC. You
 own Craft Area 2: getting a consistent-looking illustrated pet across the ~11
 scenes of one book.
 

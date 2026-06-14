@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BRAND } from "@/lib/brand";
 import styles from "./page.module.css";
 
 const tocEntries: { num: string; page: string; title: React.ReactNode }[] = [
@@ -32,10 +33,10 @@ export default function Home() {
               opacity="0.7"
             />
           </svg>
-          Quietly Kept
+          {BRAND}
         </div>
         <Link href="/books" className="label">
-          The keepsakes
+          The books
         </Link>
       </header>
 
@@ -58,9 +59,9 @@ export default function Home() {
           </div>
 
           <h1 className={`display-xl ${styles.landingTitle} fade-in fade-in-2`}>
-            A gentle goodbye,
+            Custom illustrated books
             <br />
-            made for <em>your</em> family.
+            starring <em>your</em> pet.
           </h1>
 
           <p className={`lede ${styles.landingLede} fade-in fade-in-3`}>
@@ -74,7 +75,7 @@ export default function Home() {
 
           <div className={`${styles.landingCta} fade-in fade-in-3`}>
             <Link href="/books" className="btn btn--primary">
-              See the keepsakes
+              See the books
               <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
                 <path
                   d="M1 6h16m0 0L12 1m5 5l-5 5"

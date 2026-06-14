@@ -20,7 +20,7 @@ The writing here is a complete v1 draft for the default worked theme — **The B
 
 ## Where this sits in the catalog
 
-This is **Story 8 — ranked #5**, and it sits in a very specific spot: the **biggest, most-competed non-memorial category** in personalized pet books, and **the most playful book Quietly Kept makes**. Where Stories 1–3 are grief and keepsake products, Story 8 is pure joy — a gift a parent buys *because the kid will be delighted*, not because anyone is grieving.
+This is **Story 8 — ranked #5**, and it sits in a very specific spot: the **biggest, most-competed non-memorial category** in personalized pet books, and **the most playful book Dearbound makes**. Where Stories 1–3 are grief and keepsake products, Story 8 is pure joy — a gift a parent buys *because the kid will be delighted*, not because anyone is grieving.
 
 Be honest about the trade: **it has the highest market demand of all our non-memorial concepts AND the highest build effort AND the highest technical risk.** The demand is real (see *Market rationale* below) and the price point is healthy ($32–35). But the thing that makes the product worth buying — "this is YOUR actual dog, having an adventure" — is exactly the thing the AI pipeline is worst at holding across many dynamic scenes. **Do not greenlight this as a lightweight authoring branch.** It is a real build, and the cost is in the illustration engine, not the page templates.
 
@@ -413,7 +413,7 @@ This is the most important section of the spec — **for Story 8, the illustrati
 - Keep the child's (and human sidekick's) face slightly stylized / 3/4 view or from behind — avoids uncanny-valley and lets any child see themselves. A second-pet sidekick gets the same consistency care as the hero but is secondary; it does not need its own accumulating reference set.
 
 ### Style & palette
-- **Style:** soft warm watercolor (the Quietly Kept house style) — but **dynamic**: looser, more energetic brushwork than the gentle Story-1 grief palette, with motion and brightness. Playful, never flat-cartoon or clipart.
+- **Style:** soft warm watercolor (the Dearbound house style) — but **dynamic**: looser, more energetic brushwork than the gentle Story-1 grief palette, with motion and brightness. Playful, never flat-cartoon or clipart.
 - **Palette:** warm, sunny, saturated-but-soft; golden afternoon light; bright skies; no harsh contrasts, no pure black. Adventure energy without garish primary colors.
 - **Composition:** generous, dynamic, full-bleed-feeling art slots on the `narrative` layout; the action should feel big even within the existing page template.
 

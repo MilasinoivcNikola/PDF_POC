@@ -18,6 +18,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { BRAND } from "@/lib/brand";
 
 interface DownloadResponse {
   ok: boolean;
@@ -94,7 +95,7 @@ export default function DownloadPage({
       <header className="site-header">
         <Link href="/" className="wordmark">
           {wordmark}
-          Quietly Kept
+          {BRAND}
         </Link>
         <div className="label">Your keepsake</div>
       </header>

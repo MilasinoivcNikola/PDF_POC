@@ -15,6 +15,7 @@ import { getOperatorUserId } from "@/lib/supabase/auth";
 import { isSafeOrderId } from "@/lib/supabase/ids";
 import { getOrder } from "@/lib/order/store";
 import { getProduct } from "@/lib/catalog/products";
+import { BRAND } from "@/lib/brand";
 import { SignOutButton } from "@/app/(operator)/admin/SignOutButton";
 import { AdminBookReview } from "@/app/(operator)/admin/[orderId]/AdminBookReview";
 
@@ -58,7 +59,7 @@ export default async function AdminReviewPage({ params }: ReviewProps) {
               opacity="0.7"
             />
           </svg>
-          Quietly Kept
+          {BRAND}
         </Link>
         <SignOutButton />
       </header>

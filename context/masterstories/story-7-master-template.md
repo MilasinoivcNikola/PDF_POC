@@ -12,7 +12,7 @@
 
 This is the master text. Every paid order generates a PDF by substituting the merge fields below into the page-by-page text, then composing the correct occasion / adoption-source / life-stage variants and the matching illustration set.
 
-This is the **first happy book** in the Quietly Kept catalog — every other title (Stories 1–3) is grief work. The voice is warm and celebratory, not sentimental, never saccharine. It must read aloud to a child without going babyish, and read just as well to an adult holding the first photos of a pet they only met last week.
+This is the **first happy book** in the Dearbound catalog — every other title (Stories 1–3) is grief work. The voice is warm and celebratory, not sentimental, never saccharine. It must read aloud to a child without going babyish, and read just as well to an adult holding the first photos of a pet they only met last week.
 
 **Hire a copy editor** to polish the connective text before launch. There's no specialist-grief bar here, so the budget is lower — $100–150 for a warmth-and-flow pass. The bar is: does it sound like a real family telling the story of the best day, not a greeting card?
 
@@ -20,14 +20,14 @@ This is the **first happy book** in the Quietly Kept catalog — every other tit
 
 ## Where this sits in the catalog
 
-| | Quietly Kept catalog |
+| | Dearbound catalog |
 |---|---|
 | **Story 1** | Saying Goodbye — child grief picture book |
 | **Story 2** | A Letter from [PET] — adult keepsake letter |
 | **Story 3** | A Life Well Lived — celebration-of-life booklet |
 | **Story 7 (this)** | **Welcome Home — the Gotcha Day book** |
 
-Story 7 is the catalog's pivot from *loss* to *beginning*. It is the only title bought in joy rather than grief, which changes the marketing surface entirely: it can be sold as an **adoption gift** (bought by friends/family when someone brings a new pet home) and — the real upside — as a **recurring annual occasion**. "Gotcha Day" (the anniversary of an adoption) is increasingly celebrated like a birthday; a family that buys this book the year they adopt has a reason to come back every year. No other Quietly Kept title has a built-in repeat-purchase cadence.
+Story 7 is the catalog's pivot from *loss* to *beginning*. It is the only title bought in joy rather than grief, which changes the marketing surface entirely: it can be sold as an **adoption gift** (bought by friends/family when someone brings a new pet home) and — the real upside — as a **recurring annual occasion**. "Gotcha Day" (the anniversary of an adoption) is increasingly celebrated like a birthday; a family that buys this book the year they adopt has a reason to come back every year. No other Dearbound title has a built-in repeat-purchase cadence.
 
 Ranked **#4** in the catalog by expected demand.
 
@@ -44,7 +44,7 @@ The personalized **celebration / adoption pet-book** category is broadly validat
 
 **Honest caveat:** no single dedicated **"Gotcha Day"** competitor surfaced cleanly in research. Demand for *this specific framing* is **inferred from the broader personalized-pet-book category, not a named, proven listing.** We are betting that the adoption/anniversary occasion is an underserved slice of a clearly-large market, not entering a crowded one. Treat the gotcha-day angle as a hypothesis to validate with early sales, not a sure thing.
 
-**Our differentiator (the whole moat):** the competitors above use breed pickers, avatar builders, or pre-made art styles — the book stars *a* dog, not *your* dog. Quietly Kept generates the illustrations from **one uploaded photo of the customer's actual pet**, kept consistent across every page. For an origin-story book — where the entire emotional payload is "this is *our* one, exactly as they look" — that likeness is worth more here than in any other title.
+**Our differentiator (the whole moat):** the competitors above use breed pickers, avatar builders, or pre-made art styles — the book stars *a* dog, not *your* dog. Dearbound generates the illustrations from **one uploaded photo of the customer's actual pet**, kept consistent across every page. For an origin-story book — where the entire emotional payload is "this is *our* one, exactly as they look" — that likeness is worth more here than in any other title.
 
 **Position:** ranked **#4**; the upside that justifies the slot is the **recurring annual gotcha-day purchase**, which none of our grief titles have.
 
@@ -371,7 +371,7 @@ Before delivering any PDF, verify:
 
 ## Illustration & typography style guide
 
-This is the **brightest, most upbeat** book in the catalog. It shares the Quietly Kept warmth, but tilts the dial toward joy.
+This is the **brightest, most upbeat** book in the catalog. It shares the Dearbound warmth, but tilts the dial toward joy.
 
 - **Style options offered to customer:** soft watercolor (default), gentle storybook (cleaner lines), pencil sketch (for a quieter feel) — same three as Story 1, so the engine/style system is untouched.
 - **Palette:** warm and **brighter** than the memorial titles — golden *morning* light rather than golden-hour dusk; saturated but soft; greens and warm yellows welcome. Still **no harsh contrasts, no pure black, no primary-color clipart brightness.** Think "first sunny morning in a new home," not "sunset goodbye."

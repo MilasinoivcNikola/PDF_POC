@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProduct, getProducts } from "@/lib/catalog/products";
 import { formatPriceUsd } from "@/lib/catalog/price";
+import { BRAND } from "@/lib/brand";
 import styles from "./page.module.css";
 
 interface DetailProps {
@@ -31,10 +32,10 @@ export async function generateMetadata({
   const { productId } = await params;
   const product = getProduct(productId);
   if (!product) {
-    return { title: "Not found — Quietly Kept" };
+    return { title: `Not found — ${BRAND}` };
   }
   return {
-    title: `${product.title} — Quietly Kept`,
+    title: `${product.title} — ${BRAND}`,
     description: product.tagline,
   };
 }
@@ -66,10 +67,10 @@ export default async function BookDetailPage({ params }: DetailProps) {
               opacity="0.7"
             />
           </svg>
-          Quietly Kept
+          {BRAND}
         </Link>
         <Link href="/books" className="btn-link">
-          ← All keepsakes
+          ← All books
         </Link>
       </header>
 

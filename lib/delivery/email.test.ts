@@ -15,7 +15,7 @@ vi.mock("resend", () => ({
 
 const { buildDeliveryEmail, sendDeliveryEmail } = await import("./email");
 
-const DOWNLOAD_URL = "https://quietlykept.example/download/tok-abc-123";
+const DOWNLOAD_URL = "https://dearbound.com/download/tok-abc-123";
 
 beforeEach(() => {
   sendMock.mockReset();
@@ -66,7 +66,7 @@ describe("buildDeliveryEmail", () => {
       storyType: "story-1",
       downloadUrl: DOWNLOAD_URL,
     });
-    const policiesUrl = "https://quietlykept.example/policies";
+    const policiesUrl = "https://dearbound.com/policies";
     expect(html).toContain(policiesUrl);
     expect(text).toContain(policiesUrl);
   });
@@ -109,7 +109,7 @@ describe("sendDeliveryEmail", () => {
 
   it("sends the built payload from FROM_EMAIL to the customer", async () => {
     process.env.RESEND_API_KEY = "re_test";
-    process.env.FROM_EMAIL = "Quietly Kept <hello@quietlykept.example>";
+    process.env.FROM_EMAIL = "Dearbound <hello@dearbound.com>";
 
     await sendDeliveryEmail({
       to: "buyer@example.com",
@@ -126,7 +126,7 @@ describe("sendDeliveryEmail", () => {
       html: string;
       text: string;
     };
-    expect(payload.from).toBe("Quietly Kept <hello@quietlykept.example>");
+    expect(payload.from).toBe("Dearbound <hello@dearbound.com>");
     expect(payload.to).toBe("buyer@example.com");
     expect(payload.subject).toBe("Otis's book is ready");
     expect(payload.html).toContain(DOWNLOAD_URL);
@@ -153,7 +153,7 @@ describe("sendDeliveryEmail", () => {
 
   it("throws when Resend returns an error (so the caller can leave the order approved)", async () => {
     process.env.RESEND_API_KEY = "re_test";
-    process.env.FROM_EMAIL = "hello@quietlykept.example";
+    process.env.FROM_EMAIL = "hello@dearbound.com";
     sendMock.mockResolvedValueOnce({
       data: null,
       error: { message: "rate limited" },

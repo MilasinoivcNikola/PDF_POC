@@ -2,12 +2,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getProducts } from "@/lib/catalog/products";
 import { formatPriceUsd } from "@/lib/catalog/price";
+import { BRAND } from "@/lib/brand";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "The keepsakes — Quietly Kept",
+  title: `The books — ${BRAND}`,
   description:
-    "Personalized pet-memorial books, made by hand from your own photo. Choose a gentle goodbye for a child, or a letter in your pet's own voice.",
+    "Personalized illustrated books starring your own pet, made by hand from your photo — joyful adventures and gotcha-day tales, or a gentle goodbye for a child.",
 };
 
 export default function BooksPage() {
@@ -28,9 +29,9 @@ export default function BooksPage() {
               opacity="0.7"
             />
           </svg>
-          Quietly Kept
+          {BRAND}
         </Link>
-        <div className="label">The keepsakes</div>
+        <div className="label">The books</div>
       </header>
 
       <main className={styles.catalog}>

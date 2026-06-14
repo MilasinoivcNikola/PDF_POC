@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProduct, getProducts } from "@/lib/catalog/products";
+import { BRAND } from "@/lib/brand";
 import { OrderForm } from "./OrderForm";
 
 interface OrderProps {
@@ -18,7 +19,7 @@ export async function generateMetadata({
   const { productId } = await params;
   const product = getProduct(productId);
   return {
-    title: product ? `Order ${product.title} — Quietly Kept` : "Order — Quietly Kept",
+    title: product ? `Order ${product.title} — ${BRAND}` : `Order — ${BRAND}`,
   };
 }
 

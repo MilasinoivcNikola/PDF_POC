@@ -5,7 +5,7 @@
 //
 // Split, like lib/order/lemonsqueezy.ts, into a PURE builder + a thin sender:
 //   - `buildDeliveryEmail(...)` returns `{ subject, html, text }` — no IO, no SDK,
-//     unit-tested for the payload (download link present, Quietly Kept tone, the
+//     unit-tested for the payload (download link present, Dearbound tone, the
 //     /policies footer line). The download URL is the tokenized PUBLIC page, never a
 //     raw storage URL.
 //   - `sendDeliveryEmail(...)` builds the payload and calls Resend `.emails.send`.
@@ -16,6 +16,7 @@
 
 import { Resend } from "resend";
 import type { StoryType } from "@/lib/session/types";
+import { BRAND } from "@/lib/brand";
 
 /** Lazily-constructed singleton so importing this module has no side effects. */
 let cached: Resend | null = null;
@@ -91,7 +92,7 @@ export function buildDeliveryEmail(input: DeliveryEmailInput): DeliveryEmailPayl
     `You can return to this link to download it again whenever you need it.`,
     "",
     `With care,`,
-    `Quietly Kept`,
+    BRAND,
     "",
     `If something about your ${noun} isn't right, our refund and remake promise is here: ${policiesUrl}`,
   ].join("\n");
@@ -105,7 +106,7 @@ export function buildDeliveryEmail(input: DeliveryEmailInput): DeliveryEmailPayl
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
             <tr>
               <td style="font-size:13px;letter-spacing:0.18em;text-transform:uppercase;color:#A88147;padding-bottom:16px;">
-                Quietly Kept
+                ${BRAND}
               </td>
             </tr>
             <tr>
@@ -135,7 +136,7 @@ export function buildDeliveryEmail(input: DeliveryEmailInput): DeliveryEmailPayl
             </tr>
             <tr>
               <td style="font-size:14px;font-style:italic;color:#5A4F44;padding-bottom:32px;">
-                With care,<br />Quietly Kept
+                With care,<br />${BRAND}
               </td>
             </tr>
             <tr>

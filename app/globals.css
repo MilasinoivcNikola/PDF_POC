@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ================================================================
-   Quietly Kept — Shared Design System
+   Dearbound — Shared Design System
    Ported from prototypes/styles.css. This is the canonical design
    system; Tailwind theme tokens (tailwind.config.ts) mirror these
    values. Fonts are wired to next/font CSS variables in app/layout.tsx.

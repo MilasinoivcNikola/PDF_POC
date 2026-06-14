@@ -20,6 +20,7 @@ import { ImageUploader } from "@/components/wizard/ImageUploader";
 import { useWizard } from "@/components/wizard/WizardProvider";
 import { newDraft } from "@/lib/session/storage";
 import { isValidEmail } from "@/lib/order/email";
+import { BRAND } from "@/lib/brand";
 import {
   draftToSessionForDraft,
   isStory1Draft,
@@ -248,7 +249,7 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
             </p>
             <div className="mt-12">
               <Link href="/books" className="btn btn--primary">
-                See all keepsakes
+                See all books
               </Link>
             </div>
           </div>
@@ -689,7 +690,7 @@ function Header({ title }: { title: string }) {
     <header className="site-header">
       <Link href="/" className="wordmark">
         {wordmark}
-        Quietly Kept
+        {BRAND}
       </Link>
       <div className="label">Ordering · {title}</div>
     </header>

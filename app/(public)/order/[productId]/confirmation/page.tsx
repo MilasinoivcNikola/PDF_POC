@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProduct, getProducts } from "@/lib/catalog/products";
+import { BRAND } from "@/lib/brand";
 
 // The post-payment confirmation page (commerce PR-06) — the target Lemon Squeezy
 // redirects the customer to after a successful checkout. It is PURELY
@@ -30,8 +31,8 @@ export async function generateMetadata({
   const product = getProduct(productId);
   return {
     title: product
-      ? `Order received — ${product.title} · Quietly Kept`
-      : "Order received — Quietly Kept",
+      ? `Order received — ${product.title} · ${BRAND}`
+      : `Order received — ${BRAND}`,
   };
 }
 
@@ -62,7 +63,7 @@ export default async function ConfirmationPage({ params }: ConfirmationProps) {
       <header className="site-header">
         <Link href="/" className="wordmark">
           {wordmark}
-          Quietly Kept
+          {BRAND}
         </Link>
         <div className="label">Order received</div>
       </header>
@@ -85,7 +86,7 @@ export default async function ConfirmationPage({ params }: ConfirmationProps) {
           </p>
           <div className="mt-12">
             <Link href="/books" className="btn btn--primary">
-              See all keepsakes
+              See all books
             </Link>
           </div>
         </div>

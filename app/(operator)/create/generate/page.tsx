@@ -25,6 +25,7 @@ import {
   type Story9RequiredField,
 } from "@/lib/session/draft";
 import { getWizardConfig } from "@/lib/story/wizard-config";
+import { BRAND } from "@/lib/brand";
 
 interface FieldFix {
   label: string;
@@ -437,7 +438,7 @@ export default function GeneratePage() {
               opacity="0.7"
             />
           </svg>
-          Quietly Kept
+          {BRAND}
         </Link>
         <div className="label">Generate · {stepLabel}</div>
       </header>

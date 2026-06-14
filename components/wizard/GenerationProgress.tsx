@@ -19,6 +19,7 @@ import {
 } from "@/components/wizard/illustrationLabels";
 import { useGenerationProgress } from "@/components/wizard/useGenerationProgress";
 import type { StoryType } from "@/lib/session/types";
+import { BRAND } from "@/lib/brand";
 
 interface GenerationProgressProps {
   /** The written session id to generate for. */
@@ -97,7 +98,7 @@ export function GenerationProgress({
               opacity="0.7"
             />
           </svg>
-          Quietly Kept
+          {BRAND}
         </Link>
         <div className="label">Generating · Step 06 of 06</div>
       </header>

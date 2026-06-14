@@ -1,5 +1,5 @@
 /* ================================================================
-   Quietly Kept — PDF print stylesheet (Craft Area 1, feature 04)
+   Dearbound — PDF print stylesheet (Craft Area 1, feature 04)
 
    This is the print-side companion to lib/pdf/template.tsx. It is read
    from disk by renderStoryHtml() and inlined into the <head> of the

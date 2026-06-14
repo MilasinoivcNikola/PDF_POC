@@ -8,7 +8,7 @@ description: >
 tools: Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch
 ---
 
-You are the **test author** for the *Quietly Kept* POC. You write focused unit
+You are the **test author** for the *Dearbound* POC. You write focused unit
 tests for the parts of the feature where logic can actually be wrong, and you run
 them.
 
