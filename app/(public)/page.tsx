@@ -67,8 +67,9 @@ export default function Home() {
             Personalized pet keepsakes, illustrated from a photo of your own pet
             and written with care. A story to read with your child, a pair of
             goodbye letters — one in your pet&apos;s voice, one in yours — a joyful
-            letter for the one still curled up beside you, or a living tribute made
-            while they&apos;re still here. Made by hand, for you.
+            letter for the one still curled up beside you, a living tribute made
+            while they&apos;re still here, or the story of the day they came home.
+            Made by hand, for you.
           </p>
 
           <div className={`${styles.landingCta} fade-in fade-in-3`}>
@@ -84,7 +85,7 @@ export default function Home() {
               </svg>
             </Link>
             <p className={styles.landingCtaMeta}>
-              Five keepsakes, each made to order. Delivered as a print-quality
+              Six keepsakes, each made to order. Delivered as a print-quality
               PDF.
             </p>
           </div>
@@ -199,6 +200,37 @@ export default function Home() {
                 who is still with you, a senior companion or one facing a hard
                 diagnosis. For the time you have, not the time you&apos;re afraid
                 of losing.
+              </p>
+              <span className={styles.chooserLink}>
+                See the book
+                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
+                  <path
+                    d="M1 6h16m0 0L12 1m5 5l-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            </Link>
+
+            {/* Story 7 — the catalog's FIRST joyful, non-memorial title. Set apart
+                from the grief titles with its own bright golden accent — a beginning,
+                not a goodbye. */}
+            <Link
+              href="/books/story-7-welcome"
+              className={`${styles.chooserCard} ${styles.chooserCardJoyful}`}
+            >
+              <span className={styles.chooserKicker}>
+                Welcome home · a gotcha-day book
+              </span>
+              <h2 className={styles.chooserTitle}>
+                The day they <em>came home</em>.
+              </h2>
+              <p className={styles.chooserBody}>
+                A joyful storybook of your pet&apos;s origin — the empty house
+                before, the day you found each other, the first night, and all the
+                ways they became family. For a new arrival or an annual Gotcha Day.
               </p>
               <span className={styles.chooserLink}>
                 See the book

@@ -92,12 +92,18 @@ export interface Product {
 //   differentiated almost-uncontested concept, the photo-likeness differentiator).
 //   3200 ($32) is the placeholder (top-of-band); confirm the exact number with the
 //   PM before configuring the LS variant.
+// - Story 7 ("Welcome Home") lists $25-29 PDF in its master template, with $29 the
+//   explicit launch recommendation (in line with the personalized-pet-book
+//   incumbents; the recurring annual gotcha-day repurchase justifies the upper end).
+//   2900 ($29) is the placeholder; confirm the exact number with the PM before
+//   configuring the LS variant.
 
 const PLACEHOLDER_STORY_1_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_2_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_4_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_5_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_6_PRICE_USD = 3200;
+const PLACEHOLDER_STORY_7_PRICE_USD = 2900;
 
 // ---------------------------------------------------------------------------
 // The catalog
@@ -225,6 +231,26 @@ function buildCatalog(): Product[] {
       sampleImages: [
         "/samples/story-6-tribute/tribute-cover.jpg",
         "/samples/story-6-tribute/tribute-page-3.jpg",
+      ],
+    }),
+    buildProduct("story-7-welcome", "story-7", {
+      title: "Welcome Home",
+      tagline: "A gotcha-day book — the story of the day they came home.",
+      description:
+        "A personalized storybook celebrating the day your pet came home. " +
+        "Welcome Home tells your pet's origin story — the empty house before, the " +
+        "day you found each other, the drive home, the first night, and all the " +
+        "small ways they became family — illustrated from a single photo of your " +
+        "actual pet, kept looking like themselves on every page. Perfect for a " +
+        "brand-new arrival, an adoption gift, or your pet's annual Gotcha Day. " +
+        "Delivered as a print-quality PDF, lovingly hand-finished within 24–48 " +
+        "hours. Customized with your pet's name, how you found each other, your " +
+        "first-day memory, and the quirks that make them yours. Because every pet " +
+        "deserves the story of the best day — the day they finally came home.",
+      priceUsd: PLACEHOLDER_STORY_7_PRICE_USD,
+      sampleImages: [
+        "/samples/story-7-welcome/welcome-cover.jpg",
+        "/samples/story-7-welcome/welcome-page-7.jpg",
       ],
     }),
   ];

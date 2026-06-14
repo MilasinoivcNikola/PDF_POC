@@ -9,6 +9,7 @@ import type {
   Story4Session,
   Story5Session,
   Story6Session,
+  Story7Session,
 } from "@/lib/session/types";
 
 // The /api/session boundary is the high-value surface: a malformed body, an
@@ -31,7 +32,8 @@ vi.mock("@/lib/session/disk", () => ({
       | Story2Session
       | Story4Session
       | Story5Session
-      | Story6Session,
+      | Story6Session
+      | Story7Session,
   ) => writeSessionMock(session),
 }));
 
@@ -205,6 +207,43 @@ function validStory6Session(id = "story6-id-tribute202"): Story6Session {
     toggles: {
       transitionFrame: "still-here",
       otherPetsInHome: "no",
+    },
+    images: [],
+  };
+}
+
+/**
+ * A complete, valid finalized Story-7 ("Welcome Home") session payload. Defaults to
+ * the new-arrival occasion (no `yearsHome`); set occasion to gotcha-day-anniversary
+ * + provide yearsHome for the conditional path.
+ */
+function validStory7Session(id = "story7-id-welcome303"): Story7Session {
+  return {
+    id,
+    createdAt: "2026-06-13T09:00:00.000Z",
+    status: "generating",
+    storyType: "story-7",
+    pet: {
+      name: "Biscuit",
+      species: "dog",
+      breedColor: "a scruffy terrier mix with one ear that won't stay down",
+      pronoun: "he",
+      illustrationStyle: "watercolor",
+      photo: "uploads/sess/biscuit.jpg",
+    },
+    owner: { names: "Maria and James", relationship: "couple" },
+    memories: {
+      favoriteActivity: "stealing socks and parading them around the kitchen",
+      sleepingSpot: "in the crook of the couch by the window",
+      // quirks / homecomingMemory are optional-with-fallback — present as "" but
+      // the route does not validate them.
+      quirks: "",
+      homecomingMemory: "",
+    },
+    toggles: {
+      occasion: "new-arrival",
+      adoptionSource: "shelter",
+      lifeStage: "adult",
     },
     images: [],
   };
@@ -1030,6 +1069,204 @@ describe("POST /api/session — Story 6 happy path", () => {
         favoriteActivity: expect.any(String),
       },
       toggles: { transitionFrame: "still-here", otherPetsInHome: "no" },
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story 7 — "Welcome Home, [PET_NAME]'s Gotcha Day" (the homecoming book)
+// ---------------------------------------------------------------------------
+//
+// A "story-7" body validates the Story-7 required set (pet name, species, photo,
+// breedColor, owner names, favoriteActivity, sleepingSpot) plus the CONDITIONAL
+// `yearsHome` (required only when the occasion is the gotcha-day anniversary). It is
+// a narrative storefront book, so it keeps the Story-1 pet group (pronoun + style).
+// `quirks` / `homecomingMemory` are OPTIONAL (variant fallback), so a body with them
+// blank but every required field present must be ACCEPTED — proving the route ran
+// validateStory7, not validateStory2/4. The id traversal guard is shared.
+
+describe("POST /api/session — Story 7 validation", () => {
+  it("rejects a missing pet name with 400 missing_pet_name", async () => {
+    const body = validStory7Session();
+    body.pet.name = "   ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_pet_name",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing species with 400 missing_species", async () => {
+    const body = validStory7Session();
+    body.pet.species = "" as Story7Session["pet"]["species"];
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_species",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing photo with 400 missing_photo", async () => {
+    const body = validStory7Session();
+    body.pet.photo = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_photo",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing breed color with 400 missing_breed_color (narrative placeholder)", async () => {
+    const body = validStory7Session();
+    body.pet.breedColor = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_breed_color",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing owner names with 400 missing_owner_names", async () => {
+    const body = validStory7Session();
+    body.owner.names = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_owner_names",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing favorite activity with 400 missing_favorite_activity", async () => {
+    const body = validStory7Session();
+    body.memories.favoriteActivity = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_favorite_activity",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing sleeping spot with 400 missing_sleeping_spot", async () => {
+    const body = validStory7Session();
+    body.memories.sleepingSpot = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_sleeping_spot",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("ACCEPTS a body with blank quirks/homecomingMemory (proves validateStory7 ran, not validateStory2)", async () => {
+    const body = validStory7Session("blank-optionals-ok7");
+    body.memories.quirks = "   ";
+    body.memories.homecomingMemory = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      id: "blank-optionals-ok7",
+    });
+    expect(writeSessionMock).toHaveBeenCalledTimes(1);
+  });
+
+  describe("conditional yearsHome (anniversary occasion only)", () => {
+    it("ACCEPTS a new-arrival body with NO yearsHome (not required)", async () => {
+      const body = validStory7Session("new-arrival-ok7");
+      expect(body.toggles.occasion).toBe("new-arrival");
+      expect(body.toggles.yearsHome).toBeUndefined();
+      const res = await POST(jsonRequest(body));
+      expect(res.status).toBe(200);
+      await expect(res.json()).resolves.toEqual({
+        ok: true,
+        id: "new-arrival-ok7",
+      });
+      expect(writeSessionMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("rejects an anniversary body with NO yearsHome (400 missing_years_home)", async () => {
+      const body = validStory7Session();
+      body.toggles.occasion = "gotcha-day-anniversary";
+      const res = await POST(jsonRequest(body));
+      expect(res.status).toBe(400);
+      await expect(res.json()).resolves.toEqual({
+        ok: false,
+        error: "missing_years_home",
+      });
+      expect(writeSessionMock).not.toHaveBeenCalled();
+    });
+
+    it("ACCEPTS an anniversary body once yearsHome is provided", async () => {
+      const body = validStory7Session("anniversary-ok7");
+      body.toggles.occasion = "gotcha-day-anniversary";
+      body.toggles.yearsHome = "3";
+      const res = await POST(jsonRequest(body));
+      expect(res.status).toBe(200);
+      await expect(res.json()).resolves.toEqual({
+        ok: true,
+        id: "anniversary-ok7",
+      });
+      expect(writeSessionMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("rejects a path-traversal id for a Story-7 body (shared guard) and writes nothing", async () => {
+    const malicious = "../../../tmp/evil-story7";
+    expect(isSafeSessionId(malicious)).toBe(false);
+    const res = await POST(
+      jsonRequest({ ...validStory7Session(), id: malicious }),
+    );
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "invalid_session_id",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/session — Story 7 happy path", () => {
+  it("writes the Story-7 session and returns { ok:true, id }", async () => {
+    const body = validStory7Session("good-story7-id");
+    const res = await POST(jsonRequest(body));
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      id: "good-story7-id",
+    });
+
+    expect(writeSessionMock).toHaveBeenCalledTimes(1);
+    expect(writeSessionMock.mock.calls[0][0]).toMatchObject({
+      id: "good-story7-id",
+      storyType: "story-7",
+      // Keeps the Story-1 pet group: pronoun + illustrationStyle present.
+      pet: {
+        name: "Biscuit",
+        species: "dog",
+        photo: "uploads/sess/biscuit.jpg",
+        pronoun: "he",
+        illustrationStyle: "watercolor",
+      },
+      owner: { names: "Maria and James", relationship: "couple" },
+      toggles: {
+        occasion: "new-arrival",
+        adoptionSource: "shelter",
+        lifeStage: "adult",
+      },
     });
   });
 });

@@ -13,6 +13,10 @@
 //     pronoun + illustration style + a (required) appearance, plus the new
 //     `ageOrStage` field — and uses present-tense, "celebrate not pre-bury" copy.
 //     Name + description + age gate Continue; continues to /create/tribute.
+//   - Story 7 (the homecoming book, a NARRATIVE book): like Story 1 it KEEPS
+//     pronoun + illustration style + a (required) appearance, with present-tense,
+//     joyful copy (the pet is newly home). No `ageOrStage`. Name + description gate
+//     Continue; continues to /create/homecoming.
 // Every field writes straight through to the draft so a refresh keeps it.
 
 import { useState } from "react";
@@ -67,16 +71,23 @@ export default function PetPage() {
   const isStory4 = storyType === "story-4";
   // Story 6 (the living tribute): present-tense copy + the new ageOrStage field.
   const isStory6 = storyType === "story-6";
-  // Stories 4 and 6 are about a pet who is still alive — present-tense copy.
-  const isLiving = isStory4 || isStory6;
+  // Story 7 (the homecoming book): narrative book like Story 1/6 (keeps pronoun +
+  // style + a required appearance), but no ageOrStage. Present-tense, joyful copy.
+  const isStory7 = storyType === "story-7";
+  // Stories 4, 6 and 7 are about a pet who is alive (here / newly home) —
+  // present-tense copy.
+  const isLiving = isStory4 || isStory6 || isStory7;
   const total = getWizardConfig(storyType).total;
   // Story 1 → the child step; a letter (no child) → the owner step; Story 6 (the
-  // narrative tribute, with no child or owner step) → the tribute step.
-  const continueHref = isStory6
-    ? "/create/tribute"
-    : isLetter
-      ? "/create/owner"
-      : "/create/child";
+  // narrative tribute) → the tribute step; Story 7 (the homecoming book) → the
+  // homecoming step.
+  const continueHref = isStory7
+    ? "/create/homecoming"
+    : isStory6
+      ? "/create/tribute"
+      : isLetter
+        ? "/create/owner"
+        : "/create/child";
 
   const name = draft?.pet.name ?? "";
   const species = draft?.pet.species ?? "dog";
@@ -109,18 +120,22 @@ export default function PetPage() {
       step={2}
       total={total}
       introQuote={
-        isStory6
-          ? "Tell us about the one who is still here."
-          : isStory4
-            ? "Tell us about the one who fills your days."
-            : "Tell us about the one who is gone."
+        isStory7
+          ? "Tell us about the one who just came home."
+          : isStory6
+            ? "Tell us about the one who is still here."
+            : isStory4
+              ? "Tell us about the one who fills your days."
+              : "Tell us about the one who is gone."
       }
       introAttribution={
-        isStory6
-          ? "So the book holds them, exactly as they are right now."
-          : isStory4
-            ? "So the letter sounds like them — exactly as they are."
-            : "So the story can hold them, exactly as they were."
+        isStory7
+          ? "So the book paints them, exactly as they are."
+          : isStory6
+            ? "So the book holds them, exactly as they are right now."
+            : isStory4
+              ? "So the letter sounds like them — exactly as they are."
+              : "So the story can hold them, exactly as they were."
       }
       sectionLabel="Section · Two"
       sectionHeading={

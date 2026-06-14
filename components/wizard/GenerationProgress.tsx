@@ -210,7 +210,9 @@ export function GenerationProgress({
               ? "~$0.01 per letter · From your own credits"
               : storyType === "story-6"
                 ? "~$0.05 per book · From your own credits"
-                : "~$0.07 per book · From your own credits"}
+                : storyType === "story-7"
+                  ? "~$0.06 per book · From your own credits"
+                  : "~$0.07 per book · From your own credits"}
         </p>
       </footer>
     </div>

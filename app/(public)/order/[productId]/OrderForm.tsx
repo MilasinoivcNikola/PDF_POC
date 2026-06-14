@@ -27,10 +27,14 @@ import {
   isStory4Draft,
   isStory5Draft,
   isStory6Draft,
+  isStory7Draft,
   missingRequiredFieldsForDraft,
 } from "@/lib/session/draft";
 import type {
+  AdoptionSource,
   IllustrationStyle,
+  LifeStage,
+  Occasion,
   Pronoun,
   Species,
   StoryType,
@@ -108,20 +112,24 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
   const isStory4 = storyType === "story-4";
   const isStory5 = storyType === "story-5";
   const isStory6 = storyType === "story-6";
+  const isStory7 = storyType === "story-7";
   // The three letters (Story 2 / Story 4 / Story 5) drop pronoun/illustration-style
-  // and are photo-led keepsakes. Story 6 (the living tribute) is a NARRATIVE book
-  // like Story 1, so it KEEPS pronoun + style and is excluded here.
+  // and are photo-led keepsakes. Story 6 (the living tribute) and Story 7 (the
+  // homecoming book) are NARRATIVE books like Story 1, so they KEEP pronoun + style
+  // and are excluded here.
   const isLetter = isStory2 || isStory4 || isStory5;
-  // Story 6 is about a pet who is still alive, so its pet copy reads present tense.
-  const isLiving = isStory4 || isStory6;
+  // Stories 4, 6 and 7 are about a pet who is alive (here / newly home), so their
+  // pet copy reads present tense.
+  const isLiving = isStory4 || isStory6 || isStory7;
 
-  // Narrow the draft per product for typed group access. A Story-4/5/6 draft narrows
-  // to neither story1 nor story2.
+  // Narrow the draft per product for typed group access. A Story-4/5/6/7 draft
+  // narrows to neither story1 nor story2.
   const story2 = draft && isStory2Draft(draft) ? draft : null;
   const story1 = draft && isStory1Draft(draft) ? draft : null;
   const story4 = draft && isStory4Draft(draft) ? draft : null;
   const story5 = draft && isStory5Draft(draft) ? draft : null;
   const story6 = draft && isStory6Draft(draft) ? draft : null;
+  const story7 = draft && isStory7Draft(draft) ? draft : null;
 
   const petName = draft?.pet.name ?? "";
   const species = draft?.pet.species ?? "dog";
@@ -246,13 +254,15 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
       <main className="wizard">
         <div className="wizard__intro fade-in">
           <p className="wizard__quote">
-            {isStory4
-              ? "Tell us about the one curled up beside you."
-              : isStory6
-                ? "Tell us about the one who is still here."
-                : isStory2
-                  ? "Tell us about the one you're writing for."
-                  : "Tell us about the one who is gone."}
+            {isStory7
+              ? "Tell us about the one who just came home."
+              : isStory4
+                ? "Tell us about the one curled up beside you."
+                : isStory6
+                  ? "Tell us about the one who is still here."
+                  : isStory2
+                    ? "Tell us about the one you're writing for."
+                    : "Tell us about the one who is gone."}
           </p>
           <p className="wizard__attribution">
             A few gentle questions and a photo. We&apos;ll do the rest by hand.
@@ -540,6 +550,27 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
                       story6.toggles.transitionFrame ?? "still-here"
                     }
                     otherPetsInHome={story6.toggles.otherPetsInHome ?? "no"}
+                    update={updateDraft}
+                  />
+                ) : null}
+
+                {story7 ? (
+                  <Story7Fields
+                    show={showGate}
+                    petLabel={petLabel}
+                    ownerNames={story7.owner.names ?? ""}
+                    favoriteActivity={story7.memories.favoriteActivity ?? ""}
+                    sleepingSpot={story7.memories.sleepingSpot ?? ""}
+                    homecomingMemory={story7.memories.homecomingMemory ?? ""}
+                    quirks={story7.memories.quirks ?? ""}
+                    childName={story7.memories.childName ?? ""}
+                    familyMembers={story7.memories.familyMembers ?? ""}
+                    nicknames={story7.memories.nicknames ?? ""}
+                    dateAdopted={story7.memories.dateAdopted ?? ""}
+                    occasion={story7.toggles.occasion ?? "new-arrival"}
+                    yearsHome={story7.toggles.yearsHome ?? ""}
+                    adoptionSource={story7.toggles.adoptionSource ?? "shelter"}
+                    lifeStage={story7.toggles.lifeStage ?? "adult"}
                     update={updateDraft}
                   />
                 ) : null}
@@ -2122,6 +2153,386 @@ function Story6Fields({
                 onChange={() =>
                   update({ toggles: { otherPetsInHome: opt.value } })
                 }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Story 7 — "Welcome Home" homecoming fields (a narrative book). The largest
+// public field set: owner names + the homecoming memories + the three toggles
+// (occasion + the conditional yearsHome reveal + adoption source + life stage).
+// ---------------------------------------------------------------------------
+
+interface Story7FieldsProps {
+  show: boolean;
+  petLabel: string;
+  ownerNames: string;
+  favoriteActivity: string;
+  sleepingSpot: string;
+  homecomingMemory: string;
+  quirks: string;
+  childName: string;
+  familyMembers: string;
+  nicknames: string;
+  dateAdopted: string;
+  occasion: Occasion;
+  yearsHome: string;
+  adoptionSource: AdoptionSource;
+  lifeStage: LifeStage;
+  update: ReturnType<typeof useWizard>["updateDraft"];
+}
+
+const OCCASION_OPTIONS: { value: Occasion; label: string }[] = [
+  { value: "new-arrival", label: "a brand-new arrival" },
+  { value: "gotcha-day-anniversary", label: "a gotcha-day anniversary" },
+];
+
+const ADOPTION_SOURCE_OPTIONS: { value: AdoptionSource; label: string }[] = [
+  { value: "shelter", label: "from a shelter" },
+  { value: "rescue", label: "from a rescue" },
+  { value: "breeder", label: "from a breeder" },
+  { value: "found-as-stray", label: "found as a stray" },
+  { value: "other", label: "another way" },
+];
+
+const LIFE_STAGE_OPTIONS: { value: LifeStage; label: string }[] = [
+  { value: "puppy-kitten", label: "a puppy or kitten" },
+  { value: "adult", label: "an adult" },
+  { value: "senior-adoption", label: "a senior" },
+];
+
+function Story7Fields({
+  show,
+  petLabel,
+  ownerNames,
+  favoriteActivity,
+  sleepingSpot,
+  homecomingMemory,
+  quirks,
+  childName,
+  familyMembers,
+  nicknames,
+  dateAdopted,
+  occasion,
+  yearsHome,
+  adoptionSource,
+  lifeStage,
+  update,
+}: Story7FieldsProps) {
+  // The conditional reveal: yearsHome is asked (and required) ONLY on the
+  // anniversary path; switching back to a new arrival clears any stale year.
+  const isAnniversary = occasion === "gotcha-day-anniversary";
+
+  return (
+    <>
+      <div className="field">
+        <label className="field__label" htmlFor="owner-names">
+          <span className="field__num">A</span>
+          Who did {petLabel} come home to?
+        </label>
+        <p className="field__hint">
+          The name {petLabel} knows you by — your own name, both your names, or the
+          family name. <em>Maria. Maria and James. The Rodriguez family.</em>
+        </p>
+        <input
+          type="text"
+          id="owner-names"
+          value={ownerNames}
+          onChange={(e) => update({ owner: { names: e.target.value } })}
+          placeholder="Maria and James"
+        />
+        {show && !ownerNames.trim() ? (
+          <p className="notice notice--required">
+            The book is the story of {petLabel} coming home to you. Please add a
+            name.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="favorite-activity">
+          <span className="field__num">B</span>
+          {petLabel}&apos;s favorite thing in the world.
+        </label>
+        <p className="field__hint">
+          The thing they love most now that they&apos;re home.{" "}
+          <em>Stealing socks and parading them around the kitchen.</em>
+        </p>
+        <input
+          type="text"
+          id="favorite-activity"
+          value={favoriteActivity}
+          onChange={(e) =>
+            update({ memories: { favoriteActivity: e.target.value } })
+          }
+          placeholder="stealing socks and parading them around the kitchen"
+        />
+        {show && !favoriteActivity.trim() ? (
+          <p className="notice notice--required">
+            Their favorite thing gives the book its joy. Please add one.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="sleeping-spot">
+          <span className="field__num">C</span>
+          Where does {petLabel} love to sleep?
+        </label>
+        <p className="field__hint">
+          The warm, safe place they curl up — it&apos;s where the first night
+          settled. <em>In the crook of the couch by the window.</em>
+        </p>
+        <input
+          type="text"
+          id="sleeping-spot"
+          value={sleepingSpot}
+          onChange={(e) =>
+            update({ memories: { sleepingSpot: e.target.value } })
+          }
+          placeholder="in the crook of the couch by the window"
+        />
+        {show && !sleepingSpot.trim() ? (
+          <p className="notice notice--required">
+            Their spot anchors the quiet first-night page. Please add one.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="homecoming-memory">
+          <span className="field__num">D</span>
+          The day you brought {petLabel} home.{" "}
+          <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          A sentence or two from that first day — the drive, the first night.{" "}
+          <em>He shook the whole car ride and then fell asleep before we hit the driveway.</em>{" "}
+          If you leave it blank, we&apos;ll write a warm line for you.
+        </p>
+        <textarea
+          id="homecoming-memory"
+          value={homecomingMemory}
+          onChange={(e) =>
+            update({ memories: { homecomingMemory: e.target.value } })
+          }
+          placeholder="He shook the whole car ride and then fell asleep before we hit the driveway."
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="quirks">
+          <span className="field__num">E</span>
+          A quirk or two that are only theirs.{" "}
+          <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          The small habits you learned along the way.{" "}
+          <em>The head-tilt when you say &ldquo;walk.&rdquo;</em> If you leave it
+          blank, we&apos;ll write a warm line for you.
+        </p>
+        <textarea
+          id="quirks"
+          value={quirks}
+          onChange={(e) => update({ memories: { quirks: e.target.value } })}
+          placeholder="the head-tilt when you say 'walk'; the sigh before sleep"
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="child-name">
+          <span className="field__num">F</span>
+          Is there a child in the family?{" "}
+          <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          A child&apos;s name, if there&apos;s one who loves {petLabel} most.{" "}
+          <em>Leo.</em>
+        </p>
+        <input
+          type="text"
+          id="child-name"
+          value={childName}
+          onChange={(e) =>
+            update({ memories: { childName: e.target.value } })
+          }
+          placeholder="Leo"
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="family-members">
+          <span className="field__num">G</span>
+          Who else is in the home?{" "}
+          <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          The wider household — people and any pets already there.{" "}
+          <em>Maria, James, and the cat Pepper.</em>
+        </p>
+        <input
+          type="text"
+          id="family-members"
+          value={familyMembers}
+          onChange={(e) =>
+            update({ memories: { familyMembers: e.target.value } })
+          }
+          placeholder="Maria, James, and the cat Pepper"
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="nicknames">
+          <span className="field__num">H</span>
+          Any nicknames? <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          Up to three. <em>Biscuit-boy, the gremlin.</em>
+        </p>
+        <input
+          type="text"
+          id="nicknames"
+          value={nicknames}
+          onChange={(e) => update({ memories: { nicknames: e.target.value } })}
+          placeholder="Biscuit-boy, the gremlin"
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="date-adopted">
+          <span className="field__num">I</span>
+          Home since… <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          If you&apos;d like a date on the dedication — the day they came home.
+        </p>
+        <input
+          type="text"
+          id="date-adopted"
+          value={dateAdopted}
+          onChange={(e) =>
+            update({ memories: { dateAdopted: e.target.value } })
+          }
+          placeholder="March 2026"
+          aria-label="The date they came home"
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">J</span>
+          Is this for a new arrival, or a gotcha-day anniversary?
+        </label>
+        <p className="field__hint">
+          This sets the whole book&apos;s frame — &ldquo;the day you became
+          ours&rdquo; or &ldquo;[N] years ago today.&rdquo;
+        </p>
+        <div className="radio-group">
+          {OCCASION_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="occasion"
+                value={opt.value}
+                checked={occasion === opt.value}
+                onChange={() =>
+                  update({
+                    toggles:
+                      opt.value === "gotcha-day-anniversary"
+                        ? { occasion: opt.value }
+                        : { occasion: opt.value, yearsHome: "" },
+                  })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Anniversary-only reveal: how many years ago they came home. Required on
+          this path; hidden and cleared on the default new-arrival path. */}
+      {isAnniversary ? (
+        <div className="field">
+          <label className="field__label" htmlFor="years-home">
+            <span className="field__num">K</span>
+            How many years ago did {petLabel} come home?
+          </label>
+          <p className="field__hint">
+            We&apos;ll print it on the cover and the closing —{" "}
+            <em>&ldquo;3 years ago today&hellip;&rdquo;</em>
+          </p>
+          <input
+            type="number"
+            id="years-home"
+            min={1}
+            step={1}
+            value={yearsHome}
+            onChange={(e) => update({ toggles: { yearsHome: e.target.value } })}
+            placeholder="3"
+            aria-label="Years home"
+          />
+          {show && !yearsHome.trim() ? (
+            <p className="notice notice--required">
+              A gotcha-day book needs the year count to reframe the cover and
+              closing. Please add it.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">{isAnniversary ? "L" : "K"}</span>
+          How did {petLabel} come to you?
+        </label>
+        <p className="field__hint">
+          This shapes the &ldquo;day we found each other&rdquo; page — with a warm
+          thank-you to whoever cared for them before, for a shelter, rescue, or
+          stray.
+        </p>
+        <div className="radio-group">
+          {ADOPTION_SOURCE_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="adoptionSource"
+                value={opt.value}
+                checked={adoptionSource === opt.value}
+                onChange={() =>
+                  update({ toggles: { adoptionSource: opt.value } })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">{isAnniversary ? "M" : "L"}</span>
+          What was {petLabel} when they came home?
+        </label>
+        <p className="field__hint">
+          This adds a tender beat or two — a little extra for a senior who waited a
+          long time for a home.
+        </p>
+        <div className="radio-group">
+          {LIFE_STAGE_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="lifeStage"
+                value={opt.value}
+                checked={lifeStage === opt.value}
+                onChange={() => update({ toggles: { lifeStage: opt.value } })}
               />
               <span className="radio-option__label">{opt.label}</span>
             </label>
