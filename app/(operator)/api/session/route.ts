@@ -26,6 +26,11 @@
 //     breedColor (a live placeholder, like Story 1), owner names, plus
 //     favoriteActivity + sleepingSpot (live-placeholder homecoming fields), and —
 //     ONLY when occasion = gotcha-day-anniversary — yearsHome. No child group.
+//   - Story 8 (the kids' adventure, a NARRATIVE book): pet name, species, photo,
+//     breedColor (a live placeholder, like Story 1), and — ONLY when heroCount =
+//     pet-plus (the default) — childName (in the `adventure` group). superpower /
+//     favoriteActivity / quirks are optional-with-fallback; sidekickName /
+//     nicknames are optional-omit. No owner group.
 // Anything else is trusted to have been defaulted by the assembler.
 
 import { NextResponse } from "next/server";
@@ -39,6 +44,7 @@ import type {
   Story5Session,
   Story6Session,
   Story7Session,
+  Story8Session,
 } from "@/lib/session/types";
 
 /** Whether a value is a non-empty trimmed string. */
@@ -223,6 +229,37 @@ function validateStory7(session: Partial<Story7Session>): string | null {
 }
 
 /**
+ * Validate a Story-8 body ("The Amazing Adventures of [PET_NAME]", the kids'
+ * adventure, a NARRATIVE book). Required: pet name, species, photo, breedColor (a
+ * live placeholder, like Story 1). `childName` (in the `adventure` group) is
+ * conditionally required — ONLY when heroCount = pet-plus (the default), where the
+ * child is a character in the quest. superpower / favoriteActivity / quirks are
+ * optional-with-fallback; sidekickName / nicknames are optional-omit. Returns an
+ * error code (the missing field), or null when valid.
+ */
+function validateStory8(session: Partial<Story8Session>): string | null {
+  if (!nonEmpty(session.pet?.name)) {
+    return "missing_pet_name";
+  }
+  if (!nonEmpty(session.pet?.species)) {
+    return "missing_species";
+  }
+  if (!nonEmpty(session.pet?.photo)) {
+    return "missing_photo";
+  }
+  if (!nonEmpty(session.pet?.breedColor)) {
+    return "missing_breed_color";
+  }
+  if (
+    (session.toggles?.heroCount ?? "pet-plus") === "pet-plus" &&
+    !nonEmpty(session.adventure?.childName)
+  ) {
+    return "missing_child_name";
+  }
+  return null;
+}
+
+/**
  * Validate a Story-1 body. Required: pet name, child name, photo, and the four
  * personal free-text fields (breedColor, favoriteActivity, sleepingSpot,
  * favoriteMemory). Returns an error code (the missing field), or null when valid.
@@ -274,6 +311,7 @@ export async function POST(request: Request): Promise<Response> {
     | Story5Session
     | Story6Session
     | Story7Session
+    | Story8Session
   >;
 
   if (!nonEmpty(base.id) || !isSafeSessionId(base.id.trim())) {
@@ -293,6 +331,8 @@ export async function POST(request: Request): Promise<Response> {
     error = validateStory6(body as Partial<Story6Session>);
   } else if (storyType === "story-7") {
     error = validateStory7(body as Partial<Story7Session>);
+  } else if (storyType === "story-8") {
+    error = validateStory8(body as Partial<Story8Session>);
   } else {
     error = validateStory1(body as Partial<StorySession>);
   }

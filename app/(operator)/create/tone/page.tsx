@@ -18,6 +18,12 @@
 //     gotcha-day-anniversary) with a CONDITIONAL `yearsHome` reveal on the
 //     anniversary path, plus `adoptionSource` and `lifeStage` — NO grief toggles.
 //     Its previous step is /create/homecoming.
+//   - Story 8 (the kids' adventure): the `adventureTheme` choice (only the
+//     backyard-mystery is authored — shown as a single fixed choice with a "more
+//     coming soon" note), the `heroCount` toggle (pet-plus default vs pet-solo,
+//     which makes the child the reader and the childName optional), and the
+//     `childAgeBracket` reading level. NO grief toggles. Its previous step is
+//     /create/adventure.
 
 import { StepShell } from "@/components/wizard/StepShell";
 import { useWizard } from "@/components/wizard/WizardProvider";
@@ -28,10 +34,13 @@ import {
   isStory5Draft,
   isStory6Draft,
   isStory7Draft,
+  isStory8Draft,
 } from "@/lib/session/draft";
 import type {
   AdoptionSource,
+  AgeBracket,
   GiftFor,
+  HeroCount,
   LetterBeliefFrame,
   LetterDeathType,
   LifeStage,
@@ -105,6 +114,17 @@ const LIFE_STAGE_OPTIONS: { value: LifeStage; label: string }[] = [
   { value: "senior-adoption", label: "a senior" },
 ];
 
+const HERO_COUNT_OPTIONS: { value: HeroCount; label: string }[] = [
+  { value: "pet-plus", label: "together — the child joins the quest" },
+  { value: "pet-solo", label: "the lone hero — the child hears the legend" },
+];
+
+const CHILD_AGE_BRACKET_OPTIONS: { value: AgeBracket; label: string }[] = [
+  { value: "3-5", label: "3 to 5" },
+  { value: "6-8", label: "6 to 8" },
+  { value: "9-12", label: "9 to 12" },
+];
+
 export default function TonePage() {
   const { draft } = useWizard();
 
@@ -113,6 +133,7 @@ export default function TonePage() {
   const isStory5 = storyType === "story-5";
   const isStory6 = storyType === "story-6";
   const isStory7 = storyType === "story-7";
+  const isStory8 = storyType === "story-8";
   const total = getWizardConfig(storyType).total;
   const petLabel = draft?.pet.name?.trim() ? draft.pet.name.trim() : "your pet";
 
@@ -127,6 +148,9 @@ export default function TonePage() {
   }
   if (isStory7) {
     return <Story7Tone draft={draft} total={total} petLabel={petLabel} />;
+  }
+  if (isStory8) {
+    return <Story8Tone draft={draft} total={total} petLabel={petLabel} />;
   }
   return <Story2Tone draft={draft} total={total} petLabel={petLabel} />;
 }
@@ -791,6 +815,139 @@ function Story7Tone({
                 checked={lifeStage === opt.value}
                 onChange={() =>
                   updateDraft({ toggles: { lifeStage: opt.value } })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </StepShell>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Story 8 — the adventure toggles (theme + hero count + reading level)
+// ---------------------------------------------------------------------------
+
+function Story8Tone({
+  draft,
+  total,
+  petLabel,
+}: {
+  draft: ReturnType<typeof useWizard>["draft"];
+  total: number;
+  petLabel: string;
+}) {
+  const { updateDraft } = useWizard();
+  const toggles = draft && isStory8Draft(draft) ? draft.toggles : {};
+  const heroCount = toggles.heroCount ?? "pet-plus";
+  const childAgeBracket = toggles.childAgeBracket ?? "6-8";
+
+  // The conditional reveal lives on step 3 (childName/sidekickName), gated by this
+  // hero-count toggle. We don't show those fields here — only the toggle that
+  // controls them, with copy explaining the effect. `adventureTheme` is fixed to
+  // the only authored arc (backyard-mystery); the others appear once authored.
+  const isPetPlus = heroCount === "pet-plus";
+
+  return (
+    <StepShell
+      step={4}
+      total={total}
+      introQuote="One last choice, and then the adventure begins."
+      introAttribution="The shape of the quest, and who's along for the ride."
+      sectionLabel="Section · Four"
+      sectionHeading={
+        <>
+          The shape of the <em>adventure</em>.
+        </>
+      }
+      sectionDescription="These choices set the quest and who stars in it. The child is always at least the reader — choose whether they join the adventure too."
+      backHref="/create/adventure"
+      continueHref="/create/generate"
+      continueLabel="Continue to generate"
+      footerNote="Step 04 · The adventure"
+    >
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">01</span>
+          Which adventure?
+        </label>
+        <p className="field__hint">
+          We&apos;re launching with the cozy <em>Backyard Mystery</em> — something
+          keeps going missing in the garden, and only {petLabel} can crack the
+          case. More adventures (a sea voyage, a space rescue, an enchanted forest)
+          are coming soon.
+        </p>
+        <div className="radio-group">
+          <label className="radio-option">
+            <input
+              type="radio"
+              name="adventureTheme"
+              value="backyard-mystery"
+              checked
+              readOnly
+            />
+            <span className="radio-option__label">The Backyard Mystery</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">02</span>
+          Does the child adventure with {petLabel}, or hear the legend?
+        </label>
+        <p className="field__hint">
+          {isPetPlus ? (
+            <>
+              {petLabel} and the child are heroes together — so the child&apos;s
+              name is needed on the previous step.
+            </>
+          ) : (
+            <>
+              {petLabel} is the lone hero and the child is the reader being told the
+              tale — so the child&apos;s name (and a sidekick) are optional.
+            </>
+          )}
+        </p>
+        <div className="radio-group">
+          {HERO_COUNT_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="heroCount"
+                value={opt.value}
+                checked={heroCount === opt.value}
+                onChange={() =>
+                  updateDraft({ toggles: { heroCount: opt.value } })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">03</span>
+          What reading level fits the child?
+        </label>
+        <p className="field__hint">
+          This tunes the sentence length and how the big moments land — gentler and
+          shorter for the youngest, with a wink of humor for the oldest.
+        </p>
+        <div className="radio-group">
+          {CHILD_AGE_BRACKET_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="childAgeBracket"
+                value={opt.value}
+                checked={childAgeBracket === opt.value}
+                onChange={() =>
+                  updateDraft({ toggles: { childAgeBracket: opt.value } })
                 }
               />
               <span className="radio-option__label">{opt.label}</span>

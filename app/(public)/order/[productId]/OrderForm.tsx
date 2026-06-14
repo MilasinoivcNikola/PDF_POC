@@ -28,10 +28,13 @@ import {
   isStory5Draft,
   isStory6Draft,
   isStory7Draft,
+  isStory8Draft,
   missingRequiredFieldsForDraft,
 } from "@/lib/session/draft";
 import type {
   AdoptionSource,
+  AgeBracket,
+  HeroCount,
   IllustrationStyle,
   LifeStage,
   Occasion,
@@ -113,16 +116,17 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
   const isStory5 = storyType === "story-5";
   const isStory6 = storyType === "story-6";
   const isStory7 = storyType === "story-7";
+  const isStory8 = storyType === "story-8";
   // The three letters (Story 2 / Story 4 / Story 5) drop pronoun/illustration-style
-  // and are photo-led keepsakes. Story 6 (the living tribute) and Story 7 (the
-  // homecoming book) are NARRATIVE books like Story 1, so they KEEP pronoun + style
-  // and are excluded here.
+  // and are photo-led keepsakes. Story 6 (the living tribute), Story 7 (the
+  // homecoming book) and Story 8 (the kids' adventure) are NARRATIVE books like
+  // Story 1, so they KEEP pronoun + style and are excluded here.
   const isLetter = isStory2 || isStory4 || isStory5;
-  // Stories 4, 6 and 7 are about a pet who is alive (here / newly home), so their
-  // pet copy reads present tense.
-  const isLiving = isStory4 || isStory6 || isStory7;
+  // Stories 4, 6, 7 and 8 are about a pet who is alive (here / newly home / the
+  // living hero), so their pet copy reads present tense.
+  const isLiving = isStory4 || isStory6 || isStory7 || isStory8;
 
-  // Narrow the draft per product for typed group access. A Story-4/5/6/7 draft
+  // Narrow the draft per product for typed group access. A Story-4/5/6/7/8 draft
   // narrows to neither story1 nor story2.
   const story2 = draft && isStory2Draft(draft) ? draft : null;
   const story1 = draft && isStory1Draft(draft) ? draft : null;
@@ -130,6 +134,7 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
   const story5 = draft && isStory5Draft(draft) ? draft : null;
   const story6 = draft && isStory6Draft(draft) ? draft : null;
   const story7 = draft && isStory7Draft(draft) ? draft : null;
+  const story8 = draft && isStory8Draft(draft) ? draft : null;
 
   const petName = draft?.pet.name ?? "";
   const species = draft?.pet.species ?? "dog";
@@ -254,15 +259,17 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
       <main className="wizard">
         <div className="wizard__intro fade-in">
           <p className="wizard__quote">
-            {isStory7
-              ? "Tell us about the one who just came home."
-              : isStory4
-                ? "Tell us about the one curled up beside you."
-                : isStory6
-                  ? "Tell us about the one who is still here."
-                  : isStory2
-                    ? "Tell us about the one you're writing for."
-                    : "Tell us about the one who is gone."}
+            {isStory8
+              ? "Tell us about your pet — the hero of the story."
+              : isStory7
+                ? "Tell us about the one who just came home."
+                : isStory4
+                  ? "Tell us about the one curled up beside you."
+                  : isStory6
+                    ? "Tell us about the one who is still here."
+                    : isStory2
+                      ? "Tell us about the one you're writing for."
+                      : "Tell us about the one who is gone."}
           </p>
           <p className="wizard__attribution">
             A few gentle questions and a photo. We&apos;ll do the rest by hand.
@@ -571,6 +578,22 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
                     yearsHome={story7.toggles.yearsHome ?? ""}
                     adoptionSource={story7.toggles.adoptionSource ?? "shelter"}
                     lifeStage={story7.toggles.lifeStage ?? "adult"}
+                    update={updateDraft}
+                  />
+                ) : null}
+
+                {story8 ? (
+                  <Story8Fields
+                    show={showGate}
+                    petLabel={petLabel}
+                    superpower={story8.adventure.superpower ?? ""}
+                    favoriteActivity={story8.adventure.favoriteActivity ?? ""}
+                    quirks={story8.adventure.quirks ?? ""}
+                    childName={story8.adventure.childName ?? ""}
+                    sidekickName={story8.adventure.sidekickName ?? ""}
+                    nicknames={story8.adventure.nicknames ?? ""}
+                    heroCount={story8.toggles.heroCount ?? "pet-plus"}
+                    childAgeBracket={story8.toggles.childAgeBracket ?? "6-8"}
                     update={updateDraft}
                   />
                 ) : null}
@@ -2533,6 +2556,293 @@ function Story7Fields({
                 value={opt.value}
                 checked={lifeStage === opt.value}
                 onChange={() => update({ toggles: { lifeStage: opt.value } })}
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Story 8 — "The Amazing Adventures of [PET_NAME]" adventure fields (a narrative
+// book). The adventure inputs (superpower / activity / quirks / child / sidekick /
+// nicknames) plus the two toggles (hero count + reading level). The conditional
+// reveals mirror the operator wizard: childName is required ONLY in pet-plus (the
+// default), and the sidekick field is hidden in pet-solo (the pet adventures alone).
+// adventureTheme is fixed to the only authored arc (backyard-mystery), shown as a
+// single read-only choice with a "more coming soon" note.
+// ---------------------------------------------------------------------------
+
+interface Story8FieldsProps {
+  show: boolean;
+  petLabel: string;
+  superpower: string;
+  favoriteActivity: string;
+  quirks: string;
+  childName: string;
+  sidekickName: string;
+  nicknames: string;
+  heroCount: HeroCount;
+  childAgeBracket: AgeBracket;
+  update: ReturnType<typeof useWizard>["updateDraft"];
+}
+
+const HERO_COUNT_OPTIONS: { value: HeroCount; label: string }[] = [
+  { value: "pet-plus", label: "together — the child joins the quest" },
+  { value: "pet-solo", label: "the lone hero — the child hears the legend" },
+];
+
+const CHILD_AGE_BRACKET_OPTIONS: { value: AgeBracket; label: string }[] = [
+  { value: "3-5", label: "3 to 5" },
+  { value: "6-8", label: "6 to 8" },
+  { value: "9-12", label: "9 to 12" },
+];
+
+function Story8Fields({
+  show,
+  petLabel,
+  superpower,
+  favoriteActivity,
+  quirks,
+  childName,
+  sidekickName,
+  nicknames,
+  heroCount,
+  childAgeBracket,
+  update,
+}: Story8FieldsProps) {
+  // The conditional reveals: childName is required ONLY in pet-plus (the default);
+  // the sidekick field is hidden in pet-solo (the pet adventures alone — the
+  // draft→session bridge also drops a stale sidekick in that mode).
+  const isPetPlus = heroCount === "pet-plus";
+
+  return (
+    <>
+      <div className="field">
+        <label className="field__label" htmlFor="superpower">
+          <span className="field__num">A</span>
+          {petLabel}&apos;s real-life superpower.{" "}
+          <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          A real quirk we&apos;ll turn into the hero&apos;s power.{" "}
+          <em>
+            Always finds the ball → &ldquo;the World&apos;s Greatest Nose.&rdquo;
+          </em>{" "}
+          Leave it blank and we&apos;ll invent one.
+        </p>
+        <input
+          type="text"
+          id="superpower"
+          value={superpower}
+          onChange={(e) =>
+            update({ adventure: { superpower: e.target.value } })
+          }
+          placeholder="the World's Greatest Nose"
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="favorite-activity">
+          <span className="field__num">B</span>
+          {petLabel}&apos;s favorite thing to do.{" "}
+          <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          The game or habit they love most — it helps us shape the superpower.{" "}
+          <em>digging giant holes in the garden</em>
+        </p>
+        <input
+          type="text"
+          id="favorite-activity"
+          value={favoriteActivity}
+          onChange={(e) =>
+            update({ adventure: { favoriteActivity: e.target.value } })
+          }
+          placeholder="digging giant holes in the garden"
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="quirks">
+          <span className="field__num">C</span>
+          A quirk or two that are only theirs.{" "}
+          <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          The funny little habits that make {petLabel} themselves.{" "}
+          <em>barks at the vacuum like it&apos;s a dragon</em>
+        </p>
+        <textarea
+          id="quirks"
+          value={quirks}
+          onChange={(e) => update({ adventure: { quirks: e.target.value } })}
+          placeholder="barks at the vacuum like it's a dragon"
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">D</span>
+          Does the child adventure with {petLabel}, or hear the legend?
+        </label>
+        <p className="field__hint">
+          {isPetPlus ? (
+            <>
+              {petLabel} and the child are heroes together — so the child&apos;s
+              name is needed below.
+            </>
+          ) : (
+            <>
+              {petLabel} is the lone hero and the child is the reader being told
+              the tale — so the child&apos;s name (and a sidekick) are optional.
+            </>
+          )}
+        </p>
+        <div className="radio-group">
+          {HERO_COUNT_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="heroCount"
+                value={opt.value}
+                checked={heroCount === opt.value}
+                onChange={() => update({ toggles: { heroCount: opt.value } })}
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="field">
+        <label className="field__label" htmlFor="child-name">
+          <span className="field__num">E</span>
+          The child in the story.
+          {isPetPlus ? null : (
+            <span className="field__optional"> (optional)</span>
+          )}
+        </label>
+        <p className="field__hint">
+          {isPetPlus ? (
+            <>
+              The child who adventures alongside {petLabel}. <em>Emma.</em>
+            </>
+          ) : (
+            <>
+              Optional — the child is the reader hearing the legend. Add a name if
+              you&apos;d still like it to appear. <em>Emma.</em>
+            </>
+          )}
+        </p>
+        <input
+          type="text"
+          id="child-name"
+          value={childName}
+          onChange={(e) =>
+            update({ adventure: { childName: e.target.value } })
+          }
+          placeholder="Emma"
+        />
+        {isPetPlus && show && !childName.trim() ? (
+          <p className="notice notice--required">
+            {petLabel} and the child share this adventure, so the book needs the
+            child&apos;s name. Please add one — or choose &ldquo;the lone
+            hero&rdquo; above.
+          </p>
+        ) : null}
+      </div>
+
+      {/* sidekickName only applies in pet-plus; the pet adventures alone in
+          pet-solo, so the field is hidden (and dropped from the session). */}
+      {isPetPlus ? (
+        <div className="field">
+          <label className="field__label" htmlFor="sidekick-name">
+            <span className="field__num">F</span>
+            A sidekick on the quest?{" "}
+            <span className="field__optional">(optional)</span>
+          </label>
+          <p className="field__hint">
+            A sibling or a second pet who joins the adventure.{" "}
+            <em>Leo. Pepper the cat.</em>
+          </p>
+          <input
+            type="text"
+            id="sidekick-name"
+            value={sidekickName}
+            onChange={(e) =>
+              update({ adventure: { sidekickName: e.target.value } })
+            }
+            placeholder="Leo"
+          />
+        </div>
+      ) : null}
+
+      <div className="field">
+        <label className="field__label" htmlFor="nicknames">
+          <span className="field__num">{isPetPlus ? "G" : "F"}</span>
+          Any nicknames? <span className="field__optional">(optional)</span>
+        </label>
+        <p className="field__hint">
+          Up to three. <em>Biscey, the goblin.</em>
+        </p>
+        <input
+          type="text"
+          id="nicknames"
+          value={nicknames}
+          onChange={(e) =>
+            update({ adventure: { nicknames: e.target.value } })
+          }
+          placeholder="Biscey, the goblin"
+        />
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">{isPetPlus ? "H" : "G"}</span>
+          Which adventure?
+        </label>
+        <p className="field__hint">
+          We&apos;re launching with the cozy <em>Backyard Mystery</em>. More
+          adventures (a sea voyage, a space rescue, an enchanted forest) are coming
+          soon.
+        </p>
+        <div className="radio-group">
+          <label className="radio-option">
+            <input
+              type="radio"
+              name="adventureTheme"
+              value="backyard-mystery"
+              checked
+              readOnly
+            />
+            <span className="radio-option__label">The Backyard Mystery</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">{isPetPlus ? "I" : "H"}</span>
+          What reading level fits the child?
+        </label>
+        <p className="field__hint">
+          This tunes the sentence length and how the big moments land.
+        </p>
+        <div className="radio-group">
+          {CHILD_AGE_BRACKET_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="childAgeBracket"
+                value={opt.value}
+                checked={childAgeBracket === opt.value}
+                onChange={() =>
+                  update({ toggles: { childAgeBracket: opt.value } })
+                }
               />
               <span className="radio-option__label">{opt.label}</span>
             </label>

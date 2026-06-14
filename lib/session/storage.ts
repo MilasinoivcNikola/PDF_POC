@@ -15,6 +15,7 @@ import type {
   Story5Draft,
   Story6Draft,
   Story7Draft,
+  Story8Draft,
   StoryType,
   WizardDraft,
 } from "@/lib/session/types";
@@ -172,6 +173,34 @@ function newStory7Draft(): Story7Draft {
 }
 
 /**
+ * A fresh empty Story-8 draft ("The Amazing Adventures of [PET_NAME]", the kids'
+ * adventure). Discriminated by the literal `storyType: "story-8"`; like Story 1/6/7
+ * it is a NARRATIVE book, so it carries the same `pet` defaults and KEEPS the
+ * illustration-style choice — `illustrationStyle: "watercolor"`. `species` is
+ * pre-seeded ("dog") for the same reason as Story 2/6/7: it IS a required field and
+ * the pet step's radio shows "dog" selected by default. Its toggles default to the
+ * `backyard-mystery` theme, `pet-plus` hero count (so `childName` is required by
+ * default), and the `6-8` reading level (the defaults the tone step's radios show);
+ * the draft bridge applies the same defaults when assembling the session. There is
+ * NO `owner`/`child`/`memories` group — the adventure inputs live in `adventure`.
+ */
+function newStory8Draft(): Story8Draft {
+  return {
+    id: createSessionId(),
+    createdAt: new Date().toISOString(),
+    status: "draft",
+    storyType: "story-8",
+    pet: { species: "dog", illustrationStyle: "watercolor" },
+    adventure: {},
+    toggles: {
+      adventureTheme: "backyard-mystery",
+      heroCount: "pet-plus",
+      childAgeBracket: "6-8",
+    },
+  };
+}
+
+/**
  * A fresh empty draft for the given product (default Story 1). The landing page's
  * story picker seeds the correct shape so the wizard provider hydrates the right
  * product on first load.
@@ -188,6 +217,7 @@ export function newDraft(storyType: "story-4"): Story4Draft;
 export function newDraft(storyType: "story-5"): Story5Draft;
 export function newDraft(storyType: "story-6"): Story6Draft;
 export function newDraft(storyType: "story-7"): Story7Draft;
+export function newDraft(storyType: "story-8"): Story8Draft;
 export function newDraft(storyType: StoryType): WizardDraft;
 export function newDraft(storyType: StoryType = "story-1"): WizardDraft {
   if (storyType === "story-2") return newStory2Draft();
@@ -195,6 +225,7 @@ export function newDraft(storyType: StoryType = "story-1"): WizardDraft {
   if (storyType === "story-5") return newStory5Draft();
   if (storyType === "story-6") return newStory6Draft();
   if (storyType === "story-7") return newStory7Draft();
+  if (storyType === "story-8") return newStory8Draft();
   return newStory1Draft();
 }
 

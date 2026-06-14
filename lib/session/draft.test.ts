@@ -19,6 +19,9 @@ import {
   missingRequiredFieldsStory7,
   draftToSessionStory7,
   isStory7Draft,
+  missingRequiredFieldsStory8,
+  draftToSessionStory8,
+  isStory8Draft,
   isStory1Draft,
   missingRequiredFieldsForDraft,
   draftToSessionForDraft,
@@ -28,6 +31,7 @@ import { resolveStory4 } from "@/lib/story/story4/variants";
 import { resolveStory5 } from "@/lib/story/story5/variants";
 import { resolveStory6 } from "@/lib/story/story6/variants";
 import { resolveStory7 } from "@/lib/story/story7/variants";
+import { resolveStory8 } from "@/lib/story/story8/variants";
 import type {
   StoryDraft,
   Story2Draft,
@@ -35,6 +39,7 @@ import type {
   Story5Draft,
   Story6Draft,
   Story7Draft,
+  Story8Draft,
 } from "./types";
 
 // The draft→session bridge is pure (no IO, no React), so it is asserted directly.
@@ -2845,5 +2850,328 @@ describe("draftToSessionForDraft — routes a Story-7 draft", () => {
     const session = draftToSessionForDraft(draft);
     expect(session.storyType).toBe("story-7");
     expect("occasion" in (session as { toggles: object }).toggles).toBe(true);
+  });
+});
+
+// ===========================================================================
+// Story 8 — "The Amazing Adventures of [PET_NAME]" (the kids' adventure)
+// ===========================================================================
+
+/**
+ * A Story-8 draft with all required fields present (pet-plus default, so childName
+ * is required) and nothing optional. species is pre-seeded "dog" by
+ * newDraft("story-8"); the toggles default to backyard-mystery / pet-plus / 6-8.
+ */
+function minimalCompleteStory8Draft(): Story8Draft {
+  const draft = newDraft("story-8");
+  draft.pet.name = "Biscuit";
+  draft.pet.photo = "uploads/sess/biscuit.jpg";
+  // species is pre-seeded "dog" by newDraft("story-8").
+  draft.pet.breedColor = "a scruffy brown terrier with one white paw";
+  draft.adventure.childName = "Emma";
+  return draft;
+}
+
+/** A Story-8 draft with every input group fully populated (pet-plus). */
+function fullStory8Draft(): Story8Draft {
+  return {
+    id: "story8-draft-id-404",
+    createdAt: "2026-06-14T09:00:00.000Z",
+    status: "draft",
+    storyType: "story-8",
+    pet: {
+      name: "Biscuit",
+      species: "dog",
+      breedColor: "a scruffy brown terrier with one white paw",
+      pronoun: "he",
+      illustrationStyle: "watercolor",
+      photo: "uploads/sess/biscuit.jpg",
+    },
+    adventure: {
+      superpower: "the World's Greatest Nose",
+      favoriteActivity: "digging giant holes in the garden",
+      quirks: "barks at the vacuum like it's a dragon",
+      sidekickName: "Leo",
+      childName: "Emma",
+      nicknames: "Biscey, the goblin",
+    },
+    toggles: {
+      adventureTheme: "backyard-mystery",
+      heroCount: "pet-plus",
+      childAgeBracket: "9-12",
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// missingRequiredFieldsStory8
+// ---------------------------------------------------------------------------
+
+describe("missingRequiredFieldsStory8", () => {
+  it("reports petName/breedColor/photo/childName for a fresh newDraft('story-8')", () => {
+    // newDraft("story-8") pre-seeds species: "dog" and the pet-plus default, so the
+    // other three always-required fields PLUS childName (required under pet-plus)
+    // are missing.
+    expect(missingRequiredFieldsStory8(newDraft("story-8"))).toEqual([
+      "petName",
+      "breedColor",
+      "photo",
+      "childName",
+    ]);
+  });
+
+  it("returns an empty array when all required fields are present (pet-plus)", () => {
+    expect(missingRequiredFieldsStory8(minimalCompleteStory8Draft())).toEqual(
+      [],
+    );
+  });
+
+  it("reports only petName when just the pet name is missing", () => {
+    const draft = minimalCompleteStory8Draft();
+    delete draft.pet.name;
+    expect(missingRequiredFieldsStory8(draft)).toEqual(["petName"]);
+  });
+
+  it("reports only breedColor when just the description is missing (narrative placeholder)", () => {
+    const draft = minimalCompleteStory8Draft();
+    delete draft.pet.breedColor;
+    expect(missingRequiredFieldsStory8(draft)).toEqual(["breedColor"]);
+  });
+
+  it("reports only photo when just the photo is missing", () => {
+    const draft = minimalCompleteStory8Draft();
+    delete draft.pet.photo;
+    expect(missingRequiredFieldsStory8(draft)).toEqual(["photo"]);
+  });
+
+  it("reports only species when just the (pre-seeded) species is cleared", () => {
+    // newDraft("story-8") pre-seeds species: "dog"; species is a required
+    // Story8RequiredField, so clearing it surfaces here in display order.
+    const draft = minimalCompleteStory8Draft();
+    delete draft.pet.species;
+    expect(missingRequiredFieldsStory8(draft)).toEqual(["species"]);
+  });
+
+  it("treats whitespace-only required fields as missing", () => {
+    const draft = minimalCompleteStory8Draft();
+    draft.pet.breedColor = "   ";
+    expect(missingRequiredFieldsStory8(draft)).toEqual(["breedColor"]);
+  });
+
+  it("does NOT require superpower / favoriteActivity / quirks (optional-with-fallback)", () => {
+    const draft = minimalCompleteStory8Draft();
+    expect(draft.adventure.superpower).toBeUndefined();
+    expect(draft.adventure.favoriteActivity).toBeUndefined();
+    expect(draft.adventure.quirks).toBeUndefined();
+    expect(missingRequiredFieldsStory8(draft)).toEqual([]);
+  });
+
+  describe("conditional childName gate (hero-count)", () => {
+    it("requires childName under the default pet-plus hero count", () => {
+      const draft = minimalCompleteStory8Draft();
+      expect(draft.toggles.heroCount).toBe("pet-plus");
+      delete draft.adventure.childName;
+      expect(missingRequiredFieldsStory8(draft)).toEqual(["childName"]);
+    });
+
+    it("requires childName when heroCount is undefined (defaults to pet-plus)", () => {
+      const draft = minimalCompleteStory8Draft();
+      delete draft.toggles.heroCount;
+      delete draft.adventure.childName;
+      expect(missingRequiredFieldsStory8(draft)).toEqual(["childName"]);
+    });
+
+    it("does NOT require childName under pet-solo", () => {
+      const draft = minimalCompleteStory8Draft();
+      draft.toggles.heroCount = "pet-solo";
+      delete draft.adventure.childName;
+      expect(missingRequiredFieldsStory8(draft)).toEqual([]);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// draftToSessionStory8
+// ---------------------------------------------------------------------------
+
+describe("draftToSessionStory8 — required fields & lifecycle", () => {
+  it("assembles a complete session with status 'generating' and storyType 'story-8'", () => {
+    const session = draftToSessionStory8(minimalCompleteStory8Draft());
+    expect(session.status).toBe("generating");
+    expect(session.storyType).toBe("story-8");
+    expect(session.images).toEqual([]);
+  });
+
+  it("throws when a required field is missing", () => {
+    const draft = minimalCompleteStory8Draft();
+    delete draft.pet.name;
+    expect(() => draftToSessionStory8(draft)).toThrow(
+      /missing_required_fields/,
+    );
+  });
+
+  it("throws naming childName when pet-plus and the child name is missing", () => {
+    const draft = minimalCompleteStory8Draft();
+    delete draft.adventure.childName;
+    expect(() => draftToSessionStory8(draft)).toThrow(/childName/);
+  });
+});
+
+describe("draftToSessionStory8 — required fields carried through (trimmed)", () => {
+  it("trims and carries the pet group + childName", () => {
+    const session = draftToSessionStory8(fullStory8Draft());
+    expect(session.pet.name).toBe("Biscuit");
+    expect(session.pet.breedColor).toBe(
+      "a scruffy brown terrier with one white paw",
+    );
+    expect(session.adventure.childName).toBe("Emma");
+  });
+
+  it("trims whitespace around carried free-text", () => {
+    const draft = minimalCompleteStory8Draft();
+    draft.pet.name = "  Biscuit  ";
+    draft.adventure.childName = "  Emma  ";
+    const session = draftToSessionStory8(draft);
+    expect(session.pet.name).toBe("Biscuit");
+    expect(session.adventure.childName).toBe("Emma");
+  });
+});
+
+describe("draftToSessionStory8 — optional-with-fallback fields stored as ''", () => {
+  it("stores '' for blank superpower / favoriteActivity / quirks", () => {
+    const session = draftToSessionStory8(minimalCompleteStory8Draft());
+    expect(session.adventure.superpower).toBe("");
+    expect(session.adventure.favoriteActivity).toBe("");
+    expect(session.adventure.quirks).toBe("");
+  });
+
+  it("trims and carries the optional-with-fallback fields when present", () => {
+    const session = draftToSessionStory8(fullStory8Draft());
+    expect(session.adventure.superpower).toBe("the World's Greatest Nose");
+    expect(session.adventure.favoriteActivity).toBe(
+      "digging giant holes in the garden",
+    );
+    expect(session.adventure.quirks).toBe(
+      "barks at the vacuum like it's a dragon",
+    );
+  });
+});
+
+describe("draftToSessionStory8 — genuinely-optional fields dropped when blank", () => {
+  it("drops sidekickName / nicknames when blank", () => {
+    const session = draftToSessionStory8(minimalCompleteStory8Draft());
+    expect("sidekickName" in session.adventure).toBe(false);
+    expect("nicknames" in session.adventure).toBe(false);
+  });
+
+  it("carries sidekickName / nicknames when present (pet-plus)", () => {
+    const session = draftToSessionStory8(fullStory8Draft());
+    expect(session.adventure.sidekickName).toBe("Leo");
+    expect(session.adventure.nicknames).toBe("Biscey, the goblin");
+  });
+});
+
+describe("draftToSessionStory8 — pet-solo conditional handling", () => {
+  it("drops childName when pet-solo and the child name is blank", () => {
+    const draft = minimalCompleteStory8Draft();
+    draft.toggles.heroCount = "pet-solo";
+    delete draft.adventure.childName;
+    const session = draftToSessionStory8(draft);
+    expect("childName" in session.adventure).toBe(false);
+  });
+
+  it("still carries a provided childName under pet-solo (optional, not forbidden)", () => {
+    const draft = minimalCompleteStory8Draft();
+    draft.toggles.heroCount = "pet-solo";
+    draft.adventure.childName = "Emma";
+    const session = draftToSessionStory8(draft);
+    expect(session.adventure.childName).toBe("Emma");
+  });
+
+  it("IGNORES a stale sidekickName under pet-solo (the pet adventures alone)", () => {
+    const draft = fullStory8Draft();
+    draft.toggles.heroCount = "pet-solo";
+    expect(draft.adventure.sidekickName).toBe("Leo");
+    const session = draftToSessionStory8(draft);
+    expect("sidekickName" in session.adventure).toBe(false);
+  });
+});
+
+describe("draftToSessionStory8 — skipped toggles get defaults", () => {
+  it("applies backyard-mystery / pet-plus / 6-8 when toggles are absent", () => {
+    const draft = minimalCompleteStory8Draft();
+    draft.toggles = {};
+    const session = draftToSessionStory8(draft);
+    expect(session.toggles.adventureTheme).toBe("backyard-mystery");
+    expect(session.toggles.heroCount).toBe("pet-plus");
+    expect(session.toggles.childAgeBracket).toBe("6-8");
+  });
+});
+
+describe("draftToSessionStory8 — round-trip through resolveStory8", () => {
+  it("produces a resolvable story with no surviving [FIELD] placeholders (minimal)", () => {
+    const session = draftToSessionStory8(minimalCompleteStory8Draft());
+    const pages = resolveStory8(session);
+    const joined = pages
+      .flatMap((p) => [p.title ?? "", ...(p.body ?? [])])
+      .join("\n");
+    expect(joined).not.toMatch(/\[[A-Z_]+\]/);
+  });
+
+  it("resolves a fully-populated session without throwing", () => {
+    const session = draftToSessionStory8(fullStory8Draft());
+    expect(() => resolveStory8(session)).not.toThrow();
+  });
+});
+
+describe("isStory8Draft", () => {
+  it("is true for a Story-8 draft", () => {
+    expect(isStory8Draft(newDraft("story-8"))).toBe(true);
+  });
+
+  it("is false for every other product's draft", () => {
+    expect(isStory8Draft(newDraft())).toBe(false);
+    expect(isStory8Draft(newDraft("story-2"))).toBe(false);
+    expect(isStory8Draft(newDraft("story-4"))).toBe(false);
+    expect(isStory8Draft(newDraft("story-5"))).toBe(false);
+    expect(isStory8Draft(newDraft("story-6"))).toBe(false);
+    expect(isStory8Draft(newDraft("story-7"))).toBe(false);
+  });
+});
+
+describe("isStory1Draft — narrows away from a Story-8 draft too", () => {
+  it("is false for a Story-8 draft", () => {
+    expect(isStory1Draft(newDraft("story-8"))).toBe(false);
+  });
+});
+
+describe("missingRequiredFieldsForDraft — routes a Story-8 draft", () => {
+  it("routes a Story-8 draft to the Story-8 gate (conditional childName)", () => {
+    const draft = minimalCompleteStory8Draft();
+    expect(missingRequiredFieldsForDraft(draft)).toEqual([]);
+    draft.toggles.heroCount = "pet-solo";
+    delete draft.adventure.childName;
+    expect(missingRequiredFieldsForDraft(draft)).toEqual([]);
+  });
+
+  it("no longer throws 'not yet creatable' for a Story-8 draft (PR-B wired it)", () => {
+    expect(() =>
+      missingRequiredFieldsForDraft(minimalCompleteStory8Draft()),
+    ).not.toThrow();
+  });
+});
+
+describe("draftToSessionForDraft — routes a Story-8 draft", () => {
+  it("routes a Story-8 draft to draftToSessionStory8 (storyType 'story-8')", () => {
+    const session = draftToSessionForDraft(fullStory8Draft());
+    expect(session.storyType).toBe("story-8");
+    expect("adventure" in session).toBe(true);
+    expect("owner" in session).toBe(false);
+    expect("child" in session).toBe(false);
+  });
+
+  it("no longer throws 'not yet creatable' for a Story-8 draft (PR-B wired it)", () => {
+    const draft = minimalCompleteStory8Draft();
+    expect(() => draftToSessionForDraft(draft)).not.toThrow();
   });
 });

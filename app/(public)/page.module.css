@@ -131,6 +131,27 @@
   color: var(--gold);
 }
 
+/* The most PLAYFUL title (Story 8, the kids' adventure) — set apart even from
+   Story 7's gentle joy with a brighter, sunnier rose-to-gold wash + rose accent,
+   so it reads as a romp/adventure rather than a quiet keepsake. */
+.chooserCardAdventure {
+  background: linear-gradient(
+    160deg,
+    rgba(184, 133, 122, 0.2) 0%,
+    rgba(216, 183, 128, 0.16) 45%,
+    var(--paper) 75%
+  );
+  border-left: 3px solid var(--rose);
+}
+
+.chooserCardAdventure:hover {
+  border-color: var(--rose);
+}
+
+.chooserCardAdventure .chooserKicker {
+  color: var(--rose);
+}
+
 .chooserKicker {
   font-family: var(--font-mono);
   font-size: var(--t-xs);

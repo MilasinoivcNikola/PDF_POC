@@ -10,6 +10,7 @@ import type {
   Story5Session,
   Story6Session,
   Story7Session,
+  Story8Session,
 } from "@/lib/session/types";
 
 // The /api/session boundary is the high-value surface: a malformed body, an
@@ -33,7 +34,8 @@ vi.mock("@/lib/session/disk", () => ({
       | Story4Session
       | Story5Session
       | Story6Session
-      | Story7Session,
+      | Story7Session
+      | Story8Session,
   ) => writeSessionMock(session),
 }));
 
@@ -244,6 +246,42 @@ function validStory7Session(id = "story7-id-welcome303"): Story7Session {
       occasion: "new-arrival",
       adoptionSource: "shelter",
       lifeStage: "adult",
+    },
+    images: [],
+  };
+}
+
+/**
+ * A complete, valid finalized Story-8 ("The Amazing Adventures of [PET_NAME]")
+ * session payload. Defaults to the pet-plus hero count (so `childName` is required
+ * and present); set heroCount to "pet-solo" to drop the requirement.
+ */
+function validStory8Session(id = "story8-id-adventure404"): Story8Session {
+  return {
+    id,
+    createdAt: "2026-06-14T09:00:00.000Z",
+    status: "generating",
+    storyType: "story-8",
+    pet: {
+      name: "Biscuit",
+      species: "dog",
+      breedColor: "a scruffy brown terrier with one white paw",
+      pronoun: "he",
+      illustrationStyle: "watercolor",
+      photo: "uploads/sess/biscuit.jpg",
+    },
+    adventure: {
+      // superpower / favoriteActivity / quirks are optional-with-fallback — present
+      // as "" but the route does not validate them.
+      superpower: "",
+      favoriteActivity: "",
+      quirks: "",
+      childName: "Emma",
+    },
+    toggles: {
+      adventureTheme: "backyard-mystery",
+      heroCount: "pet-plus",
+      childAgeBracket: "6-8",
     },
     images: [],
   };
@@ -1266,6 +1304,168 @@ describe("POST /api/session — Story 7 happy path", () => {
         occasion: "new-arrival",
         adoptionSource: "shelter",
         lifeStage: "adult",
+      },
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story 8 — per-storyType validation branches (disk write still mocked)
+// ---------------------------------------------------------------------------
+//
+// The route branches on body.storyType: a "story-8" body validates the Story-8
+// required set (pet name, species, photo, breedColor) plus the conditional
+// childName (pet-plus only). A body that would be rejected by validateStory2/7 but
+// ACCEPTED here (e.g. blank optional-with-fallback fields, no owner group) proves
+// the route ran validateStory8. The id traversal guard is shared.
+
+describe("POST /api/session — Story 8 validation", () => {
+  it("rejects a missing pet name with 400 missing_pet_name", async () => {
+    const body = validStory8Session();
+    body.pet.name = "   ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_pet_name",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing species with 400 missing_species", async () => {
+    const body = validStory8Session();
+    body.pet.species = "" as Story8Session["pet"]["species"];
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_species",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing photo with 400 missing_photo", async () => {
+    const body = validStory8Session();
+    body.pet.photo = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_photo",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing breed color with 400 missing_breed_color (narrative placeholder)", async () => {
+    const body = validStory8Session();
+    body.pet.breedColor = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_breed_color",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("ACCEPTS a body with blank superpower/favoriteActivity/quirks (proves validateStory8 ran, not validateStory7)", async () => {
+    const body = validStory8Session("blank-optionals-ok8");
+    body.adventure.superpower = "   ";
+    body.adventure.favoriteActivity = "  ";
+    body.adventure.quirks = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      id: "blank-optionals-ok8",
+    });
+    expect(writeSessionMock).toHaveBeenCalledTimes(1);
+  });
+
+  describe("conditional childName (hero count)", () => {
+    it("rejects a pet-plus body with NO childName (400 missing_child_name)", async () => {
+      const body = validStory8Session();
+      expect(body.toggles.heroCount).toBe("pet-plus");
+      body.adventure.childName = "  ";
+      const res = await POST(jsonRequest(body));
+      expect(res.status).toBe(400);
+      await expect(res.json()).resolves.toEqual({
+        ok: false,
+        error: "missing_child_name",
+      });
+      expect(writeSessionMock).not.toHaveBeenCalled();
+    });
+
+    it("ACCEPTS a pet-solo body with NO childName (not required)", async () => {
+      const body = validStory8Session("pet-solo-ok8");
+      body.toggles.heroCount = "pet-solo";
+      delete body.adventure.childName;
+      const res = await POST(jsonRequest(body));
+      expect(res.status).toBe(200);
+      await expect(res.json()).resolves.toEqual({
+        ok: true,
+        id: "pet-solo-ok8",
+      });
+      expect(writeSessionMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("requires childName when heroCount is absent (defaults to pet-plus)", async () => {
+      const body = validStory8Session();
+      delete (body.toggles as { heroCount?: unknown }).heroCount;
+      delete body.adventure.childName;
+      const res = await POST(jsonRequest(body));
+      expect(res.status).toBe(400);
+      await expect(res.json()).resolves.toEqual({
+        ok: false,
+        error: "missing_child_name",
+      });
+      expect(writeSessionMock).not.toHaveBeenCalled();
+    });
+  });
+
+  it("rejects a path-traversal id for a Story-8 body (shared guard) and writes nothing", async () => {
+    const malicious = "../../../tmp/evil-story8";
+    expect(isSafeSessionId(malicious)).toBe(false);
+    const res = await POST(
+      jsonRequest({ ...validStory8Session(), id: malicious }),
+    );
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "invalid_session_id",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/session — Story 8 happy path", () => {
+  it("writes the Story-8 session and returns { ok:true, id }", async () => {
+    const body = validStory8Session("good-story8-id");
+    const res = await POST(jsonRequest(body));
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      id: "good-story8-id",
+    });
+
+    expect(writeSessionMock).toHaveBeenCalledTimes(1);
+    expect(writeSessionMock.mock.calls[0][0]).toMatchObject({
+      id: "good-story8-id",
+      storyType: "story-8",
+      // Keeps the Story-1 pet group: pronoun + illustrationStyle present.
+      pet: {
+        name: "Biscuit",
+        species: "dog",
+        photo: "uploads/sess/biscuit.jpg",
+        pronoun: "he",
+        illustrationStyle: "watercolor",
+      },
+      adventure: { childName: "Emma" },
+      toggles: {
+        adventureTheme: "backyard-mystery",
+        heroCount: "pet-plus",
+        childAgeBracket: "6-8",
       },
     });
   });

@@ -30,3 +30,12 @@ Related: the hand-maintained `REFERENCE_ANCHOR_STORIES` set in
 `app/(operator)/api/generate-illustrations/route.ts` is another easy-miss seam — a
 reference-anchored book must be added there or the progress bar undercounts by one
 (`slots + 1`). The spec usually *does* flag this one.
+
+**Boundary-test is a no-op for a normal new-book PR-B** (confirmed Story 7 & 8):
+the public storefront/order surface lives entirely in the *generic* dynamic routes
+`/books/[productId]` + `/order/[productId]`, which are already registered in
+`lib/runtime/surface.boundary.test.ts`. A new book adds a *catalog entry* + an
+`isStoryN` branch inside those existing files — no NEW public page/route file — so
+nothing needs adding to `PUBLIC_ENTRIES`/`PUBLIC_API_ENTRIES`. The only new file
+(`app/(operator)/create/<step>/page.tsx`) is operator-side, not public. Don't go
+hunting for a boundary registration that isn't needed; just re-run the test green.

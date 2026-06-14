@@ -97,6 +97,11 @@ export interface Product {
 //   incumbents; the recurring annual gotcha-day repurchase justifies the upper end).
 //   2900 ($29) is the placeholder; confirm the exact number with the PM before
 //   configuring the LS variant.
+// - Story 8 ("The Amazing Adventures of [PET_NAME]") lists $32-35 PDF in its master
+//   template, with $34 the explicit launch recommendation (at/just above Wonderbly's
+//   $34.99, under Petventures' $44.99, justified by the real-photo likeness those
+//   breed-picker incumbents can't offer). 3400 ($34) is the locked launch price;
+//   confirm with the PM before configuring the LS variant.
 
 const PLACEHOLDER_STORY_1_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_2_PRICE_USD = 2900;
@@ -104,6 +109,7 @@ const PLACEHOLDER_STORY_4_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_5_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_6_PRICE_USD = 3200;
 const PLACEHOLDER_STORY_7_PRICE_USD = 2900;
+const PLACEHOLDER_STORY_8_PRICE_USD = 3400;
 
 // ---------------------------------------------------------------------------
 // The catalog
@@ -251,6 +257,27 @@ function buildCatalog(): Product[] {
       sampleImages: [
         "/samples/story-7-welcome/welcome-cover.jpg",
         "/samples/story-7-welcome/welcome-page-7.jpg",
+      ],
+    }),
+    buildProduct("story-8-adventure", "story-8", {
+      title: "The Amazing Adventures of Your Pet",
+      tagline: "A joyful adventure starring your actual pet — and your kid.",
+      description:
+        "A joyful, personalized picture book where your actual pet — illustrated " +
+        "from a photo you upload — stars as the hero of a fun 'save the day' quest " +
+        "alongside your child. Unlike other personalized pet books that pick a " +
+        "generic breed from a list, every illustration is painted to look like " +
+        "your pet: same markings, same floppy ear, same goofy face. Tell us your " +
+        "pet's real-life quirk and we'll make it their superpower — the dog who " +
+        "always finds the ball becomes the World's Greatest Nose. Choose whether " +
+        "your child adventures alongside them or hears the legend as the reader, " +
+        "and the reading level that fits. Delivered as a print-quality PDF, " +
+        "lovingly hand-finished within 24–48 hours. The gift for the kid who " +
+        "thinks their dog is already a legend — because they're right.",
+      priceUsd: PLACEHOLDER_STORY_8_PRICE_USD,
+      sampleImages: [
+        "/samples/story-8-adventure/adventure-cover.jpg",
+        "/samples/story-8-adventure/adventure-leap.jpg",
       ],
     }),
   ];

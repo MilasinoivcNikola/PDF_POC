@@ -43,6 +43,8 @@ import type {
   Story6Toggles,
   Story7Memories,
   Story7Toggles,
+  Story8Adventure,
+  Story8Toggles,
   Toggles,
   WizardDraft,
 } from "@/lib/session/types";
@@ -61,14 +63,17 @@ import {
  * `pet`/`owner`/`memories: Story5Memories`/`toggles: Story5Toggles`; Story 6 (the
  * living tribute) uses `pet`/`owner`/`memories: Story6Memories`/`toggles:
  * Story6Toggles`; Story 7 (the homecoming book) uses `pet`/`owner`/`memories:
- * Story7Memories`/`toggles: Story7Toggles`. The union of the per-group types is
- * intentional — a step only ever patches the groups its own product has, and the
- * merge below applies only the named groups.
+ * Story7Memories`/`toggles: Story7Toggles`. Story 8 (the kids' adventure) is the
+ * exception: it has no `memories` group — its inputs live in an `adventure` group
+ * (`adventure: Story8Adventure`/`toggles: Story8Toggles`). The union of the
+ * per-group types is intentional — a step only ever patches the groups its own
+ * product has, and the merge below applies only the named groups.
  */
 export interface DraftPatch {
   pet?: Partial<Pet>;
   child?: Partial<Child>;
   owner?: Partial<Owner>;
+  adventure?: Partial<Story8Adventure>;
   memories?:
     | Partial<Memories>
     | Partial<LetterMemories>
@@ -82,7 +87,8 @@ export interface DraftPatch {
     | Partial<Story4Toggles>
     | Partial<Story5Toggles>
     | Partial<Story6Toggles>
-    | Partial<Story7Toggles>;
+    | Partial<Story7Toggles>
+    | Partial<Story8Toggles>;
 }
 
 interface WizardContextValue {
@@ -169,11 +175,10 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
       if (patch.owner) {
         merged.owner = { ...(current as { owner?: object }).owner, ...patch.owner };
       }
-      const patchAdventure = (patch as { adventure?: object }).adventure;
-      if (cur.adventure !== undefined || patchAdventure) {
+      if (cur.adventure !== undefined || patch.adventure) {
         merged.adventure = {
           ...((cur.adventure as object | undefined) ?? {}),
-          ...patchAdventure,
+          ...patch.adventure,
         };
       }
       const next = merged as unknown as WizardDraft;

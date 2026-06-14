@@ -15,6 +15,7 @@ const ALL_STORY_TYPES: StoryType[] = [
   "story-5",
   "story-6",
   "story-7",
+  "story-8",
 ];
 
 // The product catalog (PR-02) under test: a pure, client-safe data module that
@@ -25,7 +26,7 @@ const ALL_STORY_TYPES: StoryType[] = [
 // prices and that lookups behave.
 
 describe("getProducts", () => {
-  it("lists exactly the live books (story-1 + story-2 + story-4 + story-5 + story-6 + story-7)", () => {
+  it("lists exactly the live books (story-1 + story-2 + story-4 + story-5 + story-6 + story-7 + story-8)", () => {
     const products = getProducts();
     expect(products.map((p) => p.productId)).toEqual([
       "story-1-book",
@@ -34,6 +35,7 @@ describe("getProducts", () => {
       "story-5-letter-to",
       "story-6-tribute",
       "story-7-welcome",
+      "story-8-adventure",
     ]);
     expect(products.map((p) => p.storyType)).toEqual([
       "story-1",
@@ -42,6 +44,7 @@ describe("getProducts", () => {
       "story-5",
       "story-6",
       "story-7",
+      "story-8",
     ]);
   });
 
@@ -334,5 +337,65 @@ describe("story-7-welcome catalog entry", () => {
     const types = getProducts().map((p) => p.storyType);
     expect(ids.filter((id) => id === "story-7-welcome")).toHaveLength(1);
     expect(types.filter((t) => t === "story-7")).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// story-8-adventure — the kids' adventure book (feature 32 / PR-B)
+// ---------------------------------------------------------------------------
+//
+// Story 8 is the catalog's most PLAYFUL book — a personalized kids' adventure with
+// the pet as the hero. It carries 10 illustration slots (cover + 9 scenes) and is
+// priced at $34 (the locked launch price, the top of the catalog). Beyond the
+// generic list/no-drift guards above, assert the entry exists with the right
+// storyType, its illustrationCount is the registry's 10 (DERIVED, not a literal),
+// the placeholder price is 3400, marketing copy + sampleImages are non-empty, and
+// its id/storyType are unique.
+
+describe("story-8-adventure catalog entry", () => {
+  it("is present in the catalog with storyType 'story-8'", () => {
+    const product = getProduct("story-8-adventure");
+    expect(product).not.toBeNull();
+    expect(product?.productId).toBe("story-8-adventure");
+    expect(product?.storyType).toBe("story-8");
+  });
+
+  it("derives illustrationCount from the registry (= 10 adventure slots), not a literal", () => {
+    const product = getProduct("story-8-adventure")!;
+    // The registry's Story-8 slot list is the cover + 9 scenes = 10.
+    const slots = getStory("story-8").illustrationSlots;
+    expect(product.illustrationCount).toBe(slots.length);
+    expect(slots.length).toBe(10);
+    expect(product.illustrationCount).toBe(10);
+  });
+
+  it("uses the $34 launch placeholder display price (3400 cents)", () => {
+    expect(getProduct("story-8-adventure")!.priceUsd).toBe(3400);
+  });
+
+  it("has non-empty marketing copy (title, tagline, description)", () => {
+    const product = getProduct("story-8-adventure")!;
+    expect(product.title.trim().length).toBeGreaterThan(0);
+    expect(product.tagline.trim().length).toBeGreaterThan(0);
+    expect(product.description.trim().length).toBeGreaterThan(0);
+  });
+
+  it("references non-empty sample images", () => {
+    const product = getProduct("story-8-adventure")!;
+    expect(product.sampleImages.length).toBeGreaterThan(0);
+    for (const src of product.sampleImages) {
+      expect(src.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it("leaves lsVariantId unset (resolved server-side at checkout)", () => {
+    expect(getProduct("story-8-adventure")!.lsVariantId).toBeUndefined();
+  });
+
+  it("has a unique id/storyType not shared with the other books", () => {
+    const ids = getProducts().map((p) => p.productId);
+    const types = getProducts().map((p) => p.storyType);
+    expect(ids.filter((id) => id === "story-8-adventure")).toHaveLength(1);
+    expect(types.filter((t) => t === "story-8")).toHaveLength(1);
   });
 });

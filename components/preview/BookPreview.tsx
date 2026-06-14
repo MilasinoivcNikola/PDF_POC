@@ -361,9 +361,9 @@ export function BookPreview({ sessionId, renderActions }: BookPreviewProps) {
   const petName = data.petName.trim() || "your pet";
   // The three letter products (Story 2 grief letter, Story 4 celebration letter,
   // Story 5 letter to the pet) render single-column sheets. Story 1, Story 6 (the
-  // narrative living tribute) AND Story 7 (the homecoming book) are NARRATIVE books,
-  // so they are deliberately excluded here and fall to the facing-page spread path
-  // below.
+  // narrative living tribute), Story 7 (the homecoming book) AND Story 8 (the kids'
+  // adventure) are NARRATIVE books, so they are deliberately excluded here and fall
+  // to the facing-page spread path below.
   const isLetter =
     data.storyType === "story-2" ||
     data.storyType === "story-4" ||
@@ -540,6 +540,9 @@ function fallbackFilename(storyType: StoryType | undefined): string {
   }
   if (storyType === "story-7") {
     return "Welcome-Home.pdf";
+  }
+  if (storyType === "story-8") {
+    return "Amazing-Adventures.pdf";
   }
   return "Saying-Goodbye.pdf";
 }
