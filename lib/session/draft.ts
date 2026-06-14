@@ -24,6 +24,7 @@ import type {
   Story6Session,
   Story7Draft,
   Story7Session,
+  Story8Draft,
   WizardDraft,
   AgeBracket,
   DeathType,
@@ -853,6 +854,16 @@ export function isStory7Draft(draft: WizardDraft): draft is Story7Draft {
   return draft.storyType === "story-7";
 }
 
+/**
+ * True if the draft is a Story-8 draft (the kids' adventure; narrows the union).
+ * Story 8's draft→session bridge + required-field gate land in PR-B (feature 32) —
+ * until then a Story-8 draft is recognized here only so the Story-1 default never
+ * mis-claims it; the dispatchers below reject it with a clear "not yet creatable".
+ */
+export function isStory8Draft(draft: WizardDraft): draft is Story8Draft {
+  return draft.storyType === "story-8";
+}
+
 /** True if the draft is a Story-1 draft (the default — no/legacy `storyType`). */
 export function isStory1Draft(draft: WizardDraft): draft is StoryDraft {
   return (
@@ -860,7 +871,8 @@ export function isStory1Draft(draft: WizardDraft): draft is StoryDraft {
     !isStory4Draft(draft) &&
     !isStory5Draft(draft) &&
     !isStory6Draft(draft) &&
-    !isStory7Draft(draft)
+    !isStory7Draft(draft) &&
+    !isStory8Draft(draft)
   );
 }
 
@@ -886,6 +898,12 @@ export function missingRequiredFieldsForDraft(
   if (isStory5Draft(draft)) return missingRequiredFieldsStory5(draft);
   if (isStory6Draft(draft)) return missingRequiredFieldsStory6(draft);
   if (isStory7Draft(draft)) return missingRequiredFieldsStory7(draft);
+  if (isStory8Draft(draft)) {
+    // Story 8's required-field gate + draft→session bridge land in PR-B (feature 32).
+    // Until then a Story-8 draft is not creatable; reject loudly rather than silently
+    // mis-treating it as Story 1 (which the fall-through below would otherwise do).
+    throw new Error("story-8 drafts are not yet creatable (wired in PR-B)");
+  }
   return missingRequiredFields(draft);
 }
 
@@ -910,5 +928,9 @@ export function draftToSessionForDraft(
   if (isStory5Draft(draft)) return draftToSessionStory5(draft);
   if (isStory6Draft(draft)) return draftToSessionStory6(draft);
   if (isStory7Draft(draft)) return draftToSessionStory7(draft);
+  if (isStory8Draft(draft)) {
+    // Story 8's draft→session bridge lands in PR-B (feature 32); see above.
+    throw new Error("story-8 drafts are not yet creatable (wired in PR-B)");
+  }
   return draftToSession(draft);
 }

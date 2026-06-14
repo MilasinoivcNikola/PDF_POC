@@ -31,6 +31,7 @@ import type {
   Story5Session,
   Story6Session,
   Story7Session,
+  Story8Session,
 } from "@/lib/session/types";
 import type {
   PageId,
@@ -39,6 +40,7 @@ import type {
   Story5PageId,
   Story6PageId,
   Story7PageId,
+  Story8PageId,
 } from "@/lib/story/master-text";
 import { getOpenAI, photoToFile } from "@/lib/ai/client";
 import { buildScenePrompts, SCENE_PAGE_IDS } from "@/lib/ai/prompts";
@@ -62,6 +64,8 @@ import {
   buildStory7SlotPrompts,
   type Story7SlotPrompt,
 } from "@/lib/ai/story7-prompts";
+import { buildStory8SlotPrompts } from "@/lib/ai/story8-prompts";
+import { ADVENTURE_SCENE_PAGE_IDS } from "@/lib/story/story-8";
 import { getStory } from "@/lib/story/registry";
 import {
   findCachedImage,
@@ -333,8 +337,11 @@ async function readImage(path: string): Promise<Buffer> {
  *   - A: [photo, reference]
  *   - B: [photo, reference, ...prior scenes] — newest prior scenes kept, capped
  *   - C: [photo] only
+ *
+ * Exported so the Story-8 orchestrator (the catalog's first Approach-B book) reuses
+ * the exact same accumulation logic the Story-1 B path uses, rather than forking it.
  */
-function referencesForScene(
+export function referencesForScene(
   approach: ConsistencyApproach,
   bundle: ReferenceBundle,
   priorScenes: readonly Buffer[],
@@ -434,6 +441,9 @@ export async function generateAllIllustrations(
   }
   if (storyType === "story-7") {
     return generateStory7Illustrations(session as unknown as Story7Session, options);
+  }
+  if (storyType === "story-8") {
+    return generateStory8Illustrations(session as unknown as Story8Session, options);
   }
 
   const approach = options.approach ?? "A";
@@ -1025,6 +1035,205 @@ async function generateStory7Illustrations(
   return [referenceEntry, ...sceneEntries];
 }
 
+// ---------------------------------------------------------------------------
+// Story 8 — "Amazing Adventures" imagery (the catalog's first APPROACH-B book)
+// ---------------------------------------------------------------------------
+
+/**
+ * The Story-8 GENERATION order (NOT book order). The pet stays on-model best when
+ * the reference bank is built from calm, clearly-readable poses first, then the
+ * accumulated references anchor the escalating action:
+ *   1. Calm/establishing (cover → ordinary → special → celebration) — builds the
+ *      Approach-B reference bank from low-drift poses.
+ *   2. Escalating action (call → clue → deeper → discovery → wobble).
+ *   3. The climax leap LAST — the single highest-drift pose, generated at Medium
+ *      (PR-0's confirmed cost floor) with the most accumulated references behind it.
+ * The returned manifest is reassembled in BOOK order (ADVENTURE_SCENE_PAGE_IDS),
+ * independent of this generation order.
+ */
+const STORY8_GENERATION_ORDER: readonly Story8PageId[] = [
+  // 1. calm/establishing first (low-drift — builds the reference bank)
+  "adventure-cover",
+  "adventure-ordinary",
+  "adventure-special",
+  "adventure-celebration",
+  // 2. escalating action
+  "adventure-call",
+  "adventure-clue",
+  "adventure-deeper",
+  "adventure-discovery",
+  "adventure-wobble",
+  // 3. the climax leap LAST, at Medium (highest-drift pose)
+  "adventure-climax",
+];
+
+/**
+ * The one Story-8 slot generated at MEDIUM rather than the project-default Low: the
+ * climax leap, the single highest-drift-risk pose. PR-0's go/no-go gate found the
+ * likeness held there only with this tier bump — a deliberate, scene-specific opt-in
+ * to the Low cost rule (cost floor = 9 Low + 1 Medium scene + 1 Low reference), NOT
+ * a default-tier change. Every other slot stays Low.
+ */
+const STORY8_MEDIUM_SLOT: Story8PageId = "adventure-climax";
+
+/**
+ * Pages 10/11 (`adventure-home`, `adventure-closing`) carry NO generation slot — they
+ * REUSE imagery already produced (the master template's locked decision):
+ *   - `adventure-home` (page 10, narrative layout) reuses the calm CELEBRATION scene
+ *     — the "home again, more loved" beat is a quiet echo of the celebration.
+ *   - `adventure-closing` (page 11, closing layout) reuses the COVER — the template's
+ *     "echoes the cover" framing.
+ * Wired as manifest entries pointing at the source slot's on-disk path (NO extra API
+ * call), so the renderer resolves them via `manifestToImageMap` like any other page.
+ */
+const STORY8_REUSE: ReadonlyArray<{ page: Story8PageId; from: Story8PageId }> = [
+  { page: "adventure-home", from: "adventure-celebration" },
+  { page: "adventure-closing", from: "adventure-cover" },
+];
+
+/**
+ * Generate Story 8's "Amazing Adventures" imagery: a locked reference illustration +
+ * the TEN reference-anchored adventure scenes, under APPROACH B (accumulate each
+ * accepted scene as a reference for the next).
+ *
+ * This is the one genuinely new bit of engine work in PR-A. Two deliberate
+ * divergences from every other book's generate function:
+ *
+ *   1. APPROACH B, SELF-SELECTED. Story 8's whole moat is the pet staying on-model
+ *      across dynamic action poses (running/leaping/sneaking), and Approach A lets
+ *      each pose drift independently. So this function runs Approach B INTERNALLY and
+ *      does NOT read `options.approach` — the batch worker calls
+ *      `generateAllIllustrations(session)` bare (no options), so the book must
+ *      self-select B. This is the deliberate, contained exception to "every other
+ *      book is Approach A". The accumulation reuses the shared `referencesForScene`
+ *      (the same logic the Story-1 B path uses), trimmed to the 16-image cap.
+ *
+ *   2. RISK-ORDERED generation + a per-slot tier bump. Scenes are generated
+ *      SEQUENTIALLY (B is sequential by nature) in `STORY8_GENERATION_ORDER` — calm
+ *      poses first to build the reference bank, the climax leap LAST at Medium (the
+ *      single highest-drift pose; PR-0's cost floor). Every other slot is Low. The
+ *      returned manifest is reassembled in BOOK order regardless.
+ *
+ * Pages 10/11 reuse existing imagery (no extra generation) — see `STORY8_REUSE`.
+ *
+ * Total API images = 1 reference + 10 scenes = 11 (9 Low scenes + 1 Medium climax +
+ * 1 Low reference). Same cache contract as every other product: a re-run with an
+ * unchanged session is a pure $0 cache hit. Every write goes through the traversal
+ * guards.
+ */
+async function generateStory8Illustrations(
+  session: Story8Session,
+  options: GenerateOptions,
+): Promise<GeneratedImage[]> {
+  // Tiers: Low default for the reference + the calm/action scenes; Medium ONLY for
+  // the climax. `options.sceneQuality`, when passed, overrides the Low default for
+  // the non-climax scenes (e.g. a deliberate high-fidelity run); the climax stays
+  // Medium regardless (its tier is the PR-0-validated floor, not a knob).
+  const sceneQuality = options.sceneQuality ?? "low";
+  const referenceQuality = options.referenceQuality ?? "low";
+
+  if (!isSafeSessionId(session.id)) {
+    throw new Error(`Unsafe session id: ${session.id}`);
+  }
+
+  const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+  if (!photoPath) {
+    throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+  }
+
+  const petDescription = `${session.pet.breedColor} ${session.pet.species}`.trim();
+
+  // 1. Locked reference illustration (the consistency anchor), cached like Story 1/6/7.
+  const referencePrompt = buildReferencePrompt(petDescription, session.pet.illustrationStyle);
+  const photoBytes = await readImage(photoPath);
+  const referencePromptHash = hashPrompt(referencePrompt);
+  const referenceRefHash = hashReferenceSet([photoBytes]);
+
+  let referenceEntry: GeneratedImage;
+  let referenceBytes: Buffer;
+  const cachedReference = await findCachedImage(
+    session.images,
+    "reference",
+    referencePromptHash,
+    referenceRefHash,
+  );
+  if (cachedReference) {
+    referenceEntry = cachedReference;
+    referenceBytes = await readImage(cachedReference.path);
+  } else {
+    referenceBytes = await generateReferenceIllustration(
+      photoPath,
+      petDescription,
+      session.pet.illustrationStyle,
+      referenceQuality,
+    );
+    const referencePath = await saveImage(session.id, "reference.png", referenceBytes);
+    referenceEntry = {
+      page: "reference",
+      path: referencePath,
+      promptHash: referencePromptHash,
+      referenceHash: referenceRefHash,
+    };
+  }
+
+  // 2. Brief-driven slot prompts (resolved once; variants/merge applied).
+  const bundle: ReferenceBundle = { photo: photoBytes, reference: referenceBytes };
+  const prompts = buildStory8SlotPrompts(session);
+
+  // 3. Approach B: generate SEQUENTIALLY in risk order, accumulating each accepted
+  //    scene into the reference set for the next. The climax (last) gets Medium.
+  //    `referencesForScene("B", …)` reuses the Story-1 B accumulation verbatim.
+  const byPage = new Map<Story8PageId, GeneratedImage>();
+  const priorScenes: Buffer[] = [];
+  for (const page of STORY8_GENERATION_ORDER) {
+    const slotPrompt = prompts[page];
+    if (!slotPrompt) {
+      throw new Error(`No Story-8 prompt builder for slot: ${page}`);
+    }
+    const references = referencesForScene("B", bundle, priorScenes);
+    const quality = page === STORY8_MEDIUM_SLOT ? "medium" : sceneQuality;
+    const { entry, bytes } = await generateAndSaveScene(
+      session as unknown as StorySession,
+      page,
+      slotPrompt.prompt,
+      references,
+      quality,
+    );
+    byPage.set(page, entry);
+    priorScenes.push(bytes);
+  }
+
+  // 4. Reassemble the scene manifest in BOOK order (not generation order).
+  const sceneEntries: GeneratedImage[] = (
+    ADVENTURE_SCENE_PAGE_IDS as readonly Story8PageId[]
+  ).map((page) => {
+    const entry = byPage.get(page);
+    if (!entry) {
+      throw new Error(`Missing generated Story-8 scene for slot: ${page}`);
+    }
+    return entry;
+  });
+
+  // 5. Pages 10/11 REUSE existing imagery — add manifest entries pointing at the
+  //    source slot's on-disk path (NO extra API call). `manifestToImageMap` includes
+  //    these page ids in its illustrated set so the renderer resolves them.
+  const reuseEntries: GeneratedImage[] = [];
+  for (const { page, from } of STORY8_REUSE) {
+    const source = byPage.get(from);
+    if (!source) {
+      throw new Error(`Cannot reuse imagery for ${page}: source slot ${from} missing.`);
+    }
+    reuseEntries.push({
+      page,
+      path: source.path,
+      promptHash: source.promptHash,
+      referenceHash: source.referenceHash,
+    });
+  }
+
+  return [referenceEntry, ...sceneEntries, ...reuseEntries];
+}
+
 /**
  * Regenerate a SINGLE page's illustration, re-using the reference illustration
  * already on disk (no second reference generation). Feeds feature 10's
@@ -1091,6 +1300,14 @@ export async function regenerateSceneIllustration(
     return regenerateStory7Slot(
       session as unknown as Story7Session,
       page as Story7PageId,
+      sceneQuality,
+    );
+  }
+
+  if (storyType === "story-8") {
+    return regenerateStory8Slot(
+      session as unknown as Story8Session,
+      page as Story8PageId,
       sceneQuality,
     );
   }
@@ -1300,6 +1517,53 @@ async function regenerateStory7Slot(
   return { page: slot, path, promptHash, referenceHash };
 }
 
+/**
+ * Regenerate a SINGLE Story-8 scene, bypassing the cache (an explicit fresh render —
+ * the admin repaint button). Every Story-8 slot is reference-anchored, so this re-uses
+ * the `reference` illustration already on disk (no second reference generation),
+ * anchors on `[photo, reference]`, and routes through `generateSceneIllustration`
+ * (`images.edit`). Saves over the old PNG and returns the updated manifest entry.
+ *
+ * KNOWN LIMITATION (see context/debt.md): a single repaint APPROXIMATES Approach B
+ * AS A — it has no accumulated sibling scenes to feed as priors (a one-page render
+ * has no "prior scenes"). For a book whose #1 quality gate is per-scene likeness this
+ * is exactly the path the operator leans on hardest; a candidate enhancement is to
+ * feed the already-accepted sibling scenes as references on a Story-8 repaint. Not a
+ * PR-A blocker (the full-book path runs true Approach B).
+ */
+async function regenerateStory8Slot(
+  session: Story8Session,
+  slot: Story8PageId,
+  quality: Quality,
+): Promise<GeneratedImage> {
+  const slotPrompt = buildStory8SlotPrompts(session)[slot];
+  if (!slotPrompt) {
+    throw new Error(`No Story-8 prompt builder for slot: ${slot}`);
+  }
+
+  const referenceManifest = session.images.find((image) => image.page === "reference");
+  if (!referenceManifest) {
+    throw new Error("No reference illustration on the session — run generateAllIllustrations first.");
+  }
+  const photoPath = resolveUnder(process.cwd(), "uploads", session.pet.photo);
+  if (!photoPath) {
+    throw new Error(`Pet photo path is outside ./uploads: ${session.pet.photo}`);
+  }
+
+  const photoBytes = await readImage(photoPath);
+  const referenceBytes = await readImage(referenceManifest.path);
+  const references = [photoBytes, referenceBytes];
+
+  // The climax keeps its Medium floor even on a repaint (its tier is the
+  // PR-0-validated highest-drift floor, not a per-call knob).
+  const slotQuality = slot === STORY8_MEDIUM_SLOT ? "medium" : quality;
+  const promptHash = hashPrompt(slotPrompt.prompt);
+  const referenceHash = hashReferenceSet(references);
+  const bytes = await generateSceneIllustration(references, slotPrompt.prompt, slotQuality);
+  const path = await saveImage(session.id, `${slot}.png`, bytes);
+  return { page: slot, path, promptHash, referenceHash };
+}
+
 // ---------------------------------------------------------------------------
 // Manifest → renderer input
 // ---------------------------------------------------------------------------
@@ -1330,6 +1594,12 @@ export async function manifestToImageMap(
     ...getStory("story-5").illustrationSlots,
     ...getStory("story-6").illustrationSlots,
     ...getStory("story-7").illustrationSlots,
+    ...getStory("story-8").illustrationSlots,
+    // Story 8's pages 10/11 are NOT generation slots, but they REUSE an existing
+    // image (see STORY8_REUSE) and carry a manifest entry — include them here so
+    // the renderer resolves the reused art rather than the placeholder.
+    "adventure-home",
+    "adventure-closing",
   ]);
   await Promise.all(
     manifest

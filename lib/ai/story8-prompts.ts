@@ -1,94 +1,61 @@
-// Scene-prompt builder for Story 8's "The Amazing Adventures of [PET_NAME]"
-// imagery (Craft Area 2, feature 30 — the PR-0 prototype gate). Story 8 is the
-// catalog's first joyful kids' adventure book, and its entire moat is "this is
-// YOUR actual pet, having an adventure" — which is exactly what the AI pipeline
-// is worst at: holding a pet's real markings, ear shape, and eye color across
-// running, leaping, sneaking, mid-rescue poses. So the central craft rule of this
-// book is POSE DISCIPLINE, and it is baked into every prompt below.
+// Per-scene prompt builders for Story 8's "The Amazing Adventures of [PET_NAME]"
+// imagery (Craft Area 2). Story 8 is the catalog's first joyful kids' adventure
+// book, and its entire moat is "this is YOUR actual pet, having an adventure" —
+// which is exactly what the AI pipeline is worst at: holding a pet's real
+// markings, ear shape, and eye color across running, leaping, sneaking, mid-rescue
+// poses. So the central craft rule of this book is POSE DISCIPLINE, and it is
+// baked into every prompt below.
 //
-// This module mirrors the SHAPE of lib/ai/story6-prompts.ts / story7-prompts.ts
-// (a pure per-slot prompt builder returning `{ slot, prompt, useReference }`),
-// but it is deliberately STANDALONE of any text engine: PR-0 has no resolved
-// story to read `illustrationBrief`s from, so the 10 Backyard-Mystery beat briefs
-// are inlined here as constants. PR-A (feature 31) will refactor these to read
-// each page's resolved brief from `resolveStory8`, but the pose-discipline clause
-// and the slot ids below carry forward VERBATIM — these slot ids are the exact
-// literals PR-A registers as `ADVENTURE_SCENE_PAGE_IDS`.
+// PR-0 (feature 30) proved this set holds under Approach B with the beat briefs
+// INLINED as constants (no text engine existed yet). PR-A (feature 31) refactors
+// the builder to read each scene page's resolved `illustrationBrief` from
+// `resolveStory8` — the single source, so the art and the story text can never
+// drift (the Story-6/7 shape). The pose-discipline / dynamic-watercolor clause and
+// the climax side-leap rule stay HERE in the builder (deliberately kept out of the
+// briefs); only the per-beat content moved into the master text.
+//
+// This module mirrors the SHAPE of lib/ai/story7-prompts.ts (a per-slot prompt
+// builder driven by the resolved page's brief), but EVERY Story-8 slot is
+// reference-anchored (`useReference: true`) — the pet is the hero of all 10 pages,
+// there is no figure-free wash in this book (unlike Story 7's `welcome-before`).
 //
 // Everything here is PURE (no IO, no network, no SDK) so the prompt strings can be
-// unit-tested directly without mocks — mirroring lib/ai/story6/7-prompts.ts.
+// unit-tested directly from a session without mocks — mirroring lib/ai/prompts.ts.
+//
+// Import direction is one-way: the slot/page types come FROM master-text.ts /
+// story-8.ts, never the reverse — so the registry/catalog public graph stays
+// engine-free (the boundary guard bans lib/ai/* from the public closure).
 
-import type { IllustrationStyle } from "@/lib/session/types";
+import type { IllustrationStyle, Story8Session } from "@/lib/session/types";
+import type { Story8PageId } from "@/lib/story/master-text";
+import { resolveStory8 } from "@/lib/story/story8/variants";
+import type { ResolvedPage, ResolvedStory } from "@/lib/story/merge";
+import { ADVENTURE_SCENE_PAGE_IDS } from "@/lib/story/story-8";
 
-/**
- * The 10 Backyard-Mystery illustration slots, in BOOK order (cover first …
- * celebration last). These ids are the exact literals PR-A will register as
- * `ADVENTURE_SCENE_PAGE_IDS`. The prototype script (feature 30) generates them in
- * a different RISK order, but the canonical book order lives here.
- */
-export const ADVENTURE_PROTOTYPE_SLOT_IDS = [
-  "adventure-cover",
-  "adventure-ordinary",
-  "adventure-special",
-  "adventure-call",
-  "adventure-clue",
-  "adventure-deeper",
-  "adventure-discovery",
-  "adventure-wobble",
-  "adventure-climax",
-  "adventure-celebration",
-] as const;
-
-/** One of the 10 prototype slot ids. */
-export type AdventurePrototypeSlot = (typeof ADVENTURE_PROTOTYPE_SLOT_IDS)[number];
+// ---------------------------------------------------------------------------
+// Scene identity (re-export for back-compat)
+// ---------------------------------------------------------------------------
+//
+// `ADVENTURE_SCENE_PAGE_IDS` is PURE data shared with the client-safe catalog/
+// registry chain, so its source of truth lives in lib/story/story-8.ts (a product
+// module the public storefront can reach without pulling in a `lib/ai/*` engine
+// module). It is only RE-EXPORTED here for back-compat, matching the pattern
+// lib/ai/prompts.ts uses for `SCENE_PAGE_IDS` — never redefined in lib/ai/*.
+export { ADVENTURE_SCENE_PAGE_IDS } from "@/lib/story/story-8";
 
 /**
- * One Story-8 prototype image to generate: the slot id, the fully-built prompt,
- * and whether the references are passed (always true here — the pet is the hero
- * of every one of the 10 slots, there is no figure-free wash in this book). The
+ * One Story-8 image to generate: the fully-built prompt and whether the references
+ * are passed. ALWAYS `true` for Story 8 — the pet is the hero of every one of the
+ * 10 slots, there is no figure-free wash (unlike Story 7's `welcome-before`). The
  * `useReference` field is kept (rather than assumed) to match the other products'
  * slot-prompt shape so the orchestrator's per-slot dispatch reads consistently.
  */
 export interface Story8SlotPrompt {
-  /** The slot id (= a future `ADVENTURE_SCENE_PAGE_IDS` literal). */
-  slot: AdventurePrototypeSlot;
   /** The fully-built prompt (no `{placeholder}`/`[FIELD]` tokens — values merged in). */
   prompt: string;
   /** Whether to pass the reference set. Always true for Story 8 (pet is the hero everywhere). */
   useReference: true;
 }
-
-// ---------------------------------------------------------------------------
-// Per-beat briefs (inlined constants — PR-A reads these from resolveStory8)
-// ---------------------------------------------------------------------------
-//
-// One brief per slot, derived from the master template's per-page illustration
-// briefs (the Backyard Mystery worked theme). `{pet}` is interpolated to the pet
-// description so the prompt reads as this specific animal. Each brief carries its
-// own pose register (calm / dynamic / leap) per the table in the spec.
-
-const BEAT_BRIEFS: Record<AdventurePrototypeSlot, string> = {
-  "adventure-cover":
-    "HERO SHOT — the image that sells the book. {pet} front and center in a confident, heroic pose in a bright sunny backyard, the child grinning just behind the pet. A tiny adventurer's bandana is fine. This is the locked-likeness anchor for the whole book — the pet is calm and in clear 3/4 view with the face fully visible, so the customer instantly recognizes their pet.",
-  "adventure-ordinary":
-    "{pet} and the child together in the backyard on a normal sunny morning — relaxed, happy, establishing the bond. A calm 3/4 view of the pet (we nail likeness here before the action starts).",
-  "adventure-special":
-    "{pet} doing the thing that hints at a special talent — nose to the ground sniffing, ears up, intensely focused, comic and charming. Energetic but grounded, in a side or 3/4 view, full body, lots of energy through posture.",
-  "adventure-call":
-    "The moment the quest begins — the child looking puzzled at an empty spot, {pet} suddenly alert and snapping into detective mode. The pet is in a 3/4 view, ears and posture signaling 'on the case.'",
-  "adventure-clue":
-    "ACTION POSE — the first real test of likeness in motion. {pet} mid-investigation, nose down following a trail through the garden, body in a dynamic but grounded 3/4 stance, a tiny red thread visible.",
-  "adventure-deeper":
-    "A grand backyard expedition — {pet} leading the way through the 'epic' backyard, the child following. The pet is in a confident trotting 3/4 pose. Whimsical (the everyday backyard rendered as a grand landscape).",
-  "adventure-discovery":
-    "The 'aha!' reveal — {pet} looking up triumphantly at a nest high in an old oak tree, the child pointing in delight. The pet is in a heroic upward-gazing 3/4 pose (head up, chest out), in warm satisfying light.",
-  "adventure-wobble":
-    "The tension beat (gentle, never scary) — a tiny baby bird stuck on a low branch, the child reaching and failing, {pet} gathering courage. The pet is shown in a coiled, about-to-act 3/4 stance.",
-  "adventure-climax":
-    "THE money shot — the most dynamic image in the book. {pet} mid-heroic-leap, springing up to nudge the little bird back to safety. Motion lines, joyful energy — but the face and markings must stay perfectly on-model.",
-  "adventure-celebration":
-    "Joyful celebration — the child hugging {pet}, a little homemade 'hero' medal or flower crown, the rescued bird family watching happily. The pet is in a relaxed, beaming 3/4 view (back to a calm pose), in bright golden triumphant light.",
-};
 
 // ---------------------------------------------------------------------------
 // Style + pose-discipline clauses (the central craft rule of this book)
@@ -136,8 +103,9 @@ const POSE_DISCIPLINE =
 
 /**
  * The extra, explicit instruction folded ONLY into the climax leap — the single
- * highest-drift-risk pose. It must be a 3/4 SIDE leap (full profile/silhouette
- * visible), never a foreshortened lunge toward the camera.
+ * highest-drift-risk pose (PR-0 confirmed it as the cost floor at Medium). It must
+ * be a 3/4 SIDE leap (full profile/silhouette visible), never a foreshortened
+ * lunge toward the camera.
  */
 const CLIMAX_SIDE_LEAP =
   "Render this as a 3/4 side leap — the full profile/silhouette of the pet is" +
@@ -164,39 +132,46 @@ function styleAndConsistencyClause(style: IllustrationStyle): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Build the prompt for one Story-8 prototype slot. Pure. Interpolates the pet
- * description into the inlined beat brief, frames "the same pet shown in the
- * reference images", and appends the style/consistency + pose-discipline clause.
- * The climax slot additionally gets the explicit 3/4-side-leap instruction. No
- * `{token}`/`[FIELD]` placeholder survives — `petDescription` and `style` are
- * woven in here.
+ * Build the prompt for one resolved Story-8 scene page. Pure. Frames "the same pet
+ * shown in the reference images", appends the style/consistency + pose-discipline
+ * clause, and — for `adventure-climax` only — folds in the explicit 3/4-side-leap
+ * instruction (the single highest-drift pose). The brief carries no `{placeholder}`
+ * tokens — `resolveStory8` substituted them. Every Story-8 slot is reference-
+ * anchored (the pet is the hero of every page), so `useReference` is always true.
  */
-export function buildStory8PrototypePrompt(
-  slot: AdventurePrototypeSlot,
-  petDescription: string,
+export function buildScenePromptFromPage(
+  page: ResolvedPage,
   style: IllustrationStyle,
 ): Story8SlotPrompt {
-  const pet = petDescription.trim() || "the pet in the reference images";
-  const brief = BEAT_BRIEFS[slot].replace(/\{pet\}/g, pet);
-  const climaxClause = slot === "adventure-climax" ? ` ${CLIMAX_SIDE_LEAP}` : "";
+  const brief = page.illustrationBrief.trim();
+  const climaxClause =
+    page.id === "adventure-climax" ? ` ${CLIMAX_SIDE_LEAP}` : "";
   const prompt =
     `Children's-book adventure scene of the same pet shown in the reference images: ` +
     `${brief} ${styleAndConsistencyClause(style)}${climaxClause}`;
-  return { slot, prompt, useReference: true };
+  return { prompt, useReference: true };
 }
 
 /**
- * Build the ordered list of prompts for all 10 Backyard-Mystery prototype slots,
- * in BOOK order (cover first … celebration last). Pure. Every slot carries
- * `useReference: true` (the pet is the hero of every page). The prototype script
- * (feature 30) reorders these into a risk order at generation time; the order
- * here is the canonical book order PR-A inherits.
+ * Build the prompt (and the reference flag) for every Story-8 illustrated slot,
+ * keyed by slot id. Pure. Resolves the story once (so variants/merge are applied),
+ * then maps each of the 10 illustrated pages (`ADVENTURE_SCENE_PAGE_IDS`) to its
+ * brief-driven prompt. All 10 carry `useReference: true`. The orchestrator iterates
+ * the registry's `illustrationSlots` and looks each id up here. Throws `MergeError`
+ * (from merge.ts) if a required field is missing, exactly as the text pipeline does.
  */
-export function buildStory8PrototypePrompts(
-  petDescription: string,
-  style: IllustrationStyle,
-): Story8SlotPrompt[] {
-  return ADVENTURE_PROTOTYPE_SLOT_IDS.map((slot) =>
-    buildStory8PrototypePrompt(slot, petDescription, style),
-  );
+export function buildStory8SlotPrompts(
+  session: Story8Session,
+): Partial<Record<Story8PageId, Story8SlotPrompt>> {
+  const story: ResolvedStory = resolveStory8(session);
+  const style = session.pet.illustrationStyle;
+  const scenePages = new Set<string>(ADVENTURE_SCENE_PAGE_IDS);
+
+  const prompts: Partial<Record<Story8PageId, Story8SlotPrompt>> = {};
+  for (const page of story) {
+    if (scenePages.has(page.id)) {
+      prompts[page.id as Story8PageId] = buildScenePromptFromPage(page, style);
+    }
+  }
+  return prompts;
 }

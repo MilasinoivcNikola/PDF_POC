@@ -12,6 +12,24 @@ structural, not per-product. Verified on Story 4 (PR-22), Story 5 (PR-24), and
 again on Story 6 (PR-26) — all ran the recipe below fully green with zero findings,
 so the inheritance is now thrice-confirmed.
 
+**Story 8 PR-A (feature 31, 2026-06-14) — authoring + NEW engine imagery, NOT yet
+creatable/sellable (PR-B):** PASS. Same posture as Story-7 PR-A below. Commerce
+surface touched: `Order.inputs` widened with `Story8Session` (additive; `NewOrderInput`
+still excludes status/pdfKey), `OrderRow.inputs` re-pointed at `Order["inputs"]`,
+`createOrder` still hard-codes `pending_payment`. state.ts/migration/`/api/order`
+untouched (empty diff). draft.ts `isStory8Draft` added to `isStory1Draft` negation
+chain + both `missingRequiredFieldsForDraft`/`draftToSessionForDraft` THROW
+"not yet creatable (wired in PR-B)" — fail-closed, no secret in the string. NEW engine
+work `generateStory8Illustrations`/`regenerateStory8Slot` (lib/ai/generate.ts, Approach
+B) reachable ONLY via operator routes (generate-illustrations, regenerate-illustration)
++ operator worker — grep-confirmed no public caller; reuses existing
+`isSafeSessionId`+`resolveUnder(cwd,"uploads",…)` traversal guards; no PII/secret log.
+Catalog has NO story-8 (grep-confirmed not sellable). story-8.ts/story8/* reference
+lib/ai only in COMMENTS (no import) → public chain engine-free; boundary+draft+catalog
+276 tests green. SAME drift-guard gap as Story-7 PR-A: `lib/ai/story8-prompts` NOT in
+`FORBIDDEN_LOCAL` (only story7 is) — not a leak (nothing public reaches it, test green),
+hardening to close in PR-B.
+
 **Story 7 PR-A (feature 28, 2026-06-13) — authoring-ONLY, NOT yet creatable/sellable
 (no wizard/storefront/order route; that's PR-B):** PASS. Commerce surface touched was
 only the two type widenings (`lib/order/types.ts` + `lib/order/store.ts` admit

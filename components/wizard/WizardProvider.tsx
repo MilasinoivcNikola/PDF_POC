@@ -143,23 +143,38 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
       // shapes) plus whichever of `child`/`owner` the patch carries. An absent
       // group never invents the other product's group. The cast reconciles the
       // per-group union on `DraftPatch` with the concrete draft shape.
+      // `current` already carries exactly the groups its product has, and each step
+      // only patches groups its own product has, so we merge `pet`/`toggles` (shared
+      // on every shape) plus whichever of `memories`/`child`/`owner`/`adventure` the
+      // current draft or the patch carries. An absent group never invents another
+      // product's group. Story 8 carries `adventure` (no `memories`).
+      const cur = current as unknown as Record<string, unknown>;
       const merged: Record<string, unknown> = {
         ...current,
         pet: { ...current.pet, ...patch.pet },
-        memories: {
-          ...(current.memories as object),
-          ...(patch.memories as object | undefined),
-        },
         toggles: {
           ...(current.toggles as object),
           ...(patch.toggles as object | undefined),
         },
       };
+      if (cur.memories !== undefined || patch.memories) {
+        merged.memories = {
+          ...((cur.memories as object | undefined) ?? {}),
+          ...(patch.memories as object | undefined),
+        };
+      }
       if (patch.child) {
         merged.child = { ...(current as { child?: object }).child, ...patch.child };
       }
       if (patch.owner) {
         merged.owner = { ...(current as { owner?: object }).owner, ...patch.owner };
+      }
+      const patchAdventure = (patch as { adventure?: object }).adventure;
+      if (cur.adventure !== undefined || patchAdventure) {
+        merged.adventure = {
+          ...((cur.adventure as object | undefined) ?? {}),
+          ...patchAdventure,
+        };
       }
       const next = merged as unknown as WizardDraft;
       saveDraft(next);

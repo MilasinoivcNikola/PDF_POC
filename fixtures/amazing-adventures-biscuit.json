@@ -1,0 +1,28 @@
+{
+  "id": "fixture-amazing-adventures-biscuit",
+  "createdAt": "2026-06-14T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-8",
+  "pet": {
+    "name": "Biscuit",
+    "species": "dog",
+    "breedColor": "scruffy brown terrier with one white paw",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/biscuit.jpg"
+  },
+  "adventure": {
+    "superpower": "the World's Greatest Nose",
+    "favoriteActivity": "digging giant holes in the garden",
+    "quirks": "barks at the vacuum like it's a dragon",
+    "sidekickName": "Leo",
+    "childName": "Emma",
+    "nicknames": "Biscey, the goblin"
+  },
+  "toggles": {
+    "adventureTheme": "backyard-mystery",
+    "heroCount": "pet-plus",
+    "childAgeBracket": "6-8"
+  },
+  "images": []
+}
