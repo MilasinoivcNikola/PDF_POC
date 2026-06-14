@@ -244,6 +244,39 @@ export default function Home() {
                 </svg>
               </span>
             </Link>
+
+            {/* Story 8 — the catalog's most PLAYFUL title: a kids' adventure with
+                your actual pet as the hero. Set apart even from Story 7's gentle
+                joy with its own bright adventurous accent. */}
+            <Link
+              href="/books/story-8-adventure"
+              className={`${styles.chooserCard} ${styles.chooserCardAdventure}`}
+            >
+              <span className={styles.chooserKicker}>
+                A joyful adventure starring your pet
+              </span>
+              <h2 className={styles.chooserTitle}>
+                Their amazing <em>adventure</em>.
+              </h2>
+              <p className={styles.chooserBody}>
+                A playful picture book where your <em>actual</em> pet — painted
+                from your photo, not a breed picker — is the hero of a save-the-day
+                quest alongside your child. Tell us their real quirk and we&apos;ll
+                make it their superpower. The gift for the kid who thinks their dog
+                is already a legend.
+              </p>
+              <span className={styles.chooserLink}>
+                See the book
+                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
+                  <path
+                    d="M1 6h16m0 0L12 1m5 5l-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            </Link>
           </div>
         </section>
 

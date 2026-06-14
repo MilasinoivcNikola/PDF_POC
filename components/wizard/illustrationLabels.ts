@@ -108,6 +108,30 @@ export const WELCOME_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
   "welcome-belong",
 ];
 
+/**
+ * The Story-8 ordered set of slots — the kids' adventure is a NARRATIVE book with
+ * the SAME reference-anchored shape as Story 1/6/7: a `reference` portrait anchor
+ * (generated first, not a book page) PLUS the ten `adventure-*` page slots = ELEVEN
+ * images. ALL ten scenes are reference-anchored (Approach B — the pet must stay
+ * on-model across every action pose), so the anchor is generated. The ten page ids
+ * are declared here (not imported from story-8.ts) to keep this module client-safe;
+ * the story-8 tests assert the page slots match the registry's `illustrationSlots`
+ * (the 10 page ids — the `reference` anchor is not a registry slot, like Story 1/6/7).
+ */
+export const ADVENTURE_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
+  "reference",
+  "adventure-cover",
+  "adventure-ordinary",
+  "adventure-special",
+  "adventure-call",
+  "adventure-clue",
+  "adventure-deeper",
+  "adventure-discovery",
+  "adventure-wobble",
+  "adventure-climax",
+  "adventure-celebration",
+];
+
 /** The progress-checklist slot list for a product (default Story 1). */
 export function illustrationSlotsFor(
   storyType: StoryType,
@@ -126,6 +150,9 @@ export function illustrationSlotsFor(
   }
   if (storyType === "story-7") {
     return WELCOME_ILLUSTRATION_SLOTS;
+  }
+  if (storyType === "story-8") {
+    return ADVENTURE_ILLUSTRATION_SLOTS;
   }
   return ILLUSTRATION_SLOTS;
 }
@@ -236,6 +263,28 @@ function story7LabelsFor(name: string): Partial<Record<IllustrationSlot, string>
 }
 
 /**
+ * Story-8 labels — the kids'-adventure slots, in a playful, action voice (a joyful
+ * "save the day" quest). The reference portrait anchors the look (the locked
+ * likeness Approach B carries through every action pose); then the hero cover and
+ * the ten adventure scenes — each painted from the photo, the pet the hero throughout.
+ */
+function story8LabelsFor(name: string): Partial<Record<IllustrationSlot, string>> {
+  return {
+    reference: `Reference portrait — ${name}, the hero, locked in`,
+    "adventure-cover": `The hero's cover — ${name}, ready for anything`,
+    "adventure-ordinary": `${name} on an ordinary morning`,
+    "adventure-special": `${name}'s amazing superpower`,
+    "adventure-call": "The call to adventure — a mystery!",
+    "adventure-clue": `${name} sniffs out the first clue`,
+    "adventure-deeper": "Deeper into the backyard expedition",
+    "adventure-discovery": "The big discovery",
+    "adventure-wobble": "The wobble — a moment of doubt",
+    "adventure-climax": `The big leap — ${name} saves the day`,
+    "adventure-celebration": `${name}, the hero of the whole backyard`,
+  };
+}
+
+/**
  * Resolve a slot's human-friendly checklist label for a given pet name + product.
  * Defaults to the Story-1 labels for a missing/Story-1 type.
  */
@@ -256,6 +305,8 @@ export function illustrationLabel(
     labels = story6LabelsFor(name);
   } else if (storyType === "story-7") {
     labels = story7LabelsFor(name);
+  } else if (storyType === "story-8") {
+    labels = story8LabelsFor(name);
   } else {
     labels = story1LabelsFor(name);
   }

@@ -9,6 +9,7 @@ import {
   NOTE_ILLUSTRATION_SLOTS,
   TRIBUTE_ILLUSTRATION_SLOTS,
   WELCOME_ILLUSTRATION_SLOTS,
+  ADVENTURE_ILLUSTRATION_SLOTS,
   illustrationLabel,
   illustrationSlotsFor,
 } from "./illustrationLabels";
@@ -205,6 +206,50 @@ describe("WELCOME_ILLUSTRATION_SLOTS", () => {
 });
 
 // ---------------------------------------------------------------------------
+// ADVENTURE_ILLUSTRATION_SLOTS — Story 8's reference + 10 adventure slots
+// ---------------------------------------------------------------------------
+//
+// Story 8 is a NARRATIVE book like Story 1/6/7: a `reference` portrait anchor (NOT a
+// registry slot) followed by the ten `adventure-*` page slots = ELEVEN images. The
+// drift guard strips the leading `reference` and compares the page slots to the
+// registry's `illustrationSlots` (the 10 page ids).
+
+describe("ADVENTURE_ILLUSTRATION_SLOTS", () => {
+  it("is exactly `reference` + the 10 adventure page slots (11 total)", () => {
+    expect([...ADVENTURE_ILLUSTRATION_SLOTS]).toEqual([
+      "reference",
+      "adventure-cover",
+      "adventure-ordinary",
+      "adventure-special",
+      "adventure-call",
+      "adventure-clue",
+      "adventure-deeper",
+      "adventure-discovery",
+      "adventure-wobble",
+      "adventure-climax",
+      "adventure-celebration",
+    ]);
+    expect(ADVENTURE_ILLUSTRATION_SLOTS).toHaveLength(11);
+  });
+
+  it("puts `reference` first, then the page slots in registry order", () => {
+    expect(ADVENTURE_ILLUSTRATION_SLOTS[0]).toBe("reference");
+  });
+
+  it("equals the registry's Story-8 illustrationSlots once the reference anchor is dropped (drift guard)", () => {
+    const slots = getStory("story-8").illustrationSlots;
+    expect(slots).toHaveLength(10);
+    expect(ADVENTURE_ILLUSTRATION_SLOTS.slice(1)).toEqual([...slots]);
+  });
+
+  it("contains no duplicate slots", () => {
+    expect(new Set(ADVENTURE_ILLUSTRATION_SLOTS).size).toBe(
+      ADVENTURE_ILLUSTRATION_SLOTS.length,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
 // illustrationSlotsFor — per-product checklist slot list
 // ---------------------------------------------------------------------------
 
@@ -237,6 +282,11 @@ describe("illustrationSlotsFor", () => {
   it("returns the 9 welcome slots (reference + 8) for story-7", () => {
     expect(illustrationSlotsFor("story-7")).toBe(WELCOME_ILLUSTRATION_SLOTS);
     expect(illustrationSlotsFor("story-7")).toHaveLength(9);
+  });
+
+  it("returns the 11 adventure slots (reference + 10) for story-8", () => {
+    expect(illustrationSlotsFor("story-8")).toBe(ADVENTURE_ILLUSTRATION_SLOTS);
+    expect(illustrationSlotsFor("story-8")).toHaveLength(11);
   });
 });
 
@@ -431,6 +481,34 @@ describe("illustrationLabel", () => {
   it("returns a non-empty string for every slot in WELCOME_ILLUSTRATION_SLOTS", () => {
     for (const slot of WELCOME_ILLUSTRATION_SLOTS) {
       const label = illustrationLabel(slot, "Biscuit", "story-7");
+      expect(label.length).toBeGreaterThan(0);
+      expect(label).not.toContain("undefined");
+    }
+  });
+
+  // Story 8 (the kids' adventure): the reference anchor + the 10 adventure scenes,
+  // playful, action voice.
+  it("uses the Story-8 reference + cover + scene labels (pet name woven in) for story-8", () => {
+    expect(illustrationLabel("reference", "Biscuit", "story-8")).toBe(
+      "Reference portrait — Biscuit, the hero, locked in",
+    );
+    expect(illustrationLabel("adventure-cover", "Biscuit", "story-8")).toBe(
+      "The hero's cover — Biscuit, ready for anything",
+    );
+    expect(illustrationLabel("adventure-climax", "Biscuit", "story-8")).toBe(
+      "The big leap — Biscuit saves the day",
+    );
+  });
+
+  it("substitutes the gentle default for a blank pet name in story-8 labels", () => {
+    expect(illustrationLabel("reference", "  ", "story-8")).toBe(
+      "Reference portrait — your pet, the hero, locked in",
+    );
+  });
+
+  it("returns a non-empty string for every slot in ADVENTURE_ILLUSTRATION_SLOTS", () => {
+    for (const slot of ADVENTURE_ILLUSTRATION_SLOTS) {
+      const label = illustrationLabel(slot, "Biscuit", "story-8");
       expect(label.length).toBeGreaterThan(0);
       expect(label).not.toContain("undefined");
     }

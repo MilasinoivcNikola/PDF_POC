@@ -14,6 +14,7 @@ import type {
   Story5Session,
   Story6Session,
   Story7Session,
+  Story8Session,
 } from "@/lib/session/types";
 
 /**
@@ -27,7 +28,8 @@ export type AnySession =
   | Story4Session
   | Story5Session
   | Story6Session
-  | Story7Session;
+  | Story7Session
+  | Story8Session;
 
 /** Absolute path to ./sessions/[id].json for a given session id. */
 function sessionFilePath(id: string): string {

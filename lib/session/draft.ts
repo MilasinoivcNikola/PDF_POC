@@ -25,6 +25,9 @@ import type {
   Story7Draft,
   Story7Session,
   Story8Draft,
+  Story8Session,
+  AdventureTheme,
+  HeroCount,
   WizardDraft,
   AgeBracket,
   DeathType,
@@ -314,6 +317,11 @@ const DEFAULT_TRANSITION_FRAME: TransitionFrame = "still-here";
 const DEFAULT_OCCASION: Occasion = "new-arrival";
 const DEFAULT_ADOPTION_SOURCE: AdoptionSource = "shelter";
 const DEFAULT_LIFE_STAGE: LifeStage = "adult";
+
+/** Story-8 toggle defaults the master template assumes when the user skips them. */
+const DEFAULT_ADVENTURE_THEME: AdventureTheme = "backyard-mystery";
+const DEFAULT_HERO_COUNT: HeroCount = "pet-plus";
+const DEFAULT_CHILD_AGE_BRACKET: AgeBracket = "6-8";
 
 /**
  * The required Story-4 fields still missing from a draft, in display order. Empty
@@ -822,6 +830,128 @@ export function draftToSessionStory7(draft: Story7Draft): Story7Session {
 }
 
 // ===========================================================================
+// Story 8 — "The Amazing Adventures of [PET_NAME]" draft → session bridge
+// ===========================================================================
+//
+// Story 8 is the catalog's first joyful kids' adventure — the pet is the HERO of a
+// "save the day" quest shared with a child. Like Story 1/6/7 it is a NARRATIVE
+// book, so it REUSES the Story-1 `Pet` group IN FULL (keeping pronoun +
+// illustrationStyle). There is NO `owner`/`child`/`memories` group: the adventure
+// inputs live in an `adventure` group and the toggles in `toggles`.
+//
+// FOUR fields are always required: pet name, species, breedColor (a live narrative
+// placeholder, like Story 1), and photo. ONE field is CONDITIONAL-required —
+// `childName`, required ONLY when `heroCount = pet-plus` (the default), permitted
+// blank in `pet-solo` (where the child is the reader, not a character, and the
+// variant layer rewrites those beats to omit the child).
+//
+// `superpower` / `favoriteActivity` / `quirks` are optional-with-fallback (the PR-A
+// variant layer derives the superpower from activity → quirks → species stock when
+// blank), so they are stored as "" when blank. `sidekickName` / `nicknames` are
+// optional-omit (dropped when blank so merge never prints a dangling line), as is
+// `childName` when `pet-solo`. The three toggles
+// (`adventureTheme`/`heroCount`/`childAgeBracket`) are default-selected and so
+// never "missing".
+
+/** A required field the Story-8 wizard gates Generate on. */
+export type Story8RequiredField =
+  | "petName"
+  | "species"
+  | "breedColor"
+  | "photo"
+  | "childName";
+
+/**
+ * The required Story-8 fields still missing from a draft, in display order. Empty
+ * array means the draft can be finalized. Required = pet name, species, breedColor,
+ * photo — the live `{placeholder}` fields the adventure merges with no fallback.
+ * `childName` is conditionally required: ONLY when `heroCount = pet-plus` (the
+ * default), where the child is a character in the quest. `superpower` /
+ * `favoriteActivity` / `quirks` are optional-with-fallback, and `sidekickName` /
+ * `nicknames` are optional-omit, so they are NOT here.
+ */
+export function missingRequiredFieldsStory8(
+  draft: Story8Draft,
+): Story8RequiredField[] {
+  const missing: Story8RequiredField[] = [];
+  if (!present(draft.pet.name)) {
+    missing.push("petName");
+  }
+  if (!present(draft.pet.species)) {
+    missing.push("species");
+  }
+  if (!present(draft.pet.breedColor)) {
+    missing.push("breedColor");
+  }
+  if (!present(draft.pet.photo)) {
+    missing.push("photo");
+  }
+  const heroCount = draft.toggles.heroCount ?? DEFAULT_HERO_COUNT;
+  if (heroCount === "pet-plus" && !present(draft.adventure.childName)) {
+    missing.push("childName");
+  }
+  return missing;
+}
+
+/**
+ * Assemble a finalized `Story8Session` from a complete Story-8 draft, filling any
+ * skipped optional fields with the master-template defaults. Throws if a required
+ * field (pet name, species, breedColor, photo — plus `childName` when the hero
+ * count is `pet-plus`) is missing — callers should gate on
+ * `missingRequiredFieldsStory8` first. Free-text fields are trimmed; the
+ * optional-with-fallback (superpower, favoriteActivity, quirks) are stored as ""
+ * when blank so the variant layer supplies its fallback; the genuinely-optional
+ * sidekickName/nicknames are dropped rather than stored as "". `childName` is
+ * carried only when present (always under pet-plus where it is required; dropped
+ * when blank under pet-solo).
+ */
+export function draftToSessionStory8(draft: Story8Draft): Story8Session {
+  const missing = missingRequiredFieldsStory8(draft);
+  if (missing.length > 0) {
+    throw new Error(`missing_required_fields: ${missing.join(", ")}`);
+  }
+
+  const { superpower, favoriteActivity, quirks, sidekickName, childName, nicknames } =
+    draft.adventure;
+
+  const heroCount = draft.toggles.heroCount ?? DEFAULT_HERO_COUNT;
+
+  return {
+    id: draft.id,
+    createdAt: draft.createdAt,
+    status: "generating",
+    storyType: "story-8",
+    pet: {
+      name: draft.pet.name!.trim(),
+      species: draft.pet.species ?? DEFAULT_SPECIES,
+      breedColor: draft.pet.breedColor!.trim(),
+      pronoun: draft.pet.pronoun ?? DEFAULT_PRONOUN,
+      illustrationStyle:
+        draft.pet.illustrationStyle ?? DEFAULT_ILLUSTRATION_STYLE,
+      photo: draft.pet.photo!,
+    },
+    adventure: {
+      superpower: present(superpower) ? superpower.trim() : "",
+      favoriteActivity: present(favoriteActivity) ? favoriteActivity.trim() : "",
+      quirks: present(quirks) ? quirks.trim() : "",
+      // sidekickName only applies in pet-plus; drop it entirely in pet-solo.
+      ...(heroCount === "pet-plus" && present(sidekickName)
+        ? { sidekickName: sidekickName.trim() }
+        : {}),
+      ...(present(childName) ? { childName: childName.trim() } : {}),
+      ...(present(nicknames) ? { nicknames: nicknames.trim() } : {}),
+    },
+    toggles: {
+      adventureTheme: draft.toggles.adventureTheme ?? DEFAULT_ADVENTURE_THEME,
+      heroCount,
+      childAgeBracket:
+        draft.toggles.childAgeBracket ?? DEFAULT_CHILD_AGE_BRACKET,
+    },
+    images: [],
+  };
+}
+
+// ===========================================================================
 // Story-type dispatchers — branch on the draft's storyType
 // ===========================================================================
 //
@@ -854,12 +984,7 @@ export function isStory7Draft(draft: WizardDraft): draft is Story7Draft {
   return draft.storyType === "story-7";
 }
 
-/**
- * True if the draft is a Story-8 draft (the kids' adventure; narrows the union).
- * Story 8's draft→session bridge + required-field gate land in PR-B (feature 32) —
- * until then a Story-8 draft is recognized here only so the Story-1 default never
- * mis-claims it; the dispatchers below reject it with a clear "not yet creatable".
- */
+/** True if the draft is a Story-8 draft (the kids' adventure; narrows the union). */
 export function isStory8Draft(draft: WizardDraft): draft is Story8Draft {
   return draft.storyType === "story-8";
 }
@@ -892,18 +1017,14 @@ export function missingRequiredFieldsForDraft(
   | Story5RequiredField
   | Story6RequiredField
   | Story7RequiredField
+  | Story8RequiredField
 )[] {
   if (isStory2Draft(draft)) return missingRequiredFieldsStory2(draft);
   if (isStory4Draft(draft)) return missingRequiredFieldsStory4(draft);
   if (isStory5Draft(draft)) return missingRequiredFieldsStory5(draft);
   if (isStory6Draft(draft)) return missingRequiredFieldsStory6(draft);
   if (isStory7Draft(draft)) return missingRequiredFieldsStory7(draft);
-  if (isStory8Draft(draft)) {
-    // Story 8's required-field gate + draft→session bridge land in PR-B (feature 32).
-    // Until then a Story-8 draft is not creatable; reject loudly rather than silently
-    // mis-treating it as Story 1 (which the fall-through below would otherwise do).
-    throw new Error("story-8 drafts are not yet creatable (wired in PR-B)");
-  }
+  if (isStory8Draft(draft)) return missingRequiredFieldsStory8(draft);
   return missingRequiredFields(draft);
 }
 
@@ -922,15 +1043,13 @@ export function draftToSessionForDraft(
   | Story4Session
   | Story5Session
   | Story6Session
-  | Story7Session {
+  | Story7Session
+  | Story8Session {
   if (isStory2Draft(draft)) return draftToSessionStory2(draft);
   if (isStory4Draft(draft)) return draftToSessionStory4(draft);
   if (isStory5Draft(draft)) return draftToSessionStory5(draft);
   if (isStory6Draft(draft)) return draftToSessionStory6(draft);
   if (isStory7Draft(draft)) return draftToSessionStory7(draft);
-  if (isStory8Draft(draft)) {
-    // Story 8's draft→session bridge lands in PR-B (feature 32); see above.
-    throw new Error("story-8 drafts are not yet creatable (wired in PR-B)");
-  }
+  if (isStory8Draft(draft)) return draftToSessionStory8(draft);
   return draftToSession(draft);
 }

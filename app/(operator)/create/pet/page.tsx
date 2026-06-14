@@ -17,6 +17,10 @@
 //     pronoun + illustration style + a (required) appearance, with present-tense,
 //     joyful copy (the pet is newly home). No `ageOrStage`. Name + description gate
 //     Continue; continues to /create/homecoming.
+//   - Story 8 (the kids' adventure, a NARRATIVE book): like Story 1/7 it KEEPS
+//     pronoun + illustration style + a (required) appearance, with present-tense,
+//     playful copy (the pet is the living hero). No `ageOrStage`. Name + description
+//     gate Continue; continues to /create/adventure.
 // Every field writes straight through to the draft so a refresh keeps it.
 
 import { useState } from "react";
@@ -74,20 +78,25 @@ export default function PetPage() {
   // Story 7 (the homecoming book): narrative book like Story 1/6 (keeps pronoun +
   // style + a required appearance), but no ageOrStage. Present-tense, joyful copy.
   const isStory7 = storyType === "story-7";
-  // Stories 4, 6 and 7 are about a pet who is alive (here / newly home) —
-  // present-tense copy.
-  const isLiving = isStory4 || isStory6 || isStory7;
+  // Story 8 (the kids' adventure): narrative book like Story 1/7 (keeps pronoun +
+  // style + a required appearance), no ageOrStage. Present-tense, playful copy.
+  const isStory8 = storyType === "story-8";
+  // Stories 4, 6, 7 and 8 are about a pet who is alive (here / newly home / the
+  // living hero) — present-tense copy.
+  const isLiving = isStory4 || isStory6 || isStory7 || isStory8;
   const total = getWizardConfig(storyType).total;
   // Story 1 → the child step; a letter (no child) → the owner step; Story 6 (the
   // narrative tribute) → the tribute step; Story 7 (the homecoming book) → the
-  // homecoming step.
-  const continueHref = isStory7
-    ? "/create/homecoming"
-    : isStory6
-      ? "/create/tribute"
-      : isLetter
-        ? "/create/owner"
-        : "/create/child";
+  // homecoming step; Story 8 (the kids' adventure) → the adventure step.
+  const continueHref = isStory8
+    ? "/create/adventure"
+    : isStory7
+      ? "/create/homecoming"
+      : isStory6
+        ? "/create/tribute"
+        : isLetter
+          ? "/create/owner"
+          : "/create/child";
 
   const name = draft?.pet.name ?? "";
   const species = draft?.pet.species ?? "dog";

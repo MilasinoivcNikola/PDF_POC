@@ -12,6 +12,28 @@ structural, not per-product. Verified on Story 4 (PR-22), Story 5 (PR-24), and
 again on Story 6 (PR-26) — all ran the recipe below fully green with zero findings,
 so the inheritance is now thrice-confirmed.
 
+**Story 8 PR-B (feature 32, 2026-06-14) — NOW creatable + sellable:** PASS, zero
+findings — the inheritance holds a 4th time (Story 8 is the first Approach-B book to
+go sellable). Recipe ran fully green: `/api/order/route.ts` + `lib/order/types.ts` +
+state.ts + store.ts + worker.ts + lib/supabase/ + migrations ALL empty diff (entire
+trust boundary untouched); no `inputs.status` lifecycle read; catalog adds story-8 via
+the same `buildProduct` factory (no `lsVariantId` → server-resolved, price 3400
+placeholder); env var `LEMONSQUEEZY_VARIANT_STORY_8_ADVENTURE` non-secret/server-side/
+not NEXT_PUBLIC; OrderForm Story8Fields branch is pure draft form (no fetch/price/
+variant/status); `draftToSessionStory8` builds fresh field-by-field + hard-codes
+`storyType:"story-8"` + trims + drops blanks (never spreads client blob); conditional
+childName-under-pet-plus enforced identically in draft gate + operator `validateStory8`
+(operator route, assertOperator intact, isSafeSessionId guard). story-8.ts references
+lib/ai only in COMMENTS (no import) → public chain engine-free; boundary+catalog+draft
+316 tests green; full suite 1756 green; tsc clean. generate-illustrations route change
+is operator-only progress-count math (story-8 added to REFERENCE_ANCHOR_STORIES, slots+1
+=11) — no spend/auth bearing. RESIDUAL (hardening, unchanged from PR-A, NOT a leak):
+`lib/ai/story8-prompts` still NOT in FORBIDDEN_LOCAL (only story6/story7 are) — nothing
+public reaches it (grep + green boundary test confirm), but the drift-guard for the new
+prompt module was never added. NOTE: two `public/samples/story-8-adventure/*.jpg`
+referenced by the catalog are NOT present yet (manual op per spec) — functional gap
+(broken storefront img), not security.
+
 **Story 8 PR-A (feature 31, 2026-06-14) — authoring + NEW engine imagery, NOT yet
 creatable/sellable (PR-B):** PASS. Same posture as Story-7 PR-A below. Commerce
 surface touched: `Order.inputs` widened with `Story8Session` (additive; `NewOrderInput`
