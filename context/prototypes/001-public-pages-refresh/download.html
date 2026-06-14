@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your keepsake — Dearbound</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..500,0..100;1,9..144,300..500,0..100&family=Lora:ital@0;1&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* mockup-only: a small divider so both delivery states are visible on one page for review */
+    .state-divider { max-width: 600px; margin: var(--s-24) auto 0; border-top: 1px dashed var(--ink-faint); padding-top: var(--s-6); text-align: center; }
+    .state-divider .label { color: var(--ink-faint); }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+
+    <header class="site-header">
+      <a href="index.html" class="wordmark">
+        <svg class="wordmark__ornament" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M6 8 Q4 5 6 4 Q8 5 7 8 Z M13 8 Q15 5 13 4 Q11 5 12 8 Z M3 12 Q1 10 3 9 Q5 10 4 12 Z M16 12 Q18 10 16 9 Q14 10 15 12 Z M10 17 Q5 17 5 12 Q5 9 10 9 Q15 9 15 12 Q15 17 10 17 Z" fill="currentColor" opacity="0.7"/></svg>
+        Dearbound
+      </a>
+      <div class="label">Your keepsake</div>
+    </header>
+
+    <main class="wizard">
+
+      <!-- ===== READY state ===== -->
+      <div class="download-final fade-in" style="margin-top: var(--s-16);">
+        <span class="label label--gold">Ready for you</span>
+        <h2 class="mt-4">Otis's keepsake is ready.</h2>
+        <p>We painted it by hand. Take your time with it — you can return to this link to download it again whenever you need it.</p>
+        <a href="#" class="btn btn--primary">
+          Download your keepsake
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v9m0 0L3 6m4 4l4-4M1 13h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <p class="download-meta">Saying-Goodbye-to-Otis.pdf</p>
+      </div>
+
+      <!-- ===== UNAVAILABLE state (shown together for review only) ===== -->
+      <div class="state-divider"><span class="label">— and the expired-link state —</span></div>
+
+      <div class="wizard__intro fade-in" style="text-align:center; max-width:36em; margin-top: var(--s-12);">
+        <span class="label label--gold">We're sorry</span>
+        <h1 class="display-md mt-4">This link isn't working.</h1>
+        <p class="lede mt-4">
+          This download link may have expired, or it isn't one we recognize. If you were
+          expecting your keepsake, please reply to the email we sent you and we'll make it
+          right.
+        </p>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <a href="policies.html" class="label">Our refund &amp; remake promise</a>
+      <p class="label">Made slowly · Made by hand</p>
+    </footer>
+  </div>
+</body>
+</html>

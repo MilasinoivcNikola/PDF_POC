@@ -11,4 +11,4 @@ builds it for real.
 
 ## Index
 
-_(none yet — the designer appends one line per iteration here)_
+- [001 — Public pages refresh](001-public-pages-refresh/index.html) — full public set (landing, catalog, detail, order, policies, download) on the existing design system; introduces a celebrate/remember "two worlds" split of the 8-title catalog
