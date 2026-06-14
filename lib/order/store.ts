@@ -12,14 +12,6 @@ import { isWellFormedToken } from "@/lib/delivery/token";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { assertTransition } from "@/lib/order/state";
 import type { NewOrderInput, Order, OrderStatus } from "@/lib/order/types";
-import type {
-  StorySession,
-  Story2Session,
-  Story4Session,
-  Story5Session,
-  Story6Session,
-  Story7Session,
-} from "@/lib/session/types";
 
 /** The Postgres table name. */
 const ORDERS_TABLE = "orders";
@@ -35,13 +27,7 @@ export interface OrderRow {
   story_type: Order["storyType"];
   status: OrderStatus;
   customer_email: string;
-  inputs:
-    | StorySession
-    | Story2Session
-    | Story4Session
-    | Story5Session
-    | Story6Session
-    | Story7Session;
+  inputs: Order["inputs"];
   photo_key: string;
   pdf_key: string | null;
   ls_order_id: string | null;

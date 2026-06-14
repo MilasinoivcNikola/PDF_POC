@@ -40,11 +40,25 @@ import {
   type Quality,
 } from "@/lib/ai/generate";
 import {
-  buildStory8PrototypePrompts,
-  ADVENTURE_PROTOTYPE_SLOT_IDS,
-  type AdventurePrototypeSlot,
+  buildStory8SlotPrompts,
+  ADVENTURE_SCENE_PAGE_IDS,
 } from "@/lib/ai/story8-prompts";
+import type { Story8PageId } from "@/lib/story/master-text";
+import { story8SessionWith } from "@/lib/story/story8/fixtures";
 import type { IllustrationStyle } from "@/lib/session/types";
+
+// PR-A refactored the prompt builder to be session-driven (it reads each scene's
+// resolved `illustrationBrief` from `resolveStory8`). The slot id type is now the
+// product's `Story8PageId`. This throwaway gate script (superseded by PR-A's shared
+// `generateStory8Illustrations`) is kept compiling against the REAL builder: it
+// drives the prompts from the canonical Biscuit fixture, overriding the pet
+// description/style to the fixed gate values below.
+type AdventurePrototypeSlot = Exclude<
+  Story8PageId,
+  "adventure-home" | "adventure-closing" | "adventure-back-cover"
+>;
+const ADVENTURE_PROTOTYPE_SLOT_IDS =
+  ADVENTURE_SCENE_PAGE_IDS as readonly AdventurePrototypeSlot[];
 
 // ---------------------------------------------------------------------------
 // Prototype config (a fixed test pet — this is a one-off gate, not a product)
@@ -147,8 +161,12 @@ async function run(): Promise<Generated[]> {
   await mkdir(OUTPUT_DIR, { recursive: true });
 
   // Build all 10 prompts up front (pure). Keyed by slot for the risk-order loop.
-  const promptList = buildStory8PrototypePrompts(PET_DESCRIPTION, STYLE);
-  const promptBySlot = new Map(promptList.map((p) => [p.slot, p]));
+  // Drive them from the canonical Biscuit fixture, overriding the pet description +
+  // style to the fixed gate values (the builder is session-driven post-PR-A).
+  const protoSession = story8SessionWith({
+    pet: { breedColor: PET_DESCRIPTION, illustrationStyle: STYLE },
+  });
+  const promptBySlot = buildStory8SlotPrompts(protoSession);
 
   let runningCost = 0;
   const log = (line: string) => console.log(line);
@@ -177,7 +195,7 @@ async function run(): Promise<Generated[]> {
   const generated: Generated[] = [];
 
   for (const slot of RISK_ORDER) {
-    const slotPrompt = promptBySlot.get(slot);
+    const slotPrompt = promptBySlot[slot];
     if (!slotPrompt) {
       throw new Error(`No prompt built for slot: ${slot}`);
     }

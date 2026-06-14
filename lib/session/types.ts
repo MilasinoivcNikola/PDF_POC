@@ -32,6 +32,27 @@ export type BeliefFrame = "rainbow-bridge" | "heaven" | "secular" | "none";
 export type OtherPetsInHome = "yes" | "no";
 
 /**
+ * The Story-8 adventure-theme toggle ("The Amazing Adventures of [PET_NAME]") —
+ * selects which pre-authored arc fills the page bodies + illustration briefs.
+ * `backyard-mystery` (default) is the only theme authored to v1 in PR-A; the other
+ * three values are carried by the enum but fall back to backyard-mystery in the
+ * variant layer (a non-authored theme never emits a half-themed page).
+ */
+export type AdventureTheme =
+  | "backyard-mystery"
+  | "sea-voyage"
+  | "space-rescue"
+  | "enchanted-forest";
+
+/**
+ * The Story-8 hero-count toggle — `pet-plus` (default) puts the child on the quest
+ * as a co-adventurer (a character); `pet-solo` makes the pet the lone hero and the
+ * child the reader being told the legend (the call + expedition beats are rewritten
+ * to omit the child). See story8/variants.ts.
+ */
+export type HeroCount = "pet-plus" | "pet-solo";
+
+/**
  * The Story-6 transition-frame toggle ("While You're Still Here") — sets the
  * register of Page 5. `still-here` (default) celebrates the present and never
  * looks past today; `road-ahead` adds a single plain, forward-looking sentence
@@ -78,9 +99,12 @@ export type SessionStatus = "draft" | "generating" | "ready";
  * is the inverse of Story 2 ("A Letter to [PET_NAME]" — the owner's second-person
  * voice writing TO the pet who died; feature 23); "story-6" is the living tribute
  * ("While You're Still Here, [PET_NAME]" — a present-tense NARRATIVE book for a
- * pet who is STILL ALIVE, reusing Story 1's layouts; feature 25). The registry
- * (lib/story/registry.ts) maps each value to its resolver, illustration plan, and
- * PDF-filename builder.
+ * pet who is STILL ALIVE, reusing Story 1's layouts; feature 25); "story-7" is the
+ * joyful homecoming book ("Welcome Home — [PET_NAME]'s Gotcha Day"; feature 28);
+ * "story-8" is the kids' adventure ("The Amazing Adventures of [PET_NAME]" — the
+ * catalog's first joyful "save the day" romp starring the pet as hero, reusing
+ * Story 1's narrative layouts; feature 31). The registry (lib/story/registry.ts)
+ * maps each value to its resolver, illustration plan, and PDF-filename builder.
  *
  * Back-compat: drafts/sessions written before this field existed have no
  * `storyType`, so every reader treats a missing value as Story 1 via
@@ -93,7 +117,8 @@ export type StoryType =
   | "story-4"
   | "story-5"
   | "story-6"
-  | "story-7";
+  | "story-7"
+  | "story-8";
 
 // ---------------------------------------------------------------------------
 // Input groups (collected by the wizard)
@@ -735,6 +760,112 @@ export interface Story7Session {
 }
 
 // ===========================================================================
+// Story 8 — "The Amazing Adventures of [PET_NAME]" (kids' adventure)
+// ===========================================================================
+//
+// The eighth product (feature 31) and the catalog's FIRST joyful kids' adventure:
+// a personalized 13-page "save the day" picture book starring the pet as the hero
+// of a quest shared with a child (cover + pages 1-11 + back cover). It REUSES Story
+// 1's NARRATIVE layouts wholesale (`cover`/`narrative`/`closing`/`back-cover`) —
+// there is NO `dedication`, NO `love`, NO `truth` (no death page), so no new
+// `PageLayout`, no renderer case, no CSS. Field coverage maps 1:1 to the master
+// template's "Merge fields" + "Special-case toggles" tables
+// (context/masterstories/story-8-master-template.md).
+//
+// REUSES the Story-1 `Pet` group IN FULL (name, species, breedColor, pronoun,
+// illustrationStyle, photo) — it is a narrative book like Story 1/6/7, so it keeps
+// `pronoun` + the `illustrationStyle` choice. It REUSES the existing `AgeBracket`
+// (the reading-level tune, identical brackets to Story 1). It does NOT reuse the
+// full `Child` group (that forces a required `name`): Story 8 carries the child's
+// age bracket as a defaulted toggle (`childAgeBracket`, applied even in pet-solo,
+// where the child is the reader) and the child's NAME as a conditional field
+// (required in pet-plus, optional in pet-solo). Novelty: first book to combine a
+// child (name + age) with the two new merge fields `superpower` + `sidekickName`
+// and the adventure-theme + hero-count toggle pair. There is NO `Owner` group —
+// this book is about the child + pet, not an owner-signed keepsake.
+
+/**
+ * The customer's inputs that personalize the adventure. `superpower` is the engine
+ * of the plot — the pet's real quirk reframed as a special skill. All three of
+ * `superpower`/`favoriteActivity`/`quirks` are optional-with-fallback: a blank
+ * `superpower` derives from `favoriteActivity` → `quirks` → species stock (the
+ * fallback chain lives in story8/merge.ts). `sidekickName` is optional-omit (the
+ * Page-5 party line, pet-plus only). `childName` is CONDITIONAL — required when
+ * heroCount = pet-plus, permitted blank in pet-solo (the variant layer rewrites
+ * those beats to omit the child). `nicknames` is optional-omit.
+ */
+export interface Story8Adventure {
+  /** [SUPERPOWER] — the pet's real quirk reframed as a special skill. Optional-with-fallback. */
+  superpower: string;
+  /** [FAVORITE_ACTIVITY] — e.g. "digging giant holes in the garden". Optional-with-fallback (Page 2 + superpower derivation). */
+  favoriteActivity: string;
+  /** [QUIRKS] — 1-2 phrases, e.g. "barks at the vacuum like it's a dragon". Optional-with-fallback (superpower derivation). */
+  quirks: string;
+  /** [SIDEKICK_NAME] — NEW, optional; a sibling or second pet on the quest (Page 5, pet-plus only). */
+  sidekickName?: string;
+  /** [CHILD_NAME] — conditional-required when heroCount = pet-plus; optional in pet-solo. */
+  childName?: string;
+  /** [PET_NICKNAMES] — optional, up to 3. */
+  nicknames?: string;
+}
+
+/**
+ * The Story-8 toggles collected as short follow-up questions. `adventureTheme`
+ * selects the pre-authored arc (PR-A: backyard-mystery only, others fall back);
+ * `heroCount` flips the child between a character (pet-plus) and the reader
+ * (pet-solo); `childAgeBracket` tunes the reading level (applied in BOTH hero-count
+ * modes, since the child is at least the reader). Reuses the existing `AgeBracket`.
+ */
+export interface Story8Toggles {
+  /** [ADVENTURE_THEME] — selects the pre-authored arc. Default "backyard-mystery". */
+  adventureTheme: AdventureTheme;
+  /** [HERO_COUNT] — child as character (pet-plus) vs child as reader (pet-solo). Default "pet-plus". */
+  heroCount: HeroCount;
+  /** [CHILD_AGE_BRACKET] — reading level. Default "6-8". */
+  childAgeBracket: AgeBracket;
+}
+
+/**
+ * The in-progress Story-8 order the wizard holds in `localStorage`. Mirrors the
+ * `StoryDraft` shape: every input group is `Partial` because the user fills them
+ * step by step; `id`/`createdAt`/`status` exist from creation onward. Required-
+ * field validation happens at the wizard boundary (PR-B), not in the type.
+ *
+ * Discriminated by the literal `storyType: "story-8"` (not optional — a Story-8
+ * draft always knows it is one).
+ */
+export interface Story8Draft {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-8";
+  pet: Partial<Pet>;
+  adventure: Partial<Story8Adventure>;
+  toggles: Partial<Story8Toggles>;
+}
+
+/**
+ * A finalized Story-8 order written to `./sessions/[id].json` at Generate time.
+ * Mirrors `StorySession`: all input groups are complete (required fields
+ * present); generation state fills in as illustrations and the PDF are produced.
+ * Discriminated by the literal `storyType: "story-8"`, so the registry routes it
+ * to `resolveStory8`.
+ */
+export interface Story8Session {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-8";
+  pet: Pet;
+  adventure: Story8Adventure;
+  toggles: Story8Toggles;
+  /** Per-page generated-illustration manifest (empty until generation runs). */
+  images: GeneratedImage[];
+  /** Path to the rendered PDF under ./output, once produced. */
+  pdfPath?: string;
+}
+
+// ===========================================================================
 // Wizard draft union — what the in-browser wizard holds (any product)
 // ===========================================================================
 
@@ -758,4 +889,5 @@ export type WizardDraft =
   | Story4Draft
   | Story5Draft
   | Story6Draft
-  | Story7Draft;
+  | Story7Draft
+  | Story8Draft;

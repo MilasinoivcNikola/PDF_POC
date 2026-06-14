@@ -118,6 +118,23 @@ const STORY_7_STEPS: readonly WizardStep[] = [
   { id: "generate", step: 5 },
 ];
 
+/**
+ * Story 8's five steps: upload → pet → adventure → tone → generate. "The Amazing
+ * Adventures of [PET_NAME]" is a NARRATIVE book (like Story 1/6/7, it keeps the
+ * pet's pronoun + the illustration-style choice). The `adventure` step collects the
+ * adventure fields (superpower, favorite activity, quirks, optional child/sidekick
+ * name) and the `tone` step collects the adventure-theme + hero-count + child-age
+ * toggles. The wizard UI (PR-B) reads its own field set per step; this config
+ * carries only the ordering + count (pure client-safe data).
+ */
+const STORY_8_STEPS: readonly WizardStep[] = [
+  { id: "upload", step: 1 },
+  { id: "pet", step: 2 },
+  { id: "adventure", step: 3 },
+  { id: "tone", step: 4 },
+  { id: "generate", step: 5 },
+];
+
 const WIZARD_CONFIG: Record<StoryType, WizardConfig> = {
   "story-1": { steps: STORY_1_STEPS, total: STORY_1_STEPS.length },
   "story-2": { steps: STORY_2_STEPS, total: STORY_2_STEPS.length },
@@ -125,6 +142,7 @@ const WIZARD_CONFIG: Record<StoryType, WizardConfig> = {
   "story-5": { steps: STORY_5_STEPS, total: STORY_5_STEPS.length },
   "story-6": { steps: STORY_6_STEPS, total: STORY_6_STEPS.length },
   "story-7": { steps: STORY_7_STEPS, total: STORY_7_STEPS.length },
+  "story-8": { steps: STORY_8_STEPS, total: STORY_8_STEPS.length },
 };
 
 /** The wizard configuration for a product (default Story 1 for a missing type). */

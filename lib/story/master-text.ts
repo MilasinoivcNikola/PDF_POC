@@ -146,6 +146,32 @@ export type Story7PageId =
   | "welcome-back-cover";
 
 /**
+ * Stable id for each Story-8 slot ("The Amazing Adventures of [PET_NAME]" — the
+ * catalog's first joyful kids' adventure, feature 31). A distinct `adventure-`
+ * prefix keeps the ids from colliding with the other products' ids even though
+ * Story 8 renders with Story 1's NARRATIVE layouts (`cover`/`narrative`/`closing`/
+ * `back-cover` — NO `dedication`, NO `love`, NO `truth`). Reusing a layout VALUE is
+ * not reusing a page id — the ids stay prefixed. The book is cover + pages 1-11 +
+ * back cover (13 page ids); the variant code addresses pages precisely
+ * ("adventure-climax" etc.). These ids are the exact literals lib/ai/story8-prompts.ts
+ * carries as its 10 illustration slots.
+ */
+export type Story8PageId =
+  | "adventure-cover"
+  | "adventure-ordinary"
+  | "adventure-special"
+  | "adventure-call"
+  | "adventure-clue"
+  | "adventure-deeper"
+  | "adventure-discovery"
+  | "adventure-wobble"
+  | "adventure-climax"
+  | "adventure-celebration"
+  | "adventure-home"
+  | "adventure-closing"
+  | "adventure-back-cover";
+
+/**
  * The stable id for any book slot, across products. Shared, product-agnostic
  * types key on this — `ResolvedPage.id`, `PageImageMap`, the registry's
  * `illustrationSlots` — so the union is the sum of every product's slot ids.
@@ -158,7 +184,8 @@ export type PageId =
   | Story4PageId
   | Story5PageId
   | Story6PageId
-  | Story7PageId;
+  | Story7PageId
+  | Story8PageId;
 
 // ---------------------------------------------------------------------------
 // Unresolved page model (this module's output, before variants + merge)
