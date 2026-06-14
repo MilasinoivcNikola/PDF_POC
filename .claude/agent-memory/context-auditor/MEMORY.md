@@ -12,3 +12,4 @@ _Index of saved memories (one line each: `- [Title](file.md) — hook`)._
 - [Playbook undocumented conventions](playbook-undocumented-conventions.md) — page-id prefix + Story-1-shape `slots+1` reference-anchor accounting followed in code (S4/5/6) but not in new-book-playbook.md
 - [Playbook Order.inputs union omission](playbook-order-inputs-union-omission.md) — every sellable book widens 3 inputs-unions (PR-22/24/26); reuse-guarantee omits it; nice-to-have not blocking
 - [Milestone-completion CLAUDE.md @-load cleanup](milestone-completion-claudemd-load-cleanup.md) — the sellable PR-B that completes a story → CLAUDE.md's "Remove on milestone completion" masterstory @-load is now due (on-merge, step 10)
+- [Playbook prototype-exception lag](playbook-prototype-exception-lag.md) — Story 8 spec + masterstory cite an "illustration-prototype exception" in new-book-playbook.md that the playbook doesn't actually contain; +env-file-if-exists is built-in (not a dep)
