@@ -24,6 +24,7 @@ import {
   isStory5Draft,
   isStory6Draft,
   isStory7Draft,
+  isStory9Draft,
 } from "@/lib/session/draft";
 
 export default function LetterPage() {
@@ -36,12 +37,17 @@ export default function LetterPage() {
   const total = getWizardConfig(storyType).total;
   // All three letter products keep their memories under the `owner`-bearing draft.
   // Only a Story-4 draft carries `favoriteActivity`; only a Story-5 draft carries
-  // `lastGoodDay` / `whatIKeep` on its memories group. Story 6 (living tribute) and
-  // Story 7 (homecoming book) also have an `owner` group but are NOT letter products
-  // (they never reach this step — their wizards have no `letter` step), so they are
-  // excluded here to keep the letter-memories shape.
+  // `lastGoodDay` / `whatIKeep` on its memories group. Story 6 (living tribute),
+  // Story 7 (homecoming book) and Story 9 (new-baby keepsake) also have an `owner`
+  // group but are NOT letter products (they never reach this step — their wizards
+  // have no `letter` step), so they are excluded here to keep the letter-memories
+  // shape.
   const memories =
-    draft && "owner" in draft && !isStory6Draft(draft) && !isStory7Draft(draft)
+    draft &&
+    "owner" in draft &&
+    !isStory6Draft(draft) &&
+    !isStory7Draft(draft) &&
+    !isStory9Draft(draft)
       ? draft.memories
       : {};
   const quirks = memories.quirks ?? "";

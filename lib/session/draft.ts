@@ -26,6 +26,7 @@ import type {
   Story7Session,
   Story8Draft,
   Story8Session,
+  Story9Draft,
   AdventureTheme,
   HeroCount,
   WizardDraft,
@@ -989,6 +990,17 @@ export function isStory8Draft(draft: WizardDraft): draft is Story8Draft {
   return draft.storyType === "story-8";
 }
 
+/**
+ * True if the draft is a Story-9 draft (the new-baby keepsake; narrows the union).
+ * Story 9 carries an `owner` group like the letter products but is a NARRATIVE book
+ * (no `letter` step), so steps that branch on the owner-bearing drafts must exclude
+ * it — same treatment as Story 6/7. The draft→session bridge + required-field gate
+ * land in PR-B with the wizard; PR-A registers only the contract + this guard.
+ */
+export function isStory9Draft(draft: WizardDraft): draft is Story9Draft {
+  return draft.storyType === "story-9";
+}
+
 /** True if the draft is a Story-1 draft (the default — no/legacy `storyType`). */
 export function isStory1Draft(draft: WizardDraft): draft is StoryDraft {
   return (
@@ -997,7 +1009,8 @@ export function isStory1Draft(draft: WizardDraft): draft is StoryDraft {
     !isStory5Draft(draft) &&
     !isStory6Draft(draft) &&
     !isStory7Draft(draft) &&
-    !isStory8Draft(draft)
+    !isStory8Draft(draft) &&
+    !isStory9Draft(draft)
   );
 }
 
@@ -1025,6 +1038,13 @@ export function missingRequiredFieldsForDraft(
   if (isStory6Draft(draft)) return missingRequiredFieldsStory6(draft);
   if (isStory7Draft(draft)) return missingRequiredFieldsStory7(draft);
   if (isStory8Draft(draft)) return missingRequiredFieldsStory8(draft);
+  // Story 9 (new-baby keepsake) is registered (PR-A) but not yet creatable in the
+  // wizard — its required-field gate + draft→session bridge land in PR-B. No
+  // story-9 draft reaches this dispatcher until then; guard so a future caller is
+  // loud rather than silently treating it as Story 1.
+  if (isStory9Draft(draft)) {
+    throw new Error("story-9 wizard not yet wired (PR-B)");
+  }
   return missingRequiredFields(draft);
 }
 
@@ -1051,5 +1071,11 @@ export function draftToSessionForDraft(
   if (isStory6Draft(draft)) return draftToSessionStory6(draft);
   if (isStory7Draft(draft)) return draftToSessionStory7(draft);
   if (isStory8Draft(draft)) return draftToSessionStory8(draft);
+  // Story 9: registered (PR-A) but not yet creatable — the assembler lands in PR-B
+  // with the wizard. Guard so a future caller is loud rather than mis-assembling it
+  // as Story 1 (see missingRequiredFieldsForDraft above).
+  if (isStory9Draft(draft)) {
+    throw new Error("story-9 wizard not yet wired (PR-B)");
+  }
   return draftToSession(draft);
 }

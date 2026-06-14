@@ -1,0 +1,30 @@
+{
+  "id": "fixture-new-baby-biscuit",
+  "createdAt": "2026-06-14T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-9",
+  "pet": {
+    "name": "Biscuit",
+    "species": "dog",
+    "breedColor": "golden retriever with one floppy ear",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/biscuit.jpg"
+  },
+  "owner": {
+    "names": "Garcia",
+    "relationship": "couple"
+  },
+  "memories": {
+    "favoriteActivity": "chasing tennis balls in the backyard",
+    "sleepingSpot": "at the foot of the bed",
+    "quirks": "the way you tilt your head when the doorbell rings",
+    "nicknames": "Biscuit-boy, the goblin"
+  },
+  "toggles": {
+    "babyStatus": "expecting",
+    "otherPetsInHome": "no"
+  },
+  "babyArrival": "this spring",
+  "images": []
+}

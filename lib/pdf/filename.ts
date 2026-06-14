@@ -98,3 +98,14 @@ export function adventurePdfFilename(petName: string): string {
   const slug = slugify(petName) || "Pet";
   return `Amazing-Adventures-of-${slug}.pdf`;
 }
+
+/**
+ * The output filename for a rendered Story-9 keepsake ("[PET_NAME] and the New
+ * Baby"), per that template's production checklist:
+ * `[PET_NAME]-and-the-New-Baby.pdf`. Same path-safe slugify as `storyPdfFilename`,
+ * with the same `Pet` fallback for an empty/symbol-only name.
+ */
+export function newBabyPdfFilename(petName: string): string {
+  const slug = slugify(petName) || "Pet";
+  return `${slug}-and-the-New-Baby.pdf`;
+}
