@@ -1,6 +1,6 @@
 ## 2026-06-14 — Story 8 (PR-B): "Amazing Adventures" Wizard, Storefront & Order Intake
 
-**Feature 32** · branch `feature/story8-wizard` (merge `<MERGE_SHA>`) · makes Story 8
+**Feature 32** · branch `feature/story8-wizard` (merge `06d5e5b`) · makes Story 8
 **creatable** (operator `/create` wizard) and **sellable** (public storefront + order
 intake) — **completes Story 8 / Milestone 12.** **PR-B of 3.** PR-A (feature 31) proved
 the engine produces a correct Adventure PDF from a `Story8Session`; PR-B builds the two
