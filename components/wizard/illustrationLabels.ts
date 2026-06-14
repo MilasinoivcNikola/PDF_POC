@@ -132,6 +132,28 @@ export const ADVENTURE_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
   "adventure-celebration",
 ];
 
+/**
+ * The Story-9 ordered set of slots — the new-baby keepsake is a NARRATIVE book with
+ * the SAME reference-anchored shape as Story 1/6/7: a `reference` portrait anchor
+ * (generated first, not a book page) PLUS the seven `baby-*` page slots = EIGHT
+ * images. ALL seven scenes are reference-anchored (Approach A — only the PET is
+ * photo-anchored; the baby/adults are rendered generically), so the anchor is
+ * generated. The seven page ids are declared here (not imported from story-9.ts) to
+ * keep this module client-safe; the story-9 tests assert the page slots match the
+ * registry's `illustrationSlots` (the 7 page ids — the `reference` anchor is not a
+ * registry slot, like Story 1/6/7).
+ */
+export const NEWBABY_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
+  "reference",
+  "baby-cover",
+  "baby-page-2",
+  "baby-page-3",
+  "baby-page-4",
+  "baby-page-5",
+  "baby-page-6",
+  "baby-page-7",
+];
+
 /** The progress-checklist slot list for a product (default Story 1). */
 export function illustrationSlotsFor(
   storyType: StoryType,
@@ -153,6 +175,9 @@ export function illustrationSlotsFor(
   }
   if (storyType === "story-8") {
     return ADVENTURE_ILLUSTRATION_SLOTS;
+  }
+  if (storyType === "story-9") {
+    return NEWBABY_ILLUSTRATION_SLOTS;
   }
   return ILLUSTRATION_SLOTS;
 }
@@ -285,6 +310,26 @@ function story8LabelsFor(name: string): Partial<Record<IllustrationSlot, string>
 }
 
 /**
+ * Story-9 labels — the new-baby keepsake slots, in a warm, forward-looking voice (a
+ * happy, growing-family book). The reference portrait anchors the look (only the PET
+ * is photo-anchored — Approach A; the baby/adults are kept generic); then the cover
+ * and the six scenes that trace the pet's place as the first family member and the
+ * baby's big sibling — each painted from the photo.
+ */
+function story9LabelsFor(name: string): Partial<Record<IllustrationSlot, string>> {
+  return {
+    reference: `Reference portrait — ${name}, the first family member`,
+    "baby-cover": "Cover illustration",
+    "baby-page-2": `${name} at home — here first`,
+    "baby-page-3": `${name} doing what they love`,
+    "baby-page-4": "Something is changing — a gentle scene",
+    "baby-page-5": `${name}, the big sibling`,
+    "baby-page-6": `${name} and the new baby together`,
+    "baby-page-7": "Love grows — the whole family",
+  };
+}
+
+/**
  * Resolve a slot's human-friendly checklist label for a given pet name + product.
  * Defaults to the Story-1 labels for a missing/Story-1 type.
  */
@@ -307,6 +352,8 @@ export function illustrationLabel(
     labels = story7LabelsFor(name);
   } else if (storyType === "story-8") {
     labels = story8LabelsFor(name);
+  } else if (storyType === "story-9") {
+    labels = story9LabelsFor(name);
   } else {
     labels = story1LabelsFor(name);
   }

@@ -24,6 +24,9 @@
 //     which makes the child the reader and the childName optional), and the
 //     `childAgeBracket` reading level. NO grief toggles. Its previous step is
 //     /create/adventure.
+//   - Story 9 (the new-baby keepsake): the `babyStatus` toggle (expecting default
+//     vs arrived — the primary toggle that switches the whole book's framing) and
+//     `otherPetsInHome`. NO grief toggles. Its previous step is /create/baby.
 
 import { StepShell } from "@/components/wizard/StepShell";
 import { useWizard } from "@/components/wizard/WizardProvider";
@@ -35,10 +38,12 @@ import {
   isStory6Draft,
   isStory7Draft,
   isStory8Draft,
+  isStory9Draft,
 } from "@/lib/session/draft";
 import type {
   AdoptionSource,
   AgeBracket,
+  BabyStatus,
   GiftFor,
   HeroCount,
   LetterBeliefFrame,
@@ -125,6 +130,11 @@ const CHILD_AGE_BRACKET_OPTIONS: { value: AgeBracket; label: string }[] = [
   { value: "9-12", label: "9 to 12" },
 ];
 
+const BABY_STATUS_OPTIONS: { value: BabyStatus; label: string }[] = [
+  { value: "expecting", label: "we're expecting — the baby is on the way" },
+  { value: "arrived", label: "the baby has already arrived" },
+];
+
 export default function TonePage() {
   const { draft } = useWizard();
 
@@ -134,6 +144,7 @@ export default function TonePage() {
   const isStory6 = storyType === "story-6";
   const isStory7 = storyType === "story-7";
   const isStory8 = storyType === "story-8";
+  const isStory9 = storyType === "story-9";
   const total = getWizardConfig(storyType).total;
   const petLabel = draft?.pet.name?.trim() ? draft.pet.name.trim() : "your pet";
 
@@ -151,6 +162,9 @@ export default function TonePage() {
   }
   if (isStory8) {
     return <Story8Tone draft={draft} total={total} petLabel={petLabel} />;
+  }
+  if (isStory9) {
+    return <Story9Tone draft={draft} total={total} petLabel={petLabel} />;
   }
   return <Story2Tone draft={draft} total={total} petLabel={petLabel} />;
 }
@@ -948,6 +962,104 @@ function Story8Tone({
                 checked={childAgeBracket === opt.value}
                 onChange={() =>
                   updateDraft({ toggles: { childAgeBracket: opt.value } })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </StepShell>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Story 9 — the new-baby toggles (baby status + other pets)
+// ---------------------------------------------------------------------------
+
+function Story9Tone({
+  draft,
+  total,
+  petLabel,
+}: {
+  draft: ReturnType<typeof useWizard>["draft"];
+  total: number;
+  petLabel: string;
+}) {
+  const { updateDraft } = useWizard();
+  const toggles = draft && isStory9Draft(draft) ? draft.toggles : {};
+  // `babyStatus` is the primary toggle (expecting default vs arrived) — it switches
+  // the whole book's framing. The baby name (collected on the previous step) is
+  // NEVER gated here: it degrades to "the new baby" on the expecting path and when
+  // blank, so an expecting order with no name completes cleanly.
+  const babyStatus = toggles.babyStatus ?? "expecting";
+  const otherPetsInHome = toggles.otherPetsInHome ?? "no";
+
+  return (
+    <StepShell
+      step={4}
+      total={total}
+      introQuote="One last choice, and then we'll bring it to life."
+      introAttribution="The same warm book, before the baby comes or after."
+      sectionLabel="Section · Four"
+      sectionHeading={
+        <>
+          Before, or <em>after</em>.
+        </>
+      }
+      sectionDescription="This sets the whole book's frame — a reassuring story before the baby comes, or a celebration of the bond once they're here. There are no wrong answers here."
+      backHref="/create/baby"
+      continueHref="/create/generate"
+      continueLabel="Continue to generate"
+      footerNote="Step 04 · Before or after"
+    >
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">01</span>
+          Is the baby on the way, or already here?
+        </label>
+        <p className="field__hint">
+          Expecting reads as gentle reassurance for {petLabel} before the baby
+          comes; arrived celebrates the bond they already share. If you gave a
+          name, it&apos;s used once the baby has arrived.
+        </p>
+        <div className="radio-group">
+          {BABY_STATUS_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="babyStatus"
+                value={opt.value}
+                checked={babyStatus === opt.value}
+                onChange={() =>
+                  updateDraft({ toggles: { babyStatus: opt.value } })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">02</span>
+          Are there other pets at home with {petLabel}?
+        </label>
+        <p className="field__hint">
+          If so, the book adds a warm line that the home&apos;s other animals are
+          part of the welcome too — the more, the merrier.
+        </p>
+        <div className="radio-group">
+          {OTHER_PETS_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="otherPetsInHome"
+                value={opt.value}
+                checked={otherPetsInHome === opt.value}
+                onChange={() =>
+                  updateDraft({ toggles: { otherPetsInHome: opt.value } })
                 }
               />
               <span className="radio-option__label">{opt.label}</span>

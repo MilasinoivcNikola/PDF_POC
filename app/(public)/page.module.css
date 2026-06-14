@@ -152,6 +152,26 @@
   color: var(--rose);
 }
 
+/* The family-transition keepsake (Story 9, the new-baby book) — a soft, warm,
+   nursery-adjacent sage wash + sage accent, so it reads as a gentle, growing-family
+   keepsake rather than a memorial or a romp. */
+.chooserCardNewbaby {
+  background: linear-gradient(
+    160deg,
+    rgba(126, 141, 107, 0.16) 0%,
+    var(--paper) 70%
+  );
+  border-left: 3px solid var(--sage-soft);
+}
+
+.chooserCardNewbaby:hover {
+  border-color: var(--sage);
+}
+
+.chooserCardNewbaby .chooserKicker {
+  color: var(--sage);
+}
+
 .chooserKicker {
   font-family: var(--font-mono);
   font-size: var(--t-xs);

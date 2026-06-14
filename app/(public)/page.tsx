@@ -277,6 +277,39 @@ export default function Home() {
                 </svg>
               </span>
             </Link>
+
+            {/* Story 9 — the family-transition keepsake: the pet as the original
+                first family member and the new baby's big sibling. A warm,
+                non-memorial growing-family book with its own soft sage accent. */}
+            <Link
+              href="/books/story-9-newbaby"
+              className={`${styles.chooserCard} ${styles.chooserCardNewbaby}`}
+            >
+              <span className={styles.chooserKicker}>
+                A keepsake for the first family member
+              </span>
+              <h2 className={styles.chooserTitle}>
+                Their new <em>big sibling</em>.
+              </h2>
+              <p className={styles.chooserBody}>
+                A warm storybook that celebrates your pet as the one who was here
+                first — and the new baby&apos;s big sibling. Whether you&apos;re
+                expecting or the baby has arrived, it says what every pet parent
+                wants their animal to know: <em>you are not being replaced. Our
+                family is growing, and there&apos;s room for everyone.</em>
+              </p>
+              <span className={styles.chooserLink}>
+                See the book
+                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
+                  <path
+                    d="M1 6h16m0 0L12 1m5 5l-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            </Link>
           </div>
         </section>
 

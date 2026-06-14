@@ -45,6 +45,8 @@ import type {
   Story7Toggles,
   Story8Adventure,
   Story8Toggles,
+  Story9Memories,
+  Story9Toggles,
   Toggles,
   WizardDraft,
 } from "@/lib/session/types";
@@ -67,7 +69,10 @@ import {
  * exception: it has no `memories` group — its inputs live in an `adventure` group
  * (`adventure: Story8Adventure`/`toggles: Story8Toggles`). The union of the
  * per-group types is intentional — a step only ever patches the groups its own
- * product has, and the merge below applies only the named groups.
+ * product has, and the merge below applies only the named groups. Story 9 (the
+ * new-baby keepsake) additionally carries two ROOT-LEVEL optional fields —
+ * `babyName` / `babyArrival` — which sit on the session/draft root (not in a group,
+ * since they describe the baby, not the pet); the merge below applies them directly.
  */
 export interface DraftPatch {
   pet?: Partial<Pet>;
@@ -80,7 +85,8 @@ export interface DraftPatch {
     | Partial<Story4Memories>
     | Partial<Story5Memories>
     | Partial<Story6Memories>
-    | Partial<Story7Memories>;
+    | Partial<Story7Memories>
+    | Partial<Story9Memories>;
   toggles?:
     | Partial<Toggles>
     | Partial<Story2Toggles>
@@ -88,7 +94,12 @@ export interface DraftPatch {
     | Partial<Story5Toggles>
     | Partial<Story6Toggles>
     | Partial<Story7Toggles>
-    | Partial<Story8Toggles>;
+    | Partial<Story8Toggles>
+    | Partial<Story9Toggles>;
+  /** Story 9's root-level baby name (optional — degrades to "the new baby"). */
+  babyName?: string;
+  /** Story 9's root-level baby-arrival note (optional). */
+  babyArrival?: string;
 }
 
 interface WizardContextValue {
@@ -180,6 +191,15 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
           ...((cur.adventure as object | undefined) ?? {}),
           ...patch.adventure,
         };
+      }
+      // Story 9 root-level fields (babyName/babyArrival): applied directly, not as a
+      // group. Only set when the patch names them, so an unrelated patch never
+      // injects them onto another product's draft.
+      if (patch.babyName !== undefined) {
+        merged.babyName = patch.babyName;
+      }
+      if (patch.babyArrival !== undefined) {
+        merged.babyArrival = patch.babyArrival;
       }
       const next = merged as unknown as WizardDraft;
       saveDraft(next);

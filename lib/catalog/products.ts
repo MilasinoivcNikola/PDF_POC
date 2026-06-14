@@ -102,6 +102,11 @@ export interface Product {
 //   $34.99, under Petventures' $44.99, justified by the real-photo likeness those
 //   breed-picker incumbents can't offer). 3400 ($34) is the locked launch price;
 //   confirm with the PM before configuring the LS variant.
+// - Story 9 ("[PET_NAME] and the New Baby") lists $27 PDF in its master template —
+//   the lowest in the catalog, deliberately: it is the #7 NICHE TEST title with no
+//   named competitor, priced just under the I See Me! ($29.99) / category $29 anchor
+//   to lower the bar on an unproven concept. 2700 ($27) is the locked launch price
+//   (PM, 2026-06-14); revisit upward toward $29 only if demand proves out.
 
 const PLACEHOLDER_STORY_1_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_2_PRICE_USD = 2900;
@@ -110,6 +115,7 @@ const PLACEHOLDER_STORY_5_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_6_PRICE_USD = 3200;
 const PLACEHOLDER_STORY_7_PRICE_USD = 2900;
 const PLACEHOLDER_STORY_8_PRICE_USD = 3400;
+const PLACEHOLDER_STORY_9_PRICE_USD = 2700;
 
 // ---------------------------------------------------------------------------
 // The catalog
@@ -278,6 +284,28 @@ function buildCatalog(): Product[] {
       sampleImages: [
         "/samples/story-8-adventure/adventure-cover.jpg",
         "/samples/story-8-adventure/adventure-leap.jpg",
+      ],
+    }),
+    buildProduct("story-9-newbaby", "story-9", {
+      title: "And the New Baby",
+      tagline: "A keepsake for the first family member — the big sibling.",
+      description:
+        "An 8-to-10-page personalized storybook celebrating your pet as the " +
+        "original first family member — and the new baby's big sibling. Whether " +
+        "you're expecting or the baby has already arrived, this is a warm, " +
+        "reassuring keepsake that says what every pet parent wants their animal " +
+        "to know: you are not being replaced. Our family is growing, and " +
+        "there's room for everyone. Illustrated with your actual pet — drawn " +
+        "from a single photo you upload, so the pet in the story looks like " +
+        "yours, not a generic breed pick — across every page. Customized with " +
+        "your pet's name, your family's name, and your daily rituals together. " +
+        "Delivered as a print-ready PDF, lovingly hand-finished within 24–48 " +
+        "hours. Read it to your pet before the baby comes, or keep it as the " +
+        "first chapter of your growing family's story.",
+      priceUsd: PLACEHOLDER_STORY_9_PRICE_USD,
+      sampleImages: [
+        "/samples/story-9-newbaby/newbaby-cover.jpg",
+        "/samples/story-9-newbaby/newbaby-page-7.jpg",
       ],
     }),
   ];

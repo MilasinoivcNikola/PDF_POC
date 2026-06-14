@@ -29,16 +29,18 @@ import type { StorySession } from "@/lib/session/types";
  * is not one of their slots, so they are `slots + 1` (Story 1 = 13 + 1 = 14; Story 6
  * = 7 + 1 = 8; Story 7 = 8 + 1 = 9 — Story 7 mixes 7 reference-anchored slots with
  * one figure-free wash, but the pet is still locked to a reference; Story 8 = 10 + 1
- * = 11 — ALL ten adventure scenes are reference-anchored under Approach B); the
- * letter products (Story 2/4/5) have no separate reference — their two slots ARE the
- * images — so it is exactly `slots` (= 2). The `+ 1` is gated on the story actually
- * having that anchor.
+ * = 11 — ALL ten adventure scenes are reference-anchored under Approach B; Story 9 =
+ * 7 + 1 = 8 — the new-baby keepsake is Approach A, pet photo-anchored across all
+ * seven slots, baby/adults rendered generically); the letter products (Story 2/4/5)
+ * have no separate reference — their two slots ARE the images — so it is exactly
+ * `slots` (= 2). The `+ 1` is gated on the story actually having that anchor.
  */
 const REFERENCE_ANCHOR_STORIES = new Set([
   "story-1",
   "story-6",
   "story-7",
   "story-8",
+  "story-9",
 ]);
 
 function totalImages(session: StorySession): number {

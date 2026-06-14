@@ -22,6 +22,9 @@ import {
   missingRequiredFieldsStory8,
   draftToSessionStory8,
   isStory8Draft,
+  missingRequiredFieldsStory9,
+  draftToSessionStory9,
+  isStory9Draft,
   isStory1Draft,
   missingRequiredFieldsForDraft,
   draftToSessionForDraft,
@@ -32,6 +35,7 @@ import { resolveStory5 } from "@/lib/story/story5/variants";
 import { resolveStory6 } from "@/lib/story/story6/variants";
 import { resolveStory7 } from "@/lib/story/story7/variants";
 import { resolveStory8 } from "@/lib/story/story8/variants";
+import { resolveStory9 } from "@/lib/story/story9/variants";
 import type {
   StoryDraft,
   Story2Draft,
@@ -40,6 +44,7 @@ import type {
   Story6Draft,
   Story7Draft,
   Story8Draft,
+  Story9Draft,
 } from "./types";
 
 // The draft→session bridge is pure (no IO, no React), so it is asserted directly.
@@ -3173,5 +3178,193 @@ describe("draftToSessionForDraft — routes a Story-8 draft", () => {
   it("no longer throws 'not yet creatable' for a Story-8 draft (PR-B wired it)", () => {
     const draft = minimalCompleteStory8Draft();
     expect(() => draftToSessionForDraft(draft)).not.toThrow();
+  });
+});
+
+// ===========================================================================
+// Story 9 — "[PET_NAME] and the New Baby" draft → session bridge (PR-B)
+// ===========================================================================
+//
+// The family-transition keepsake. Like Story 1/6/7 it is a NARRATIVE book that
+// REUSES the Story-1 `Pet` group + the Story-2 `Owner` group; there is NO child.
+// SEVEN fields are required: pet name, species, breedColor, owner names,
+// favoriteActivity, sleepingSpot, photo. `quirks` is optional-with-fallback;
+// `nicknames` optional-omit; the baby's `babyName`/`babyArrival` sit on the root,
+// both optional. The load-bearing assertion is that `babyName` is NEVER required —
+// an `expecting` (or blank-name) order completes cleanly (degrades to "the new
+// baby"), the Story-8 PR-B gate-at-generate lesson.
+
+/** A Story-9 draft with all seven required fields present (and nothing else). */
+function minimalCompleteStory9Draft(): Story9Draft {
+  const draft = newDraft("story-9");
+  draft.pet.name = "Biscuit";
+  draft.pet.breedColor = "golden retriever with one floppy ear";
+  draft.pet.photo = "uploads/sess/biscuit.jpg";
+  // species is pre-seeded "dog" by newDraft("story-9").
+  draft.owner.names = "Maria and James";
+  draft.memories.favoriteActivity = "chasing tennis balls in the backyard";
+  draft.memories.sleepingSpot = "at the foot of the bed";
+  return draft;
+}
+
+/** A Story-9 draft with every input group fully populated, baby arrived + named. */
+function fullStory9Draft(): Story9Draft {
+  return {
+    id: "story9-draft-id-456",
+    createdAt: "2026-06-14T09:00:00.000Z",
+    status: "draft",
+    storyType: "story-9",
+    pet: {
+      name: "Biscuit",
+      species: "dog",
+      breedColor: "golden retriever with one floppy ear",
+      pronoun: "he",
+      illustrationStyle: "watercolor",
+      photo: "uploads/sess/biscuit.jpg",
+    },
+    owner: { names: "Maria and James", relationship: "couple" },
+    memories: {
+      favoriteActivity: "chasing tennis balls in the backyard",
+      sleepingSpot: "at the foot of the bed",
+      quirks: "the way you tilt your head when the doorbell rings",
+      nicknames: "Biscuit-boy, the goblin",
+    },
+    toggles: { babyStatus: "arrived", otherPetsInHome: "yes" },
+    babyName: "Noah",
+    babyArrival: "this spring",
+  };
+}
+
+describe("missingRequiredFieldsStory9", () => {
+  it("reports all required fields except species for a fresh newDraft('story-9')", () => {
+    // newDraft("story-9") pre-seeds species: "dog", so only the other six are
+    // missing — and babyName is NOT among them (never required).
+    expect(missingRequiredFieldsStory9(newDraft("story-9"))).toEqual([
+      "petName",
+      "breedColor",
+      "ownerNames",
+      "favoriteActivity",
+      "sleepingSpot",
+      "photo",
+    ]);
+  });
+
+  it("is empty for a minimal complete draft (babyName/babyArrival not required)", () => {
+    expect(missingRequiredFieldsStory9(minimalCompleteStory9Draft())).toEqual([]);
+  });
+
+  it("does NOT require babyName even when babyStatus is 'arrived'", () => {
+    // The gate-at-generate rule: an arrived order with no name still completes —
+    // the variant layer degrades it to "the new baby".
+    const draft = minimalCompleteStory9Draft();
+    draft.toggles.babyStatus = "arrived";
+    expect(missingRequiredFieldsStory9(draft)).toEqual([]);
+  });
+
+  it("treats whitespace-only required fields as missing", () => {
+    const draft = minimalCompleteStory9Draft();
+    draft.owner.names = "   ";
+    draft.memories.sleepingSpot = "\t";
+    expect(missingRequiredFieldsStory9(draft)).toEqual([
+      "ownerNames",
+      "sleepingSpot",
+    ]);
+  });
+});
+
+describe("draftToSessionStory9", () => {
+  it("throws when a required field is missing", () => {
+    expect(() => draftToSessionStory9(newDraft("story-9"))).toThrow(
+      /missing_required_fields/,
+    );
+  });
+
+  it("assembles a complete Story-9 session (status generating, storyType story-9)", () => {
+    const session = draftToSessionStory9(minimalCompleteStory9Draft());
+    expect(session.storyType).toBe("story-9");
+    expect(session.status).toBe("generating");
+    expect(session.pet.name).toBe("Biscuit");
+    expect(session.owner.names).toBe("Maria and James");
+    expect(session.memories.favoriteActivity).toBe(
+      "chasing tennis balls in the backyard",
+    );
+    expect(session.images).toEqual([]);
+  });
+
+  it("drops babyName/babyArrival when blank (expecting path degrades to 'the new baby')", () => {
+    const session = draftToSessionStory9(minimalCompleteStory9Draft());
+    expect("babyName" in session).toBe(false);
+    expect("babyArrival" in session).toBe(false);
+    // And the resolved story never leaks a literal placeholder.
+    const pages = resolveStory9(session);
+    const text = JSON.stringify(pages);
+    expect(text).not.toContain("{babyName}");
+    expect(text).not.toContain("[BABY_NAME]");
+    expect(text).toContain("the new baby");
+  });
+
+  it("carries babyName/babyArrival + quirks when present (trimmed), drops blank nicknames", () => {
+    const draft = fullStory9Draft();
+    draft.babyName = "  Noah  ";
+    draft.babyArrival = "  this spring  ";
+    const session = draftToSessionStory9(draft);
+    expect(session.babyName).toBe("Noah");
+    expect(session.babyArrival).toBe("this spring");
+    expect(session.memories.quirks).toBe(
+      "the way you tilt your head when the doorbell rings",
+    );
+    // A full draft resolves cleanly and uses the name on the arrived path.
+    const pages = resolveStory9(session);
+    expect(JSON.stringify(pages)).not.toMatch(/\{[a-zA-Z]+\}/);
+  });
+
+  it("applies the babyStatus default (expecting) when the toggle is unset", () => {
+    const draft = minimalCompleteStory9Draft();
+    delete (draft.toggles as { babyStatus?: unknown }).babyStatus;
+    const session = draftToSessionStory9(draft);
+    expect(session.toggles.babyStatus).toBe("expecting");
+    expect(session.toggles.otherPetsInHome).toBe("no");
+  });
+});
+
+describe("isStory9Draft", () => {
+  it("is true for a Story-9 draft", () => {
+    expect(isStory9Draft(newDraft("story-9"))).toBe(true);
+  });
+
+  it("is false for a Story-1 / Story-8 draft", () => {
+    expect(isStory9Draft(newDraft())).toBe(false);
+    expect(isStory9Draft(newDraft("story-8"))).toBe(false);
+  });
+
+  it("a Story-9 draft is not a Story-1 draft", () => {
+    expect(isStory1Draft(newDraft("story-9"))).toBe(false);
+  });
+});
+
+describe("missingRequiredFieldsForDraft — routes a Story-9 draft", () => {
+  it("routes a Story-9 draft to the Story-9 gate (reports ownerNames)", () => {
+    const draft = minimalCompleteStory9Draft();
+    delete draft.owner.names;
+    expect(missingRequiredFieldsForDraft(draft)).toEqual(["ownerNames"]);
+  });
+
+  it("no longer throws 'not yet wired' for a Story-9 draft (PR-B wired it)", () => {
+    expect(() =>
+      missingRequiredFieldsForDraft(minimalCompleteStory9Draft()),
+    ).not.toThrow();
+  });
+});
+
+describe("draftToSessionForDraft — routes a Story-9 draft", () => {
+  it("routes a Story-9 draft to draftToSessionStory9 (storyType 'story-9')", () => {
+    const session = draftToSessionForDraft(fullStory9Draft());
+    expect(session.storyType).toBe("story-9");
+    expect("owner" in session).toBe(true);
+    expect("child" in session).toBe(false);
+  });
+
+  it("no longer throws 'not yet creatable' for a Story-9 draft (PR-B wired it)", () => {
+    expect(() => draftToSessionForDraft(minimalCompleteStory9Draft())).not.toThrow();
   });
 });
