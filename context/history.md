@@ -87,6 +87,10 @@ not buried in the write-up.
 - 2026-06-13 — Story 7 (PR-A): Text, Variants, Registration & Imagery — `feature/story7-text` (c20fbd1, merge 377df21) — the catalog's first joyful, non-memorial book: 6-dimension text engine + registration + mixed reference/figure-free imagery (9 images); engine produces a correct Welcome Home PDF from a `Story7Session`, not yet sellable (PR-B/feature 29) → [archive](history/2026-06-13-story-7-pr-a-text-registration-and-imagery.md)
 - 2026-06-14 — Story 7 (PR-B): Wizard, Storefront & Order Intake — `feature/story7-wizard` (0e9bcd2, merge 28d4fb0) — creatable (5-step `/create` wizard, new `homecoming` step + conditional `yearsHome` reveal) + sellable ($29 storefront card, largest public order form), the catalog's first joyful landing card — **completes Story 7** → [archive](history/2026-06-14-story-7-pr-b-wizard-storefront-and-order-intake.md)
 
+## Milestone 12 — Story 8 ("The Amazing Adventures of [PET_NAME]")
+
+- 2026-06-14 — Story 8 (PR-0): Approach-B Illustration Prototype (go/no-go gate) — `feature/story8-prototype` (5e91147, merge 9fb1253) — **GO**: the deletable gate proving the test pet stays on-model across 10 dynamic action poses under Approach B (net-new orchestration — only Story-1 ran it before); real `lib/ai/story8-prompts.ts` (10 Backyard-Mystery slots + pose discipline, carries into PR-A) + throwaway risk-ordered B-loop runner + contact sheet; no text/registry/wizard/PDF/commerce touch. Cost floor = climax at Medium. → proceed to PR-A (Feature 31) → [archive](history/2026-06-14-story-8-pr-0-approach-b-illustration-prototype-gate.md)
+
 ## Dev-process & tooling
 
 - 2026-06-13 — Feature 27: Lean the Context System — `feature/lean-context-system` (8acefc3, merge 8ce2183) — docs-only, zero-loss: tiered the history into a lean index + `context/history/` archive (39 files, byte-identical), trimmed `CLAUDE.md` `@`-loads to 5 live docs, pointed test-restating prose at its tests, added the `context/debt.md` ledger → [archive](history/2026-06-13-lean-context-system.md)
