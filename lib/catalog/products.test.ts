@@ -16,6 +16,7 @@ const ALL_STORY_TYPES: StoryType[] = [
   "story-6",
   "story-7",
   "story-8",
+  "story-9",
 ];
 
 // The product catalog (PR-02) under test: a pure, client-safe data module that
@@ -26,7 +27,7 @@ const ALL_STORY_TYPES: StoryType[] = [
 // prices and that lookups behave.
 
 describe("getProducts", () => {
-  it("lists exactly the live books (story-1 + story-2 + story-4 + story-5 + story-6 + story-7 + story-8)", () => {
+  it("lists exactly the live books (story-1 + story-2 + story-4 + story-5 + story-6 + story-7 + story-8 + story-9)", () => {
     const products = getProducts();
     expect(products.map((p) => p.productId)).toEqual([
       "story-1-book",
@@ -36,6 +37,7 @@ describe("getProducts", () => {
       "story-6-tribute",
       "story-7-welcome",
       "story-8-adventure",
+      "story-9-newbaby",
     ]);
     expect(products.map((p) => p.storyType)).toEqual([
       "story-1",
@@ -45,6 +47,7 @@ describe("getProducts", () => {
       "story-6",
       "story-7",
       "story-8",
+      "story-9",
     ]);
   });
 
@@ -397,5 +400,65 @@ describe("story-8-adventure catalog entry", () => {
     const types = getProducts().map((p) => p.storyType);
     expect(ids.filter((id) => id === "story-8-adventure")).toHaveLength(1);
     expect(types.filter((t) => t === "story-8")).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// story-9-newbaby — the family-transition keepsake (feature 33 / PR-B)
+// ---------------------------------------------------------------------------
+//
+// Story 9 is the catalog's #7 niche-test title — "[PET_NAME] and the New Baby". It
+// reuses Story 1's narrative layouts and carries 7 illustration slots (cover + 6
+// scenes), priced at $27 (the lowest in the catalog, reflecting its unproven,
+// no-named-competitor status). Beyond the generic list/no-drift guards above, assert
+// the entry exists with the right storyType, its illustrationCount is the registry's
+// 7 (DERIVED, not a literal), the placeholder price is 2700, marketing copy +
+// sampleImages are non-empty, and its id/storyType are unique.
+
+describe("story-9-newbaby catalog entry", () => {
+  it("is present in the catalog with storyType 'story-9'", () => {
+    const product = getProduct("story-9-newbaby");
+    expect(product).not.toBeNull();
+    expect(product?.productId).toBe("story-9-newbaby");
+    expect(product?.storyType).toBe("story-9");
+  });
+
+  it("derives illustrationCount from the registry (= 7 keepsake slots), not a literal", () => {
+    const product = getProduct("story-9-newbaby")!;
+    // The registry's Story-9 slot list is the cover + 6 scenes = 7.
+    const slots = getStory("story-9").illustrationSlots;
+    expect(product.illustrationCount).toBe(slots.length);
+    expect(slots.length).toBe(7);
+    expect(product.illustrationCount).toBe(7);
+  });
+
+  it("uses the $27 launch placeholder display price (2700 cents)", () => {
+    expect(getProduct("story-9-newbaby")!.priceUsd).toBe(2700);
+  });
+
+  it("has non-empty marketing copy (title, tagline, description)", () => {
+    const product = getProduct("story-9-newbaby")!;
+    expect(product.title.trim().length).toBeGreaterThan(0);
+    expect(product.tagline.trim().length).toBeGreaterThan(0);
+    expect(product.description.trim().length).toBeGreaterThan(0);
+  });
+
+  it("references non-empty sample images", () => {
+    const product = getProduct("story-9-newbaby")!;
+    expect(product.sampleImages.length).toBeGreaterThan(0);
+    for (const src of product.sampleImages) {
+      expect(src.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it("leaves lsVariantId unset (resolved server-side at checkout)", () => {
+    expect(getProduct("story-9-newbaby")!.lsVariantId).toBeUndefined();
+  });
+
+  it("has a unique id/storyType not shared with the other books", () => {
+    const ids = getProducts().map((p) => p.productId);
+    const types = getProducts().map((p) => p.storyType);
+    expect(ids.filter((id) => id === "story-9-newbaby")).toHaveLength(1);
+    expect(types.filter((t) => t === "story-9")).toHaveLength(1);
   });
 });

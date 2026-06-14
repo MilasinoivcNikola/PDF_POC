@@ -1,9 +1,56 @@
-# Current Feature
+# Story 9 (PR-B): Wizard, Storefront & Order Intake
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+Make Story 9 **"[PET_NAME] and the New Baby"** creatable (a `/create` wizard path) and
+sellable (a `/books` storefront card + public order intake). No engine, worker, admin,
+Supabase, delivery, or state-machine changes — the reuse guarantee holds; orders flow
+through the existing machinery by id. Completes Story 9 / Milestone 13.
+
+1. **Wizard** (`WIZARD_CONFIG` + create-flow step UI):
+   - Add the Story-9 step sequence. Reuses upload + pet steps; adds a **baby/family
+     step** collecting the three new fields: `babyName` (optional), `babyStatus`
+     (expecting | arrived toggle, **default expecting**), `babyArrival` (optional
+     free-text), plus the reused `otherPetsInHome` toggle.
+   - **Conditional reveal:** `babyName` only meaningfully used when `babyStatus = arrived`.
+     Per the Story-8 PR-B lesson, **gate the conditional field at generate, not at the
+     step** — an expecting order with a blank name must complete cleanly (degrades to
+     "the new baby"). No wizard dead-end.
+   - Draft → `Story9Session` mapping; required vs optional validation at the generate boundary.
+
+2. **Storefront** (`lib/catalog/products.ts` + `/books`):
+   - `buildProduct("story-9-newbaby", "story-9", {...})` at **`priceUsd: 2700`** ($27).
+     `illustrationCount` **derives** from `illustrationSlots.length` (= 7) — never hardcode.
+   - Web-optimized `sampleImages` under `public/samples/story-9-newbaby/` (cover + one
+     interior, e.g. Page 5 "big sibling" or Page 7 "love grows" hero).
+   - Customer-facing copy from the masterstory's product-page description block.
+
+3. **Public order intake**: order form accepts the Story-9 fields and writes a
+   `pending_payment` order + photo to Supabase via the existing public intake route —
+   same path as Stories 5–8. Confirm LS variant id wiring (`LEMONSQUEEZY_VARIANT_…`) and
+   that the configured LS price matches `priceUsd` (2700 cents).
+
+4. **Preview editing** (if not delivered in PR-A): the `editable-fields` contract — owner
+   edits own free-text/names on preview → re-merge → re-render ($0). Editable: petName,
+   ownerNames, breedColor, favoriteActivity, sleepingSpot, quirks, babyName, babyArrival.
+
 ## Notes
+
+- Spec: `context/features/story-9-pr-b-wizard-storefront-intake.md`.
+- Source of truth: `context/masterstories/story-9-master-template.md`.
+- Depends on: PR-A (`feature/story9-text`) — merged.
+- Branch: `feature/story9-wizard`.
+- **$27**, default **expecting** — locked with PM 2026-06-14.
+- #7 niche probe, no named competitor — ship lean, merchandise honestly. Do not over-invest.
+- Craft Area 3 (nextjs-ui-builder) owns most of this; catalog + intake follow the
+  Stories 5–8 pattern.
+
+## Guards / standing tests
+
+- Wizard-config and catalog tests updated for the new entry.
+- Existing boundary + gate tests stay green (no new operator/public route — intake reuses
+  the existing public order route).

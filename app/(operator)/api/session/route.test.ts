@@ -11,6 +11,7 @@ import type {
   Story6Session,
   Story7Session,
   Story8Session,
+  Story9Session,
 } from "@/lib/session/types";
 
 // The /api/session boundary is the high-value surface: a malformed body, an
@@ -35,7 +36,8 @@ vi.mock("@/lib/session/disk", () => ({
       | Story5Session
       | Story6Session
       | Story7Session
-      | Story8Session,
+      | Story8Session
+      | Story9Session,
   ) => writeSessionMock(session),
 }));
 
@@ -283,6 +285,34 @@ function validStory8Session(id = "story8-id-adventure404"): Story8Session {
       heroCount: "pet-plus",
       childAgeBracket: "6-8",
     },
+    images: [],
+  };
+}
+
+/** A complete, valid finalized Story-9 session payload (the new-baby keepsake). */
+function validStory9Session(id = "story9-id-newbaby505"): Story9Session {
+  return {
+    id,
+    createdAt: "2026-06-14T09:00:00.000Z",
+    status: "generating",
+    storyType: "story-9",
+    pet: {
+      name: "Biscuit",
+      species: "dog",
+      breedColor: "golden retriever with one floppy ear",
+      pronoun: "he",
+      illustrationStyle: "watercolor",
+      photo: "uploads/sess/biscuit.jpg",
+    },
+    owner: { names: "Maria and James", relationship: "couple" },
+    memories: {
+      favoriteActivity: "chasing tennis balls in the backyard",
+      sleepingSpot: "at the foot of the bed",
+      // quirks is optional-with-fallback — present as "" but not validated.
+      quirks: "",
+    },
+    toggles: { babyStatus: "expecting", otherPetsInHome: "no" },
+    // babyName / babyArrival are optional on the root and NEVER required.
     images: [],
   };
 }
@@ -1467,6 +1497,173 @@ describe("POST /api/session — Story 8 happy path", () => {
         heroCount: "pet-plus",
         childAgeBracket: "6-8",
       },
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story 9 — per-storyType validation branches (disk write still mocked)
+// ---------------------------------------------------------------------------
+//
+// The route branches on body.storyType: a "story-9" body validates the Story-9
+// required set (pet name, species, photo, breedColor, owner names,
+// favoriteActivity, sleepingSpot). babyName / babyArrival are optional on the root
+// and NEVER required — an "expecting" (or blank-name) order is ACCEPTED here (the
+// gate-at-generate rule; the merge layer degrades to "the new baby"). A body that
+// would be rejected by validateStory8 (no adventure group) but accepted here proves
+// validateStory9 ran. The id traversal guard is shared.
+
+describe("POST /api/session — Story 9 validation", () => {
+  it("rejects a missing pet name with 400 missing_pet_name", async () => {
+    const body = validStory9Session();
+    body.pet.name = "   ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_pet_name",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing species with 400 missing_species", async () => {
+    const body = validStory9Session();
+    body.pet.species = "" as Story9Session["pet"]["species"];
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_species",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing photo with 400 missing_photo", async () => {
+    const body = validStory9Session();
+    body.pet.photo = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_photo",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing breed color with 400 missing_breed_color (narrative placeholder)", async () => {
+    const body = validStory9Session();
+    body.pet.breedColor = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_breed_color",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing owner names with 400 missing_owner_names", async () => {
+    const body = validStory9Session();
+    body.owner.names = "  ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_owner_names",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing favoriteActivity with 400 missing_favorite_activity (Page-3 placeholder)", async () => {
+    const body = validStory9Session();
+    body.memories.favoriteActivity = "";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_favorite_activity",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing sleepingSpot with 400 missing_sleeping_spot (Page-3 placeholder)", async () => {
+    const body = validStory9Session();
+    body.memories.sleepingSpot = "   ";
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "missing_sleeping_spot",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("ACCEPTS a body with blank quirks + no babyName (proves validateStory9 ran, gate-at-generate)", async () => {
+    const body = validStory9Session("blank-optionals-ok9");
+    body.memories.quirks = "   ";
+    // No babyName / babyArrival, babyStatus expecting — the degrade path.
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      id: "blank-optionals-ok9",
+    });
+    expect(writeSessionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("ACCEPTS an arrived body with NO babyName (never required — degrades to 'the new baby')", async () => {
+    const body = validStory9Session("arrived-no-name-ok9");
+    body.toggles.babyStatus = "arrived";
+    // babyName intentionally absent even on the arrived path.
+    const res = await POST(jsonRequest(body));
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      id: "arrived-no-name-ok9",
+    });
+    expect(writeSessionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a path-traversal id for a Story-9 body (shared guard) and writes nothing", async () => {
+    const malicious = "../../../tmp/evil-story9";
+    expect(isSafeSessionId(malicious)).toBe(false);
+    const res = await POST(
+      jsonRequest({ ...validStory9Session(), id: malicious }),
+    );
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({
+      ok: false,
+      error: "invalid_session_id",
+    });
+    expect(writeSessionMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/session — Story 9 happy path", () => {
+  it("writes the Story-9 session and returns { ok:true, id }", async () => {
+    const body = validStory9Session("good-story9-id");
+    const res = await POST(jsonRequest(body));
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      id: "good-story9-id",
+    });
+
+    expect(writeSessionMock).toHaveBeenCalledTimes(1);
+    expect(writeSessionMock.mock.calls[0][0]).toMatchObject({
+      id: "good-story9-id",
+      storyType: "story-9",
+      // Keeps the Story-1 pet group: pronoun + illustrationStyle present.
+      pet: {
+        name: "Biscuit",
+        species: "dog",
+        photo: "uploads/sess/biscuit.jpg",
+        pronoun: "he",
+        illustrationStyle: "watercolor",
+      },
+      owner: { names: "Maria and James", relationship: "couple" },
+      toggles: { babyStatus: "expecting", otherPetsInHome: "no" },
     });
   });
 });

@@ -21,6 +21,10 @@
 //     pronoun + illustration style + a (required) appearance, with present-tense,
 //     playful copy (the pet is the living hero). No `ageOrStage`. Name + description
 //     gate Continue; continues to /create/adventure.
+//   - Story 9 (the new-baby keepsake, a NARRATIVE book): like Story 1/7/8 it KEEPS
+//     pronoun + illustration style + a (required) appearance, with present-tense,
+//     warm copy (the pet is here, the first family member). No `ageOrStage`. Name +
+//     description gate Continue; continues to /create/baby.
 // Every field writes straight through to the draft so a refresh keeps it.
 
 import { useState } from "react";
@@ -81,22 +85,28 @@ export default function PetPage() {
   // Story 8 (the kids' adventure): narrative book like Story 1/7 (keeps pronoun +
   // style + a required appearance), no ageOrStage. Present-tense, playful copy.
   const isStory8 = storyType === "story-8";
-  // Stories 4, 6, 7 and 8 are about a pet who is alive (here / newly home / the
-  // living hero) — present-tense copy.
-  const isLiving = isStory4 || isStory6 || isStory7 || isStory8;
+  // Story 9 (the new-baby keepsake): narrative book like Story 1/7/8 (keeps pronoun +
+  // style + a required appearance), no ageOrStage. Present-tense, warm copy.
+  const isStory9 = storyType === "story-9";
+  // Stories 4, 6, 7, 8 and 9 are about a pet who is alive (here / newly home / the
+  // living hero / the first family member) — present-tense copy.
+  const isLiving = isStory4 || isStory6 || isStory7 || isStory8 || isStory9;
   const total = getWizardConfig(storyType).total;
   // Story 1 → the child step; a letter (no child) → the owner step; Story 6 (the
   // narrative tribute) → the tribute step; Story 7 (the homecoming book) → the
-  // homecoming step; Story 8 (the kids' adventure) → the adventure step.
-  const continueHref = isStory8
-    ? "/create/adventure"
-    : isStory7
-      ? "/create/homecoming"
-      : isStory6
-        ? "/create/tribute"
-        : isLetter
-          ? "/create/owner"
-          : "/create/child";
+  // homecoming step; Story 8 (the kids' adventure) → the adventure step; Story 9
+  // (the new-baby keepsake) → the baby step.
+  const continueHref = isStory9
+    ? "/create/baby"
+    : isStory8
+      ? "/create/adventure"
+      : isStory7
+        ? "/create/homecoming"
+        : isStory6
+          ? "/create/tribute"
+          : isLetter
+            ? "/create/owner"
+            : "/create/child";
 
   const name = draft?.pet.name ?? "";
   const species = draft?.pet.species ?? "dog";
@@ -129,22 +139,30 @@ export default function PetPage() {
       step={2}
       total={total}
       introQuote={
-        isStory7
-          ? "Tell us about the one who just came home."
-          : isStory6
-            ? "Tell us about the one who is still here."
-            : isStory4
-              ? "Tell us about the one who fills your days."
-              : "Tell us about the one who is gone."
+        isStory9
+          ? "Tell us about the one who was here first."
+          : isStory8
+            ? "Tell us about the hero of the story."
+            : isStory7
+              ? "Tell us about the one who just came home."
+              : isStory6
+                ? "Tell us about the one who is still here."
+                : isStory4
+                  ? "Tell us about the one who fills your days."
+                  : "Tell us about the one who is gone."
       }
       introAttribution={
-        isStory7
-          ? "So the book paints them, exactly as they are."
-          : isStory6
-            ? "So the book holds them, exactly as they are right now."
-            : isStory4
-              ? "So the letter sounds like them — exactly as they are."
-              : "So the story can hold them, exactly as they were."
+        isStory9
+          ? "So the book celebrates them, exactly as they are."
+          : isStory8
+            ? "So the adventure stars them, exactly as they are."
+            : isStory7
+              ? "So the book paints them, exactly as they are."
+              : isStory6
+                ? "So the book holds them, exactly as they are right now."
+                : isStory4
+                  ? "So the letter sounds like them — exactly as they are."
+                  : "So the story can hold them, exactly as they were."
       }
       sectionLabel="Section · Two"
       sectionHeading={
