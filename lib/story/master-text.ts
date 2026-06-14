@@ -172,6 +172,30 @@ export type Story8PageId =
   | "adventure-back-cover";
 
 /**
+ * Stable id for each Story-9 slot ("[PET_NAME] and the New Baby" — the
+ * family-transition keepsake, feature 33). A distinct `baby-` prefix keeps the ids
+ * from colliding with the other products' ids even though Story 9 renders with
+ * Story 1's NARRATIVE layouts (`cover`/`dedication`/`narrative`/`love`/`closing`/
+ * `back-cover` — NO `truth`). Reusing a layout VALUE is not reusing a page id — the
+ * ids stay prefixed. The book is cover + page-1 (dedication) + pages 2-7 + page-8
+ * (closing) + back cover (10 page ids, 10 printed leaves); the variant code
+ * addresses pages precisely ("baby-page-5" etc.). Page-8 (closing) is a treatment
+ * page, NOT a generated scene — same split as the dedication / back cover — so the
+ * 7 illustration slots are cover + pages 2-7 only.
+ */
+export type Story9PageId =
+  | "baby-cover"
+  | "baby-page-1"
+  | "baby-page-2"
+  | "baby-page-3"
+  | "baby-page-4"
+  | "baby-page-5"
+  | "baby-page-6"
+  | "baby-page-7"
+  | "baby-page-8"
+  | "baby-back-cover";
+
+/**
  * The stable id for any book slot, across products. Shared, product-agnostic
  * types key on this — `ResolvedPage.id`, `PageImageMap`, the registry's
  * `illustrationSlots` — so the union is the sum of every product's slot ids.
@@ -185,7 +209,8 @@ export type PageId =
   | Story5PageId
   | Story6PageId
   | Story7PageId
-  | Story8PageId;
+  | Story8PageId
+  | Story9PageId;
 
 // ---------------------------------------------------------------------------
 // Unresolved page model (this module's output, before variants + merge)

@@ -49,7 +49,7 @@ describe("getStory registry lookup", () => {
 
   it("throws for an unknown storyType outside the union", () => {
     // Belt-and-braces against a malformed on-disk value cast through the boundary.
-    expect(() => getStory("story-9" as StoryType)).toThrow();
+    expect(() => getStory("story-99" as StoryType)).toThrow();
   });
 });
 

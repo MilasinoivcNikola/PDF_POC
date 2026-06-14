@@ -6,3 +6,4 @@ _Index of saved memories (one line each: `- [Title](file.md) — hook`)._
 - [Letter wash page-id hardcoded](letter-wash-page-id-hardcoded.md) — `pages-story2.tsx` `LETTER_WASH_PAGE_ID="letter-page-5"` only; new letter books' belief wash won't render until generalized
 - [Illustration brief optional fields](illustration-brief-optional-fields.md) — a brief's `{placeholder}` is merged like body copy; an optional-field placeholder in a brief throws MergeError when that field is blank
 - [Story 7 stray thank-you + yearsHome guard](story7-stray-thankyou-and-yearshome-guard.md) — Welcome Home: found-as-stray gets an added thank-you beat; anniversary body reframes fall back to new-arrival when yearsHome blank
+- [WizardDraft owner-group narrowing](wizarddraft-owner-narrowing.md) — a new owner-bearing story added to WizardDraft breaks create-wizard letter-memories narrowing + isStory1Draft fallthrough; only `npm run build` finds the sites

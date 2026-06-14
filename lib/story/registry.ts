@@ -23,6 +23,7 @@ import type {
   Story6Session,
   Story7Session,
   Story8Session,
+  Story9Session,
   StoryType,
 } from "@/lib/session/types";
 import type { PageId } from "@/lib/story/master-text";
@@ -35,6 +36,7 @@ import { story5Definition } from "@/lib/story/story-5";
 import { story6Definition } from "@/lib/story/story-6";
 import { story7Definition } from "@/lib/story/story-7";
 import { story8Definition } from "@/lib/story/story-8";
+import { story9Definition } from "@/lib/story/story-9";
 
 /**
  * The "edit your own words" contract for the in-browser preview (feature 19),
@@ -79,7 +81,8 @@ export type AnyEditableSession =
   | Story5Session
   | Story6Session
   | Story7Session
-  | Story8Session;
+  | Story8Session
+  | Story9Session;
 
 /**
  * Everything the render + API pipeline needs from a story product, in one place.
@@ -116,6 +119,7 @@ const REGISTRY: Partial<Record<StoryType, StoryDefinition>> = {
   "story-6": story6Definition,
   "story-7": story7Definition,
   "story-8": story8Definition,
+  "story-9": story9Definition,
 };
 
 /**

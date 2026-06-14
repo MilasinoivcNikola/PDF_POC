@@ -88,6 +88,17 @@ export type AdoptionSource =
  */
 export type LifeStage = "puppy-kitten" | "adult" | "senior-adoption";
 
+/**
+ * The Story-9 baby-status toggle ("[PET_NAME] and the New Baby") — the primary
+ * toggle that switches the whole book between the anticipatory "preparing the pet,
+ * baby still abstract" framing and the present "celebrating the bond, baby named"
+ * framing. `expecting` (default) keeps the baby un-named ("the new baby") and the
+ * book reads as reassurance BEFORE the arrival; `arrived` uses the baby's name (if
+ * provided; else still "the new baby") and the book reads as celebration of the
+ * existing bond (see story9/variants.ts).
+ */
+export type BabyStatus = "expecting" | "arrived";
+
 /** Lifecycle of a session as it moves from wizard to generated book. */
 export type SessionStatus = "draft" | "generating" | "ready";
 
@@ -118,7 +129,8 @@ export type StoryType =
   | "story-5"
   | "story-6"
   | "story-7"
-  | "story-8";
+  | "story-8"
+  | "story-9";
 
 // ---------------------------------------------------------------------------
 // Input groups (collected by the wizard)
@@ -866,6 +878,112 @@ export interface Story8Session {
 }
 
 // ===========================================================================
+// Story 9 — "[PET_NAME] and the New Baby" (family-transition keepsake)
+// ===========================================================================
+//
+// The ninth product (feature 33) and the catalog's family-transition keepsake: a
+// personalized 8-page narrative storybook celebrating the family pet as the
+// original "first child" and big sibling to a new baby (cover + page-1 dedication +
+// pages 2-7 + back cover). It REUSES Story 1's NARRATIVE layouts wholesale
+// (`cover`/`dedication`/`narrative`/`love`/`back-cover` — NO `truth`, this is a
+// joyful, living, growing-family book), so no new `PageLayout`, no renderer case,
+// no CSS. Field coverage maps 1:1 to the master template's "Merge fields" +
+// "Special-case toggles" tables (context/masterstories/story-9-master-template.md).
+//
+// REUSES the Story-1 `Pet` group IN FULL (name, species, breedColor, pronoun,
+// illustrationStyle, photo) — it is a narrative book like Story 1/6/7, so it keeps
+// `pronoun` + the `illustrationStyle` choice. It also REUSES the Story-2 `Owner`
+// group (the family the pet shares its home with); `relationship` defaults to
+// "single" and is never read by the variant engine. There is NO child. Novelty: the
+// three new fields `babyName` / `babyArrival` (optional, on the session root, since
+// they describe the baby, not the pet's memories) and the `babyStatus` toggle.
+
+/**
+ * The customer's free-text inputs that personalize the new-baby story.
+ * `favoriteActivity` + `sleepingSpot` are required (Page 3); `quirks` is
+ * optional-with-fallback (a stock clause replaces it when blank/sparse);
+ * `nicknames` is optional-omit (no dangling artifact when blank). The wizard
+ * required gate (PR-B) keys on the same split. (The baby's own details —
+ * `babyName`/`babyArrival` — live on the session root, not here.)
+ */
+export interface Story9Memories {
+  /** [FAVORITE_ACTIVITY] — e.g. "chasing tennis balls in the backyard". Required (Page 3). */
+  favoriteActivity: string;
+  /** [SLEEPING_SPOT] — e.g. "at the foot of the bed". Required (Page 3). */
+  sleepingSpot: string;
+  /** [QUIRKS] — 1-2 sentences. Optional-with-fallback on Page 3. */
+  quirks: string;
+  /** [PET_NICKNAMES] — optional, up to 3. */
+  nicknames?: string;
+}
+
+/**
+ * The Story-9 toggles collected as short follow-up questions. `babyStatus` is the
+ * defining toggle (switches the whole book between expecting and arrived framing);
+ * `otherPetsInHome` reuses the Story-1 union and optionally appends the warm "the
+ * more, the merrier" lines on Pages 2, 4, 5, 7. There is deliberately NO
+ * `deathType`/`beliefFrame` — this is a joyful, non-memorial book.
+ */
+export interface Story9Toggles {
+  /** [BABY_STATUS] — the primary toggle. Default "expecting". */
+  babyStatus: BabyStatus;
+  /** [OTHER_PETS_IN_HOME] — optionally appends the Pages 2/4/5/7 lines. */
+  otherPetsInHome: OtherPetsInHome;
+}
+
+/**
+ * The in-progress Story-9 order the wizard holds in `localStorage`. Mirrors the
+ * `StoryDraft` shape: every input group is `Partial` because the user fills them
+ * step by step; `id`/`createdAt`/`status` exist from creation onward. Required-
+ * field validation happens at the wizard boundary (PR-B), not in the type. The
+ * baby's optional details (`babyName`/`babyArrival`) sit on the root, optional.
+ *
+ * Discriminated by the literal `storyType: "story-9"` (not optional — a Story-9
+ * draft always knows it is one).
+ */
+export interface Story9Draft {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-9";
+  pet: Partial<Pet>;
+  owner: Partial<Owner>;
+  memories: Partial<Story9Memories>;
+  toggles: Partial<Story9Toggles>;
+  /** [BABY_NAME] — optional; degrades to "the new baby" when expecting/blank. */
+  babyName?: string;
+  /** [BABY_ARRIVAL] — optional free-text, e.g. "this spring" (Page 4, expecting). */
+  babyArrival?: string;
+}
+
+/**
+ * A finalized Story-9 order written to `./sessions/[id].json` at Generate time.
+ * Mirrors `StorySession`: all input groups are complete (required fields
+ * present); generation state fills in as illustrations and the PDF are produced.
+ * Discriminated by the literal `storyType: "story-9"`, so the registry routes it
+ * to `resolveStory9`. `babyName`/`babyArrival` are optional on the root: the
+ * variant + merge layers degrade `babyName` to "the new baby" when blank/expecting.
+ */
+export interface Story9Session {
+  id: string;
+  createdAt: string;
+  status: SessionStatus;
+  storyType: "story-9";
+  pet: Pet;
+  owner: Owner;
+  memories: Story9Memories;
+  toggles: Story9Toggles;
+  /** [BABY_NAME] — optional; degrades to "the new baby" when expecting/blank. */
+  babyName?: string;
+  /** [BABY_ARRIVAL] — optional free-text, e.g. "this spring" (Page 4, expecting). */
+  babyArrival?: string;
+  /** Per-page generated-illustration manifest (empty until generation runs). */
+  images: GeneratedImage[];
+  /** Path to the rendered PDF under ./output, once produced. */
+  pdfPath?: string;
+}
+
+// ===========================================================================
 // Wizard draft union — what the in-browser wizard holds (any product)
 // ===========================================================================
 
@@ -890,4 +1008,5 @@ export type WizardDraft =
   | Story5Draft
   | Story6Draft
   | Story7Draft
-  | Story8Draft;
+  | Story8Draft
+  | Story9Draft;

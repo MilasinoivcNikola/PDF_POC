@@ -135,6 +135,22 @@ const STORY_8_STEPS: readonly WizardStep[] = [
   { id: "generate", step: 5 },
 ];
 
+/**
+ * Story 9's five steps: upload → pet → baby → tone → generate. "[PET_NAME] and the
+ * New Baby" is a NARRATIVE book (like Story 1/6/7, it keeps the pet's pronoun + the
+ * illustration-style choice). The `baby` step collects the keepsake fields (favorite
+ * activity, sleeping spot, quirks, and the optional baby name/arrival) and the
+ * `tone` step collects the baby-status + other-pets toggles. The wizard UI (PR-B)
+ * reads its own field set per step; this config carries only the ordering + count.
+ */
+const STORY_9_STEPS: readonly WizardStep[] = [
+  { id: "upload", step: 1 },
+  { id: "pet", step: 2 },
+  { id: "baby", step: 3 },
+  { id: "tone", step: 4 },
+  { id: "generate", step: 5 },
+];
+
 const WIZARD_CONFIG: Record<StoryType, WizardConfig> = {
   "story-1": { steps: STORY_1_STEPS, total: STORY_1_STEPS.length },
   "story-2": { steps: STORY_2_STEPS, total: STORY_2_STEPS.length },
@@ -143,6 +159,7 @@ const WIZARD_CONFIG: Record<StoryType, WizardConfig> = {
   "story-6": { steps: STORY_6_STEPS, total: STORY_6_STEPS.length },
   "story-7": { steps: STORY_7_STEPS, total: STORY_7_STEPS.length },
   "story-8": { steps: STORY_8_STEPS, total: STORY_8_STEPS.length },
+  "story-9": { steps: STORY_9_STEPS, total: STORY_9_STEPS.length },
 };
 
 /** The wizard configuration for a product (default Story 1 for a missing type). */
