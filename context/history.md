@@ -85,6 +85,7 @@ not buried in the write-up.
 ## Milestone 11 — Story 7 ("Welcome Home, [PET_NAME]'s Gotcha Day")
 
 - 2026-06-13 — Story 7 (PR-A): Text, Variants, Registration & Imagery — `feature/story7-text` (c20fbd1, merge 377df21) — the catalog's first joyful, non-memorial book: 6-dimension text engine + registration + mixed reference/figure-free imagery (9 images); engine produces a correct Welcome Home PDF from a `Story7Session`, not yet sellable (PR-B/feature 29) → [archive](history/2026-06-13-story-7-pr-a-text-registration-and-imagery.md)
+- 2026-06-14 — Story 7 (PR-B): Wizard, Storefront & Order Intake — `feature/story7-wizard` (0e9bcd2, merge 28d4fb0) — creatable (5-step `/create` wizard, new `homecoming` step + conditional `yearsHome` reveal) + sellable ($29 storefront card, largest public order form), the catalog's first joyful landing card — **completes Story 7** → [archive](history/2026-06-14-story-7-pr-b-wizard-storefront-and-order-intake.md)
 
 ## Dev-process & tooling
 
