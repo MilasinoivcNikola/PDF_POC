@@ -14,6 +14,10 @@
 //   - Story 6 (the living tribute): the `transitionFrame` toggle (still-here vs
 //     road-ahead) + `otherPetsInHome` only — NO death/belief/gift toggles (the
 //     memorial path is dropped). Its previous step is /create/tribute, not /letter.
+//   - Story 7 (the homecoming book): the `occasion` toggle (new-arrival vs
+//     gotcha-day-anniversary) with a CONDITIONAL `yearsHome` reveal on the
+//     anniversary path, plus `adoptionSource` and `lifeStage` — NO grief toggles.
+//     Its previous step is /create/homecoming.
 
 import { StepShell } from "@/components/wizard/StepShell";
 import { useWizard } from "@/components/wizard/WizardProvider";
@@ -23,13 +27,17 @@ import {
   isStory4Draft,
   isStory5Draft,
   isStory6Draft,
+  isStory7Draft,
 } from "@/lib/session/draft";
 import type {
+  AdoptionSource,
   GiftFor,
   LetterBeliefFrame,
   LetterDeathType,
+  LifeStage,
   LivingOrMemorial,
   NewPet,
+  Occasion,
   OtherPetsInHome,
   TransitionFrame,
 } from "@/lib/session/types";
@@ -78,6 +86,25 @@ const OTHER_PETS_OPTIONS: { value: OtherPetsInHome; label: string }[] = [
   { value: "yes", label: "yes" },
 ];
 
+const OCCASION_OPTIONS: { value: Occasion; label: string }[] = [
+  { value: "new-arrival", label: "a brand-new arrival" },
+  { value: "gotcha-day-anniversary", label: "a gotcha-day anniversary" },
+];
+
+const ADOPTION_SOURCE_OPTIONS: { value: AdoptionSource; label: string }[] = [
+  { value: "shelter", label: "from a shelter" },
+  { value: "rescue", label: "from a rescue" },
+  { value: "breeder", label: "from a breeder" },
+  { value: "found-as-stray", label: "found as a stray" },
+  { value: "other", label: "another way" },
+];
+
+const LIFE_STAGE_OPTIONS: { value: LifeStage; label: string }[] = [
+  { value: "puppy-kitten", label: "a puppy or kitten" },
+  { value: "adult", label: "an adult" },
+  { value: "senior-adoption", label: "a senior" },
+];
+
 export default function TonePage() {
   const { draft } = useWizard();
 
@@ -85,6 +112,7 @@ export default function TonePage() {
   const isStory4 = storyType === "story-4";
   const isStory5 = storyType === "story-5";
   const isStory6 = storyType === "story-6";
+  const isStory7 = storyType === "story-7";
   const total = getWizardConfig(storyType).total;
   const petLabel = draft?.pet.name?.trim() ? draft.pet.name.trim() : "your pet";
 
@@ -96,6 +124,9 @@ export default function TonePage() {
   }
   if (isStory6) {
     return <Story6Tone draft={draft} total={total} petLabel={petLabel} />;
+  }
+  if (isStory7) {
+    return <Story7Tone draft={draft} total={total} petLabel={petLabel} />;
   }
   return <Story2Tone draft={draft} total={total} petLabel={petLabel} />;
 }
@@ -596,6 +627,170 @@ function Story6Tone({
                 checked={otherPetsInHome === opt.value}
                 onChange={() =>
                   updateDraft({ toggles: { otherPetsInHome: opt.value } })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </StepShell>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Story 7 — the homecoming toggles (occasion + conditional yearsHome reveal +
+// adoption source + life stage)
+// ---------------------------------------------------------------------------
+
+function Story7Tone({
+  draft,
+  total,
+  petLabel,
+}: {
+  draft: ReturnType<typeof useWizard>["draft"];
+  total: number;
+  petLabel: string;
+}) {
+  const { updateDraft } = useWizard();
+  const toggles = draft && isStory7Draft(draft) ? draft.toggles : {};
+  const occasion = toggles.occasion ?? "new-arrival";
+  const adoptionSource = toggles.adoptionSource ?? "shelter";
+  const lifeStage = toggles.lifeStage ?? "adult";
+  const yearsHome = toggles.yearsHome ?? "";
+
+  // The conditional reveal: `yearsHome` is asked (and required) ONLY on the
+  // anniversary path. When the occasion is set back to a new arrival, the field is
+  // hidden and its value cleared so a stale year can't leak into the book.
+  const isAnniversary = occasion === "gotcha-day-anniversary";
+
+  return (
+    <StepShell
+      step={4}
+      total={total}
+      introQuote="One last choice, and then we'll bring it to life."
+      introAttribution="The story of the best day — told the way it happened."
+      sectionLabel="Section · Four"
+      sectionHeading={
+        <>
+          How you <em>found</em> each other.
+        </>
+      }
+      sectionDescription="These choices shape the origin pages so the book tells your story — a brand-new arrival or a gotcha-day anniversary, and how they came home. There are no wrong answers here."
+      backHref="/create/homecoming"
+      continueHref="/create/generate"
+      continueLabel="Continue to generate"
+      footerNote="Step 04 · How you found each other"
+    >
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">01</span>
+          Is this for a new arrival, or a gotcha-day anniversary?
+        </label>
+        <p className="field__hint">
+          This sets the whole book&apos;s frame — &ldquo;the day you became
+          ours&rdquo; for a new arrival, or &ldquo;[N] years ago today&rdquo; for an
+          anniversary.
+        </p>
+        <div className="radio-group">
+          {OCCASION_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="occasion"
+                value={opt.value}
+                checked={occasion === opt.value}
+                onChange={() =>
+                  updateDraft({
+                    toggles:
+                      opt.value === "gotcha-day-anniversary"
+                        ? { occasion: opt.value }
+                        : // Switching back to a new arrival clears any stale year.
+                          { occasion: opt.value, yearsHome: "" },
+                  })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Anniversary-only reveal: how many years ago they came home. Required on
+          this path (the reframed cover/dedication/closing print the count); hidden
+          and cleared on the default new-arrival path. */}
+      {isAnniversary ? (
+        <div className="field">
+          <label className="field__label" htmlFor="years-home">
+            <span className="field__num">02</span>
+            How many years ago did {petLabel} come home?
+          </label>
+          <p className="field__hint">
+            We&apos;ll print it on the cover and the closing —{" "}
+            <em>&ldquo;3 years ago today&hellip;&rdquo;</em>
+          </p>
+          <input
+            type="number"
+            id="years-home"
+            min={1}
+            step={1}
+            value={yearsHome}
+            onChange={(e) =>
+              updateDraft({ toggles: { yearsHome: e.target.value } })
+            }
+            placeholder="3"
+            aria-label="Years home"
+          />
+        </div>
+      ) : null}
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">{isAnniversary ? "03" : "02"}</span>
+          How did {petLabel} come to you?
+        </label>
+        <p className="field__hint">
+          This shapes the &ldquo;day we found each other&rdquo; page — with a warm
+          thank-you to whoever cared for them before, for a shelter, rescue, or
+          stray.
+        </p>
+        <div className="radio-group">
+          {ADOPTION_SOURCE_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="adoptionSource"
+                value={opt.value}
+                checked={adoptionSource === opt.value}
+                onChange={() =>
+                  updateDraft({ toggles: { adoptionSource: opt.value } })
+                }
+              />
+              <span className="radio-option__label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="field">
+        <label className="field__label">
+          <span className="field__num">{isAnniversary ? "04" : "03"}</span>
+          What was {petLabel} when they came home?
+        </label>
+        <p className="field__hint">
+          This adds a tender beat or two — a little extra for a senior who waited a
+          long time for a home.
+        </p>
+        <div className="radio-group">
+          {LIFE_STAGE_OPTIONS.map((opt) => (
+            <label className="radio-option" key={opt.value}>
+              <input
+                type="radio"
+                name="lifeStage"
+                value={opt.value}
+                checked={lifeStage === opt.value}
+                onChange={() =>
+                  updateDraft({ toggles: { lifeStage: opt.value } })
                 }
               />
               <span className="radio-option__label">{opt.label}</span>

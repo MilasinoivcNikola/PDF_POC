@@ -23,6 +23,7 @@ import type {
   Story6Draft,
   Story6Session,
   Story7Draft,
+  Story7Session,
   WizardDraft,
   AgeBracket,
   DeathType,
@@ -38,6 +39,9 @@ import type {
   NewPet,
   LivingOrMemorial,
   TransitionFrame,
+  Occasion,
+  AdoptionSource,
+  LifeStage,
 } from "@/lib/session/types";
 
 /** A required field the wizard gates Generate on. */
@@ -304,6 +308,11 @@ const DEFAULT_LIVING_OR_MEMORIAL: LivingOrMemorial = "living";
 
 /** Story-6 default the master template assumes when the user skips it. */
 const DEFAULT_TRANSITION_FRAME: TransitionFrame = "still-here";
+
+/** Story-7 toggle defaults the master template assumes when the user skips them. */
+const DEFAULT_OCCASION: Occasion = "new-arrival";
+const DEFAULT_ADOPTION_SOURCE: AdoptionSource = "shelter";
+const DEFAULT_LIFE_STAGE: LifeStage = "adult";
 
 /**
  * The required Story-4 fields still missing from a draft, in display order. Empty
@@ -658,6 +667,160 @@ export function draftToSessionStory6(draft: Story6Draft): Story6Session {
 }
 
 // ===========================================================================
+// Story 7 — "Welcome Home, [PET_NAME]'s Gotcha Day" draft → session bridge
+// ===========================================================================
+//
+// Story 7 is the catalog's first joyful book — the homecoming/gotcha-day origin
+// story. Like Story 1/6 it is a NARRATIVE book, so it REUSES the Story-1 `Pet`
+// group IN FULL (keeping pronoun + illustrationStyle) plus the Story-2 `Owner`
+// group (the family the pet came home to). There is NO child group — only an
+// OPTIONAL `childName` carried in the memories group. SEVEN fields are always
+// required: pet name, species, breedColor (a live narrative placeholder, like
+// Story 1), owner names, favoriteActivity, sleepingSpot (both live placeholders),
+// and photo. A blank in any of those resolves to an empty merge value, which
+// `lib/story/story7/merge.ts` rejects with a MergeError; requiring them here keeps
+// every written homecoming renderable.
+//
+// `quirks` / `homecomingMemory` are optional-with-fallback (the PR-A variant layer
+// supplies a stock line when blank/sparse), so they are stored as "" when blank.
+// `childName` / `familyMembers` / `nicknames` / `dateAdopted` are optional-omit
+// (dropped when blank so merge never prints a dangling line).
+//
+// The three toggles (`occasion` / `adoptionSource` / `lifeStage`) are default-
+// selected and so never "missing". The ONLY conditional-required field is
+// `yearsHome`, required ONLY when `occasion = gotcha-day-anniversary` (the
+// anniversary reframe needs the year count; the new-arrival default does not).
+
+/** A required field the Story-7 wizard gates Generate on. */
+export type Story7RequiredField =
+  | "petName"
+  | "species"
+  | "breedColor"
+  | "ownerNames"
+  | "favoriteActivity"
+  | "sleepingSpot"
+  | "photo"
+  | "yearsHome";
+
+/**
+ * The required Story-7 fields still missing from a draft, in display order. Empty
+ * array means the draft can be finalized. Required = pet name, species, breedColor,
+ * owner names, favoriteActivity, sleepingSpot, photo — the live `{placeholder}`
+ * fields the homecoming merges with no fallback. `yearsHome` is conditionally
+ * required: ONLY when `occasion = gotcha-day-anniversary` (the anniversary reframe
+ * needs it). `quirks` / `homecomingMemory` are optional-with-fallback, and
+ * `childName` / `familyMembers` / `nicknames` / `dateAdopted` are optional-omit, so
+ * they are NOT here.
+ */
+export function missingRequiredFieldsStory7(
+  draft: Story7Draft,
+): Story7RequiredField[] {
+  const missing: Story7RequiredField[] = [];
+  if (!present(draft.pet.name)) {
+    missing.push("petName");
+  }
+  if (!present(draft.pet.species)) {
+    missing.push("species");
+  }
+  if (!present(draft.pet.breedColor)) {
+    missing.push("breedColor");
+  }
+  if (!present(draft.owner.names)) {
+    missing.push("ownerNames");
+  }
+  if (!present(draft.memories.favoriteActivity)) {
+    missing.push("favoriteActivity");
+  }
+  if (!present(draft.memories.sleepingSpot)) {
+    missing.push("sleepingSpot");
+  }
+  if (!present(draft.pet.photo)) {
+    missing.push("photo");
+  }
+  if (
+    draft.toggles.occasion === "gotcha-day-anniversary" &&
+    !present(draft.toggles.yearsHome)
+  ) {
+    missing.push("yearsHome");
+  }
+  return missing;
+}
+
+/**
+ * Assemble a finalized `Story7Session` from a complete Story-7 draft, filling any
+ * skipped optional fields with the master-template defaults. Throws if a required
+ * field (pet name, species, breedColor, owner names, favoriteActivity, sleepingSpot,
+ * photo — plus `yearsHome` when the occasion is the gotcha-day anniversary) is
+ * missing — callers should gate on `missingRequiredFieldsStory7` first. Free-text
+ * fields are trimmed; the optional-with-fallback (quirks, homecomingMemory) are
+ * stored as "" when blank so the variant layer supplies its fallback; the
+ * genuinely-optional childName/familyMembers/nicknames/dateAdopted are dropped
+ * rather than stored as "" so merge never prints an empty line. `yearsHome` is
+ * carried only when the anniversary occasion is set.
+ */
+export function draftToSessionStory7(draft: Story7Draft): Story7Session {
+  const missing = missingRequiredFieldsStory7(draft);
+  if (missing.length > 0) {
+    throw new Error(`missing_required_fields: ${missing.join(", ")}`);
+  }
+
+  const {
+    quirks,
+    homecomingMemory,
+    familyMembers,
+    childName,
+    nicknames,
+    dateAdopted,
+  } = draft.memories;
+
+  const occasion = draft.toggles.occasion ?? DEFAULT_OCCASION;
+  const { yearsHome } = draft.toggles;
+
+  return {
+    id: draft.id,
+    createdAt: draft.createdAt,
+    status: "generating",
+    storyType: "story-7",
+    pet: {
+      name: draft.pet.name!.trim(),
+      species: draft.pet.species ?? DEFAULT_SPECIES,
+      breedColor: draft.pet.breedColor!.trim(),
+      pronoun: draft.pet.pronoun ?? DEFAULT_PRONOUN,
+      illustrationStyle:
+        draft.pet.illustrationStyle ?? DEFAULT_ILLUSTRATION_STYLE,
+      photo: draft.pet.photo!,
+    },
+    owner: {
+      names: draft.owner.names!.trim(),
+      relationship: draft.owner.relationship ?? DEFAULT_RELATIONSHIP,
+    },
+    memories: {
+      favoriteActivity: draft.memories.favoriteActivity!.trim(),
+      sleepingSpot: draft.memories.sleepingSpot!.trim(),
+      quirks: present(quirks) ? quirks.trim() : "",
+      homecomingMemory: present(homecomingMemory)
+        ? homecomingMemory.trim()
+        : "",
+      ...(present(familyMembers)
+        ? { familyMembers: familyMembers.trim() }
+        : {}),
+      ...(present(childName) ? { childName: childName.trim() } : {}),
+      ...(present(nicknames) ? { nicknames: nicknames.trim() } : {}),
+      ...(present(dateAdopted) ? { dateAdopted: dateAdopted.trim() } : {}),
+    },
+    toggles: {
+      occasion,
+      adoptionSource: draft.toggles.adoptionSource ?? DEFAULT_ADOPTION_SOURCE,
+      lifeStage: draft.toggles.lifeStage ?? DEFAULT_LIFE_STAGE,
+      ...(occasion === "gotcha-day-anniversary" && present(yearsHome)
+        ? { yearsHome: yearsHome.trim() }
+        : {}),
+    },
+    images: [],
+  };
+}
+
+// ===========================================================================
 // Story-type dispatchers — branch on the draft's storyType
 // ===========================================================================
 //
@@ -716,16 +879,13 @@ export function missingRequiredFieldsForDraft(
   | Story4RequiredField
   | Story5RequiredField
   | Story6RequiredField
+  | Story7RequiredField
 )[] {
   if (isStory2Draft(draft)) return missingRequiredFieldsStory2(draft);
   if (isStory4Draft(draft)) return missingRequiredFieldsStory4(draft);
   if (isStory5Draft(draft)) return missingRequiredFieldsStory5(draft);
   if (isStory6Draft(draft)) return missingRequiredFieldsStory6(draft);
-  // Story 7's draft→session bridge + required-field gate land in PR-B (feature 29);
-  // the text engine (PR-A) registers the product but does not yet make it creatable.
-  if (isStory7Draft(draft)) {
-    throw new Error("Story-7 draft handling is not wired yet (lands in PR-B).");
-  }
+  if (isStory7Draft(draft)) return missingRequiredFieldsStory7(draft);
   return missingRequiredFields(draft);
 }
 
@@ -733,8 +893,8 @@ export function missingRequiredFieldsForDraft(
  * Assemble the finalized session for a draft of a wired product. Throws if a
  * required field is missing — callers gate on `missingRequiredFieldsForDraft`
  * first. Returns the `StorySession | Story2Session | Story4Session | Story5Session
- * | Story6Session` union; the POST body the /api/session + /api/order routes
- * validate carries `storyType` so the server re-branches.
+ * | Story6Session | Story7Session` union; the POST body the /api/session +
+ * /api/order routes validate carries `storyType` so the server re-branches.
  */
 export function draftToSessionForDraft(
   draft: WizardDraft,
@@ -743,15 +903,12 @@ export function draftToSessionForDraft(
   | Story2Session
   | Story4Session
   | Story5Session
-  | Story6Session {
+  | Story6Session
+  | Story7Session {
   if (isStory2Draft(draft)) return draftToSessionStory2(draft);
   if (isStory4Draft(draft)) return draftToSessionStory4(draft);
   if (isStory5Draft(draft)) return draftToSessionStory5(draft);
   if (isStory6Draft(draft)) return draftToSessionStory6(draft);
-  // Story 7's draft→session bridge lands in PR-B (feature 29); the text engine
-  // (PR-A) registers the product but does not yet make it creatable.
-  if (isStory7Draft(draft)) {
-    throw new Error("Story-7 draft handling is not wired yet (lands in PR-B).");
-  }
+  if (isStory7Draft(draft)) return draftToSessionStory7(draft);
   return draftToSession(draft);
 }

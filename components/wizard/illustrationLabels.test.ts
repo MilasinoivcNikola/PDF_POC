@@ -8,6 +8,7 @@ import {
   TALK_ILLUSTRATION_SLOTS,
   NOTE_ILLUSTRATION_SLOTS,
   TRIBUTE_ILLUSTRATION_SLOTS,
+  WELCOME_ILLUSTRATION_SLOTS,
   illustrationLabel,
   illustrationSlotsFor,
 } from "./illustrationLabels";
@@ -162,6 +163,48 @@ describe("TRIBUTE_ILLUSTRATION_SLOTS", () => {
 });
 
 // ---------------------------------------------------------------------------
+// WELCOME_ILLUSTRATION_SLOTS — Story 7's reference + 8 welcome slots
+// ---------------------------------------------------------------------------
+//
+// Story 7 is a NARRATIVE book like Story 1/6: a `reference` portrait anchor (NOT a
+// registry slot) followed by the eight `welcome-*` page slots = NINE images. The
+// drift guard strips the leading `reference` and compares the page slots to the
+// registry's `illustrationSlots` (the 8 page ids).
+
+describe("WELCOME_ILLUSTRATION_SLOTS", () => {
+  it("is exactly `reference` + the 8 welcome page slots (9 total)", () => {
+    expect([...WELCOME_ILLUSTRATION_SLOTS]).toEqual([
+      "reference",
+      "welcome-cover",
+      "welcome-before",
+      "welcome-choosing",
+      "welcome-drive-home",
+      "welcome-first-night",
+      "welcome-learning",
+      "welcome-now-ours",
+      "welcome-belong",
+    ]);
+    expect(WELCOME_ILLUSTRATION_SLOTS).toHaveLength(9);
+  });
+
+  it("puts `reference` first, then the page slots in registry order", () => {
+    expect(WELCOME_ILLUSTRATION_SLOTS[0]).toBe("reference");
+  });
+
+  it("equals the registry's Story-7 illustrationSlots once the reference anchor is dropped (drift guard)", () => {
+    const slots = getStory("story-7").illustrationSlots;
+    expect(slots).toHaveLength(8);
+    expect(WELCOME_ILLUSTRATION_SLOTS.slice(1)).toEqual([...slots]);
+  });
+
+  it("contains no duplicate slots", () => {
+    expect(new Set(WELCOME_ILLUSTRATION_SLOTS).size).toBe(
+      WELCOME_ILLUSTRATION_SLOTS.length,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
 // illustrationSlotsFor — per-product checklist slot list
 // ---------------------------------------------------------------------------
 
@@ -189,6 +232,11 @@ describe("illustrationSlotsFor", () => {
   it("returns the 8 tribute slots (reference + 7) for story-6", () => {
     expect(illustrationSlotsFor("story-6")).toBe(TRIBUTE_ILLUSTRATION_SLOTS);
     expect(illustrationSlotsFor("story-6")).toHaveLength(8);
+  });
+
+  it("returns the 9 welcome slots (reference + 8) for story-7", () => {
+    expect(illustrationSlotsFor("story-7")).toBe(WELCOME_ILLUSTRATION_SLOTS);
+    expect(illustrationSlotsFor("story-7")).toHaveLength(9);
   });
 });
 
@@ -355,6 +403,34 @@ describe("illustrationLabel", () => {
   it("returns a non-empty string for every slot in TRIBUTE_ILLUSTRATION_SLOTS", () => {
     for (const slot of TRIBUTE_ILLUSTRATION_SLOTS) {
       const label = illustrationLabel(slot, "Biscuit", "story-6");
+      expect(label.length).toBeGreaterThan(0);
+      expect(label).not.toContain("undefined");
+    }
+  });
+
+  // Story 7 (the homecoming book): the reference anchor + the 8 welcome scenes,
+  // present-tense, joyful voice.
+  it("uses the Story-7 reference + cover + scene labels (pet name woven in) for story-7", () => {
+    expect(illustrationLabel("reference", "Biscuit", "story-7")).toBe(
+      "Reference portrait — Biscuit, exactly as they are",
+    );
+    expect(illustrationLabel("welcome-cover", "Biscuit", "story-7")).toBe(
+      "Cover illustration",
+    );
+    expect(illustrationLabel("welcome-choosing", "Biscuit", "story-7")).toBe(
+      "The day you found Biscuit",
+    );
+  });
+
+  it("substitutes the gentle default for a blank pet name in story-7 labels", () => {
+    expect(illustrationLabel("reference", "  ", "story-7")).toBe(
+      "Reference portrait — your pet, exactly as they are",
+    );
+  });
+
+  it("returns a non-empty string for every slot in WELCOME_ILLUSTRATION_SLOTS", () => {
+    for (const slot of WELCOME_ILLUSTRATION_SLOTS) {
+      const label = illustrationLabel(slot, "Biscuit", "story-7");
       expect(label.length).toBeGreaterThan(0);
       expect(label).not.toContain("undefined");
     }

@@ -20,6 +20,7 @@ import {
   type Story4RequiredField,
   type Story5RequiredField,
   type Story6RequiredField,
+  type Story7RequiredField,
 } from "@/lib/session/draft";
 import { getWizardConfig } from "@/lib/story/wizard-config";
 
@@ -165,6 +166,42 @@ const STORY6_FIELD_FIX: Record<Story6RequiredField, FieldFix> = {
   },
 };
 
+/** Which step a missing Story-7 required field lives on, for the "go fix it" link. */
+const STORY7_FIELD_FIX: Record<Story7RequiredField, FieldFix> = {
+  petName: { label: "your pet's name", href: "/create/pet", step: "Step 2" },
+  species: {
+    label: "what kind of pet they are",
+    href: "/create/pet",
+    step: "Step 2",
+  },
+  breedColor: {
+    label: "a few words to describe your pet",
+    href: "/create/pet",
+    step: "Step 2",
+  },
+  photo: { label: "a photo of your pet", href: "/create/upload", step: "Step 1" },
+  ownerNames: {
+    label: "who your pet came home to",
+    href: "/create/homecoming",
+    step: "Step 3",
+  },
+  favoriteActivity: {
+    label: "their favorite thing in the world",
+    href: "/create/homecoming",
+    step: "Step 3",
+  },
+  sleepingSpot: {
+    label: "where they love to sleep",
+    href: "/create/homecoming",
+    step: "Step 3",
+  },
+  yearsHome: {
+    label: "how many years ago they came home",
+    href: "/create/tone",
+    step: "Step 4",
+  },
+};
+
 type Phase = "idle" | "writing" | "generating" | "error";
 
 export default function GeneratePage() {
@@ -183,24 +220,28 @@ export default function GeneratePage() {
   const isStory4 = storyType === "story-4";
   const isStory5 = storyType === "story-5";
   const isStory6 = storyType === "story-6";
+  const isStory7 = storyType === "story-7";
   // All three letters (Story 2 / Story 4 / Story 5) are photo-led keepsakes.
   const isLetter = isStory2 || isStory4 || isStory5;
   // The previous step differs by product (Story 1: style; the letters: tone;
-  // Story 6's tone step is also the previous one but its own back chain).
-  const backHref = isLetter || isStory6 ? "/create/tone" : "/create/style";
-  // The Generate step is the last step; its number differs by product (Story 6 has
-  // 5 steps, the others 6).
+  // Story 6 / Story 7's tone step is also the previous one but its own back chain).
+  const backHref =
+    isLetter || isStory6 || isStory7 ? "/create/tone" : "/create/style";
+  // The Generate step is the last step; its number differs by product (Story 6 and
+  // Story 7 have 5 steps, the others 6).
   const totalSteps = getWizardConfig(storyType).total;
   const stepLabel = `Step ${String(totalSteps).padStart(2, "0")} of ${String(totalSteps).padStart(2, "0")}`;
-  const fieldFix = isStory6
-    ? STORY6_FIELD_FIX
-    : isStory4
-      ? STORY4_FIELD_FIX
-      : isStory5
-        ? STORY5_FIELD_FIX
-        : isStory2
-          ? STORY2_FIELD_FIX
-          : STORY1_FIELD_FIX;
+  const fieldFix = isStory7
+    ? STORY7_FIELD_FIX
+    : isStory6
+      ? STORY6_FIELD_FIX
+      : isStory4
+        ? STORY4_FIELD_FIX
+        : isStory5
+          ? STORY5_FIELD_FIX
+          : isStory2
+            ? STORY2_FIELD_FIX
+            : STORY1_FIELD_FIX;
 
   const missing = useMemo<
     (
@@ -209,6 +250,7 @@ export default function GeneratePage() {
       | Story4RequiredField
       | Story5RequiredField
       | Story6RequiredField
+      | Story7RequiredField
     )[]
   >(() => (draft ? missingRequiredFieldsForDraft(draft) : []), [draft]);
 
@@ -391,7 +433,9 @@ export default function GeneratePage() {
                   ? "We'll paint the cover portrait from the photo you shared and typeset the six-page letter. This usually takes a minute or two."
                   : isStory6
                     ? "We'll paint each illustration from the photo you shared and assemble the eight-page tribute. This usually takes a minute or two."
-                    : "We'll paint each illustration from the photo you shared and assemble the twelve-page book. This usually takes a minute or two."}
+                    : isStory7
+                      ? "We'll paint each illustration from the photo you shared and assemble the homecoming storybook. This usually takes a minute or two."
+                      : "We'll paint each illustration from the photo you shared and assemble the twelve-page book. This usually takes a minute or two."}
             </p>
 
             {description ? (

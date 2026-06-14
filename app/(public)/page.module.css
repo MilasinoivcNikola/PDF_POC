@@ -111,6 +111,26 @@
   color: var(--sage);
 }
 
+/* The one JOYFUL title (Story 7, the homecoming book) — set apart from the grief
+   keepsakes with a brighter golden-morning wash + gold accent, so it reads as a
+   beginning rather than a goodbye. */
+.chooserCardJoyful {
+  background: linear-gradient(
+    160deg,
+    rgba(216, 183, 128, 0.22) 0%,
+    var(--paper) 70%
+  );
+  border-left: 3px solid var(--gold-soft);
+}
+
+.chooserCardJoyful:hover {
+  border-color: var(--gold);
+}
+
+.chooserCardJoyful .chooserKicker {
+  color: var(--gold);
+}
+
 .chooserKicker {
   font-family: var(--font-mono);
   font-size: var(--t-xs);

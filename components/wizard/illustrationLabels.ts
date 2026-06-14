@@ -85,6 +85,29 @@ export const TRIBUTE_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
   "tribute-page-6",
 ];
 
+/**
+ * The Story-7 ordered set of slots — the homecoming book is a NARRATIVE book with
+ * the SAME reference-anchored shape as Story 1/6: a `reference` portrait anchor
+ * (generated first, not a book page) PLUS the eight `welcome-*` page slots = NINE
+ * images. (Story 7 mixes 7 reference-anchored scenes with one figure-free
+ * `welcome-before` wash, but the pet is still locked to a reference, so the anchor
+ * is generated.) The eight page ids are declared here (not imported from
+ * story-7.ts) to keep this module client-safe; the story-7 tests assert the page
+ * slots match the registry's `illustrationSlots` (the 8 page ids — the `reference`
+ * anchor is not a registry slot, exactly like Story 1/6).
+ */
+export const WELCOME_ILLUSTRATION_SLOTS: readonly IllustrationSlot[] = [
+  "reference",
+  "welcome-cover",
+  "welcome-before",
+  "welcome-choosing",
+  "welcome-drive-home",
+  "welcome-first-night",
+  "welcome-learning",
+  "welcome-now-ours",
+  "welcome-belong",
+];
+
 /** The progress-checklist slot list for a product (default Story 1). */
 export function illustrationSlotsFor(
   storyType: StoryType,
@@ -100,6 +123,9 @@ export function illustrationSlotsFor(
   }
   if (storyType === "story-6") {
     return TRIBUTE_ILLUSTRATION_SLOTS;
+  }
+  if (storyType === "story-7") {
+    return WELCOME_ILLUSTRATION_SLOTS;
   }
   return ILLUSTRATION_SLOTS;
 }
@@ -189,6 +215,27 @@ function story6LabelsFor(name: string): Partial<Record<IllustrationSlot, string>
 }
 
 /**
+ * Story-7 labels — the homecoming slots, in a warm, PRESENT-tense voice (a joyful
+ * book about a pet who just came home). The reference portrait anchors the look;
+ * then the cover, the figure-free "empty house before" wash (the only page the pet
+ * is absent from), and the seven scenes that trace the day they came home and
+ * became family — each painted from the photo.
+ */
+function story7LabelsFor(name: string): Partial<Record<IllustrationSlot, string>> {
+  return {
+    reference: `Reference portrait — ${name}, exactly as they are`,
+    "welcome-cover": "Cover illustration",
+    "welcome-before": "The house before — quiet, waiting",
+    "welcome-choosing": `The day you found ${name}`,
+    "welcome-drive-home": `${name} on the way home`,
+    "welcome-first-night": `${name}'s first night home`,
+    "welcome-learning": `Getting to know ${name}`,
+    "welcome-now-ours": `${name}, fully home`,
+    "welcome-belong": `${name} belongs here`,
+  };
+}
+
+/**
  * Resolve a slot's human-friendly checklist label for a given pet name + product.
  * Defaults to the Story-1 labels for a missing/Story-1 type.
  */
@@ -207,6 +254,8 @@ export function illustrationLabel(
     labels = story5LabelsFor(name);
   } else if (storyType === "story-6") {
     labels = story6LabelsFor(name);
+  } else if (storyType === "story-7") {
+    labels = story7LabelsFor(name);
   } else {
     labels = story1LabelsFor(name);
   }

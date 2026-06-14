@@ -14,6 +14,7 @@ const ALL_STORY_TYPES: StoryType[] = [
   "story-4",
   "story-5",
   "story-6",
+  "story-7",
 ];
 
 // The product catalog (PR-02) under test: a pure, client-safe data module that
@@ -24,7 +25,7 @@ const ALL_STORY_TYPES: StoryType[] = [
 // prices and that lookups behave.
 
 describe("getProducts", () => {
-  it("lists exactly the live books (story-1 + story-2 + story-4 + story-5 + story-6)", () => {
+  it("lists exactly the live books (story-1 + story-2 + story-4 + story-5 + story-6 + story-7)", () => {
     const products = getProducts();
     expect(products.map((p) => p.productId)).toEqual([
       "story-1-book",
@@ -32,6 +33,7 @@ describe("getProducts", () => {
       "story-4-talk",
       "story-5-letter-to",
       "story-6-tribute",
+      "story-7-welcome",
     ]);
     expect(products.map((p) => p.storyType)).toEqual([
       "story-1",
@@ -39,6 +41,7 @@ describe("getProducts", () => {
       "story-4",
       "story-5",
       "story-6",
+      "story-7",
     ]);
   });
 
@@ -276,5 +279,60 @@ describe("story-6-tribute catalog entry", () => {
     const types = getProducts().map((p) => p.storyType);
     expect(ids.filter((id) => id === "story-6-tribute")).toHaveLength(1);
     expect(types.filter((t) => t === "story-6")).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// story-7-welcome — the joyful homecoming book (feature 29 / PR-B)
+// ---------------------------------------------------------------------------
+//
+// Story 7 is the catalog's FIRST joyful, non-memorial book — a gotcha-day storybook.
+// It carries 8 illustration slots (cover + 7 scenes) and is priced at $29 (the
+// locked launch price). Beyond the generic list/no-drift guards above, assert the
+// entry exists with the right storyType, its illustrationCount is the registry's 8
+// (derived, not a literal), the placeholder price is in place, marketing copy +
+// sampleImages are non-empty, and its id/storyType are unique.
+
+describe("story-7-welcome catalog entry", () => {
+  it("is present in the catalog with storyType 'story-7'", () => {
+    const product = getProduct("story-7-welcome");
+    expect(product).not.toBeNull();
+    expect(product?.productId).toBe("story-7-welcome");
+    expect(product?.storyType).toBe("story-7");
+  });
+
+  it("derives illustrationCount from the registry (= 8 welcome slots), not a literal", () => {
+    const product = getProduct("story-7-welcome")!;
+    // The registry's Story-7 slot list is the cover + 7 scenes = 8.
+    const slots = getStory("story-7").illustrationSlots;
+    expect(product.illustrationCount).toBe(slots.length);
+    expect(slots.length).toBe(8);
+    expect(product.illustrationCount).toBe(8);
+  });
+
+  it("uses the $29 launch placeholder display price (2900 cents)", () => {
+    expect(getProduct("story-7-welcome")!.priceUsd).toBe(2900);
+  });
+
+  it("has non-empty marketing copy (title, tagline, description)", () => {
+    const product = getProduct("story-7-welcome")!;
+    expect(product.title.trim().length).toBeGreaterThan(0);
+    expect(product.tagline.trim().length).toBeGreaterThan(0);
+    expect(product.description.trim().length).toBeGreaterThan(0);
+  });
+
+  it("references non-empty sample images", () => {
+    const product = getProduct("story-7-welcome")!;
+    expect(product.sampleImages.length).toBeGreaterThan(0);
+    for (const src of product.sampleImages) {
+      expect(src.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it("has a unique id/storyType not shared with the other books", () => {
+    const ids = getProducts().map((p) => p.productId);
+    const types = getProducts().map((p) => p.storyType);
+    expect(ids.filter((id) => id === "story-7-welcome")).toHaveLength(1);
+    expect(types.filter((t) => t === "story-7")).toHaveLength(1);
   });
 });

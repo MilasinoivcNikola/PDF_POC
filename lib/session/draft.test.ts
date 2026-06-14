@@ -16,6 +16,9 @@ import {
   missingRequiredFieldsStory6,
   draftToSessionStory6,
   isStory6Draft,
+  missingRequiredFieldsStory7,
+  draftToSessionStory7,
+  isStory7Draft,
   isStory1Draft,
   missingRequiredFieldsForDraft,
   draftToSessionForDraft,
@@ -24,12 +27,14 @@ import { newDraft } from "./storage";
 import { resolveStory4 } from "@/lib/story/story4/variants";
 import { resolveStory5 } from "@/lib/story/story5/variants";
 import { resolveStory6 } from "@/lib/story/story6/variants";
+import { resolveStory7 } from "@/lib/story/story7/variants";
 import type {
   StoryDraft,
   Story2Draft,
   Story4Draft,
   Story5Draft,
   Story6Draft,
+  Story7Draft,
 } from "./types";
 
 // The draft→session bridge is pure (no IO, no React), so it is asserted directly.
@@ -2416,5 +2421,429 @@ describe("draftToSessionForDraft — routes a Story-6 draft", () => {
       true,
     );
     expect("deathType" in (session as { toggles: object }).toggles).toBe(false);
+  });
+});
+
+// ===========================================================================
+// Story 7 — "Welcome Home, [PET_NAME]'s Gotcha Day" (the homecoming book)
+// ===========================================================================
+//
+// Story 7 is a NARRATIVE book (like Story 1/6): it keeps pronoun + illustration
+// style and requires breedColor as a live merge placeholder. SEVEN fields are
+// always required (petName, species, breedColor, ownerNames, favoriteActivity,
+// sleepingSpot, photo); `yearsHome` is CONDITIONALLY required — only when the
+// occasion is the gotcha-day anniversary. quirks/homecomingMemory are
+// optional-with-fallback (stored ""); childName/familyMembers/nicknames/dateAdopted
+// are optional-omit (dropped when blank).
+
+/** A Story-7 draft with all required fields present (new-arrival occasion). */
+function minimalCompleteStory7Draft(): Story7Draft {
+  const draft = newDraft("story-7");
+  draft.pet.name = "Biscuit";
+  draft.pet.photo = "uploads/sess/biscuit.jpg";
+  // species is pre-seeded "dog" by newDraft("story-7").
+  draft.pet.breedColor = "a scruffy terrier mix with one ear that won't stay down";
+  draft.owner.names = "Maria and James";
+  draft.memories.favoriteActivity = "stealing socks and parading them around";
+  draft.memories.sleepingSpot = "in the crook of the couch by the window";
+  return draft;
+}
+
+/** A Story-7 draft with every input group fully populated (anniversary occasion). */
+function fullStory7Draft(): Story7Draft {
+  return {
+    id: "story7-draft-id-303",
+    createdAt: "2026-06-13T09:00:00.000Z",
+    status: "draft",
+    storyType: "story-7",
+    pet: {
+      name: "Biscuit",
+      species: "cat",
+      breedColor: "a black tabby with a white chest patch",
+      pronoun: "she",
+      illustrationStyle: "storybook",
+      photo: "uploads/sess/biscuit.jpg",
+    },
+    owner: { names: "Maria and James", relationship: "couple" },
+    memories: {
+      favoriteActivity: "stealing socks and parading them around the kitchen",
+      sleepingSpot: "in the crook of the couch by the window",
+      quirks: "the head-tilt when you say 'walk'",
+      homecomingMemory: "She fell asleep on Leo's lap before we hit the driveway.",
+      familyMembers: "Maria, James, and the cat Pepper",
+      childName: "Leo",
+      nicknames: "Biscuit-boy, the gremlin",
+      dateAdopted: "March 2026",
+    },
+    toggles: {
+      occasion: "gotcha-day-anniversary",
+      adoptionSource: "rescue",
+      lifeStage: "senior-adoption",
+      yearsHome: "3",
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// missingRequiredFieldsStory7
+// ---------------------------------------------------------------------------
+
+describe("missingRequiredFieldsStory7", () => {
+  it("reports all required fields except species for a fresh newDraft('story-7')", () => {
+    // newDraft("story-7") pre-seeds species: "dog" and the new-arrival occasion, so
+    // only the other six are missing — yearsHome is NOT required (new-arrival).
+    expect(missingRequiredFieldsStory7(newDraft("story-7"))).toEqual([
+      "petName",
+      "breedColor",
+      "ownerNames",
+      "favoriteActivity",
+      "sleepingSpot",
+      "photo",
+    ]);
+  });
+
+  it("returns an empty array when all required fields are present (new-arrival)", () => {
+    expect(missingRequiredFieldsStory7(minimalCompleteStory7Draft())).toEqual(
+      [],
+    );
+  });
+
+  it("reports only petName when just the pet name is missing", () => {
+    const draft = minimalCompleteStory7Draft();
+    delete draft.pet.name;
+    expect(missingRequiredFieldsStory7(draft)).toEqual(["petName"]);
+  });
+
+  it("reports only breedColor when just the description is missing (narrative placeholder)", () => {
+    const draft = minimalCompleteStory7Draft();
+    delete draft.pet.breedColor;
+    expect(missingRequiredFieldsStory7(draft)).toEqual(["breedColor"]);
+  });
+
+  it("reports only ownerNames when just the owner names are missing", () => {
+    const draft = minimalCompleteStory7Draft();
+    delete draft.owner.names;
+    expect(missingRequiredFieldsStory7(draft)).toEqual(["ownerNames"]);
+  });
+
+  it("reports only favoriteActivity when just that field is missing", () => {
+    const draft = minimalCompleteStory7Draft();
+    delete draft.memories.favoriteActivity;
+    expect(missingRequiredFieldsStory7(draft)).toEqual(["favoriteActivity"]);
+  });
+
+  it("reports only sleepingSpot when just that field is missing", () => {
+    const draft = minimalCompleteStory7Draft();
+    delete draft.memories.sleepingSpot;
+    expect(missingRequiredFieldsStory7(draft)).toEqual(["sleepingSpot"]);
+  });
+
+  it("reports only photo when just the photo is missing", () => {
+    const draft = minimalCompleteStory7Draft();
+    delete draft.pet.photo;
+    expect(missingRequiredFieldsStory7(draft)).toEqual(["photo"]);
+  });
+
+  it("treats whitespace-only required fields as missing", () => {
+    const draft = minimalCompleteStory7Draft();
+    draft.memories.favoriteActivity = "   ";
+    expect(missingRequiredFieldsStory7(draft)).toEqual(["favoriteActivity"]);
+  });
+
+  it("does NOT require quirks / homecomingMemory (optional-with-fallback)", () => {
+    const draft = minimalCompleteStory7Draft();
+    expect(draft.memories.quirks).toBeUndefined();
+    expect(draft.memories.homecomingMemory).toBeUndefined();
+    expect(missingRequiredFieldsStory7(draft)).toEqual([]);
+  });
+
+  describe("conditional yearsHome gate (anniversary only)", () => {
+    it("does NOT require yearsHome on the default new-arrival occasion", () => {
+      const draft = minimalCompleteStory7Draft();
+      expect(draft.toggles.occasion).toBe("new-arrival");
+      expect(draft.toggles.yearsHome).toBeUndefined();
+      expect(missingRequiredFieldsStory7(draft)).toEqual([]);
+    });
+
+    it("requires yearsHome when the occasion is the gotcha-day anniversary", () => {
+      const draft = minimalCompleteStory7Draft();
+      draft.toggles.occasion = "gotcha-day-anniversary";
+      expect(missingRequiredFieldsStory7(draft)).toEqual(["yearsHome"]);
+    });
+
+    it("is satisfied once yearsHome is provided on the anniversary path", () => {
+      const draft = minimalCompleteStory7Draft();
+      draft.toggles.occasion = "gotcha-day-anniversary";
+      draft.toggles.yearsHome = "3";
+      expect(missingRequiredFieldsStory7(draft)).toEqual([]);
+    });
+
+    it("treats whitespace-only yearsHome as missing on the anniversary path", () => {
+      const draft = minimalCompleteStory7Draft();
+      draft.toggles.occasion = "gotcha-day-anniversary";
+      draft.toggles.yearsHome = "  ";
+      expect(missingRequiredFieldsStory7(draft)).toEqual(["yearsHome"]);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// draftToSessionStory7
+// ---------------------------------------------------------------------------
+
+describe("draftToSessionStory7 — required fields & lifecycle", () => {
+  it("sets storyType 'story-7' and status 'generating'", () => {
+    const session = draftToSessionStory7(minimalCompleteStory7Draft());
+    expect(session.storyType).toBe("story-7");
+    expect(session.status).toBe("generating");
+    expect(session.images).toEqual([]);
+  });
+
+  it("throws when a required field is missing (caller must gate first)", () => {
+    const draft = minimalCompleteStory7Draft();
+    delete draft.memories.sleepingSpot;
+    expect(() => draftToSessionStory7(draft)).toThrow(
+      /missing_required_fields/,
+    );
+  });
+
+  it("throws when the anniversary occasion is set without yearsHome", () => {
+    const draft = minimalCompleteStory7Draft();
+    draft.toggles.occasion = "gotcha-day-anniversary";
+    expect(() => draftToSessionStory7(draft)).toThrow(/yearsHome/);
+  });
+});
+
+describe("draftToSessionStory7 — required fields carried through (trimmed)", () => {
+  it("carries pet name, photo, species, breedColor and owner names verbatim", () => {
+    const session = draftToSessionStory7(fullStory7Draft());
+    expect(session.pet.name).toBe("Biscuit");
+    expect(session.pet.photo).toBe("uploads/sess/biscuit.jpg");
+    expect(session.pet.species).toBe("cat");
+    expect(session.pet.breedColor).toBe(
+      "a black tabby with a white chest patch",
+    );
+    expect(session.owner.names).toBe("Maria and James");
+  });
+
+  it("trims surrounding whitespace from names, breedColor, activity and spot", () => {
+    const draft = minimalCompleteStory7Draft();
+    draft.pet.name = "  Biscuit  ";
+    draft.pet.breedColor = "\ta scruffy terrier\n";
+    draft.owner.names = "\tMaria\n";
+    draft.memories.favoriteActivity = "  stealing socks  ";
+    draft.memories.sleepingSpot = "  the couch  ";
+    const session = draftToSessionStory7(draft);
+    expect(session.pet.name).toBe("Biscuit");
+    expect(session.pet.breedColor).toBe("a scruffy terrier");
+    expect(session.owner.names).toBe("Maria");
+    expect(session.memories.favoriteActivity).toBe("stealing socks");
+    expect(session.memories.sleepingSpot).toBe("the couch");
+  });
+
+  it("keeps the Story-1 pet group in full — pronoun + illustrationStyle carried", () => {
+    const session = draftToSessionStory7(fullStory7Draft());
+    expect(session.pet.pronoun).toBe("she");
+    expect(session.pet.illustrationStyle).toBe("storybook");
+    expect(session.owner.relationship).toBe("couple");
+  });
+
+  it("carries the occasion / adoptionSource / lifeStage / yearsHome toggles through", () => {
+    const session = draftToSessionStory7(fullStory7Draft());
+    expect(session.toggles.occasion).toBe("gotcha-day-anniversary");
+    expect(session.toggles.adoptionSource).toBe("rescue");
+    expect(session.toggles.lifeStage).toBe("senior-adoption");
+    expect(session.toggles.yearsHome).toBe("3");
+  });
+});
+
+describe("draftToSessionStory7 — optional-with-fallback fields stored as ''", () => {
+  it("trims and carries quirks / homecomingMemory when provided", () => {
+    const draft = minimalCompleteStory7Draft();
+    draft.memories.quirks = "  the head-tilt  ";
+    draft.memories.homecomingMemory = " she slept the whole way ";
+    const session = draftToSessionStory7(draft);
+    expect(session.memories.quirks).toBe("the head-tilt");
+    expect(session.memories.homecomingMemory).toBe("she slept the whole way");
+  });
+
+  it("stores blank quirks / homecomingMemory as '' (key present)", () => {
+    const session = draftToSessionStory7(minimalCompleteStory7Draft());
+    expect(session.memories.quirks).toBe("");
+    expect(session.memories.homecomingMemory).toBe("");
+    expect("quirks" in session.memories).toBe(true);
+    expect("homecomingMemory" in session.memories).toBe(true);
+  });
+
+  it("normalizes whitespace-only quirks / homecomingMemory to ''", () => {
+    const draft = minimalCompleteStory7Draft();
+    draft.memories.quirks = "   ";
+    draft.memories.homecomingMemory = "\t\n";
+    const session = draftToSessionStory7(draft);
+    expect(session.memories.quirks).toBe("");
+    expect(session.memories.homecomingMemory).toBe("");
+  });
+});
+
+describe("draftToSessionStory7 — skipped optionals get defaults", () => {
+  it("fills skipped pet enums and toggles with their documented Story-7 defaults", () => {
+    const draft = minimalCompleteStory7Draft();
+    delete draft.pet.illustrationStyle;
+    delete draft.toggles.occasion;
+    delete draft.toggles.adoptionSource;
+    delete draft.toggles.lifeStage;
+
+    const session = draftToSessionStory7(draft);
+
+    expect(session.pet.species).toBe("dog");
+    expect(session.pet.pronoun).toBe("he");
+    expect(session.pet.illustrationStyle).toBe("watercolor");
+    expect(session.owner.relationship).toBe("single");
+    expect(session.toggles.occasion).toBe("new-arrival");
+    expect(session.toggles.adoptionSource).toBe("shelter");
+    expect(session.toggles.lifeStage).toBe("adult");
+  });
+
+  it("does NOT carry yearsHome when the occasion is a new arrival (key absent)", () => {
+    const draft = minimalCompleteStory7Draft();
+    // Even if a stale year is present, the new-arrival occasion drops it.
+    draft.toggles.yearsHome = "5";
+    const session = draftToSessionStory7(draft);
+    expect(session.toggles.occasion).toBe("new-arrival");
+    expect("yearsHome" in session.toggles).toBe(false);
+  });
+
+  it("does NOT carry any grief toggles (this is a joyful book)", () => {
+    const session = draftToSessionStory7(fullStory7Draft());
+    expect("deathType" in session.toggles).toBe(false);
+    expect("beliefFrame" in session.toggles).toBe(false);
+    expect("transitionFrame" in session.toggles).toBe(false);
+  });
+});
+
+describe("draftToSessionStory7 — genuinely-optional fields dropped when blank", () => {
+  it("carries trimmed childName / familyMembers / nickname / date when provided", () => {
+    const session = draftToSessionStory7(fullStory7Draft());
+    expect(session.memories.childName).toBe("Leo");
+    expect(session.memories.familyMembers).toBe(
+      "Maria, James, and the cat Pepper",
+    );
+    expect(session.memories.nicknames).toBe("Biscuit-boy, the gremlin");
+    expect(session.memories.dateAdopted).toBe("March 2026");
+  });
+
+  it("omits the keys entirely when the optional fields are absent", () => {
+    const session = draftToSessionStory7(minimalCompleteStory7Draft());
+    expect("childName" in session.memories).toBe(false);
+    expect("familyMembers" in session.memories).toBe(false);
+    expect("nicknames" in session.memories).toBe(false);
+    expect("dateAdopted" in session.memories).toBe(false);
+  });
+
+  it("omits the keys when the optional fields are empty or whitespace-only", () => {
+    const draft = minimalCompleteStory7Draft();
+    draft.memories.childName = "";
+    draft.memories.familyMembers = "   ";
+    draft.memories.nicknames = "\t";
+    const session = draftToSessionStory7(draft);
+    expect("childName" in session.memories).toBe(false);
+    expect("familyMembers" in session.memories).toBe(false);
+    expect("nicknames" in session.memories).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story-7 round-trip — a complete draft resolves with no MergeError
+// ---------------------------------------------------------------------------
+
+describe("draftToSessionStory7 — round-trip through resolveStory7", () => {
+  it("a minimal complete draft (blank quirks/homecomingMemory) resolves with no surviving placeholders", () => {
+    const session = draftToSessionStory7(minimalCompleteStory7Draft());
+    expect(session.memories.quirks).toBe("");
+    expect(session.memories.homecomingMemory).toBe("");
+    const story = resolveStory7(session);
+    expect(story.length).toBeGreaterThan(0);
+    for (const page of story) {
+      for (const line of page.body) {
+        expect(line).not.toMatch(/[{[][A-Z_]+[}\]]/);
+      }
+    }
+  });
+
+  it("a fully-populated anniversary draft assembles into a session that resolves", () => {
+    const session = draftToSessionStory7(fullStory7Draft());
+    expect(() => resolveStory7(session)).not.toThrow();
+  });
+
+  it("resolves for each adoption source", () => {
+    for (const source of [
+      "shelter",
+      "rescue",
+      "breeder",
+      "found-as-stray",
+      "other",
+    ] as const) {
+      const draft = minimalCompleteStory7Draft();
+      draft.toggles.adoptionSource = source;
+      expect(() =>
+        resolveStory7(draftToSessionStory7(draft)),
+      ).not.toThrow();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story-type dispatchers — Story 7
+// ---------------------------------------------------------------------------
+
+describe("isStory7Draft", () => {
+  it("is true for a Story-7 draft", () => {
+    expect(isStory7Draft(newDraft("story-7"))).toBe(true);
+  });
+
+  it("is false for a Story-1, Story-2, Story-4, Story-5 and Story-6 draft", () => {
+    expect(isStory7Draft(newDraft())).toBe(false);
+    expect(isStory7Draft(newDraft("story-2"))).toBe(false);
+    expect(isStory7Draft(newDraft("story-4"))).toBe(false);
+    expect(isStory7Draft(newDraft("story-5"))).toBe(false);
+    expect(isStory7Draft(newDraft("story-6"))).toBe(false);
+  });
+});
+
+describe("isStory1Draft — narrows away from a Story-7 draft too", () => {
+  it("is false for a Story-7 draft", () => {
+    expect(isStory1Draft(newDraft("story-7"))).toBe(false);
+  });
+});
+
+describe("missingRequiredFieldsForDraft — routes a Story-7 draft", () => {
+  it("routes a Story-7 draft to the Story-7 gate (conditional yearsHome)", () => {
+    const draft = minimalCompleteStory7Draft();
+    expect(missingRequiredFieldsForDraft(draft)).toEqual([]);
+    draft.toggles.occasion = "gotcha-day-anniversary";
+    expect(missingRequiredFieldsForDraft(draft)).toEqual(["yearsHome"]);
+  });
+
+  it("no longer throws 'not wired yet' for a Story-7 draft (PR-B wired it)", () => {
+    expect(() =>
+      missingRequiredFieldsForDraft(minimalCompleteStory7Draft()),
+    ).not.toThrow();
+  });
+});
+
+describe("draftToSessionForDraft — routes a Story-7 draft", () => {
+  it("routes a Story-7 draft to draftToSessionStory7 (storyType 'story-7')", () => {
+    const session = draftToSessionForDraft(fullStory7Draft());
+    expect(session.storyType).toBe("story-7");
+    expect("owner" in session).toBe(true);
+    expect("child" in session).toBe(false);
+  });
+
+  it("no longer throws 'not wired yet' for a Story-7 draft (PR-B wired it)", () => {
+    const draft = minimalCompleteStory7Draft();
+    expect(() => draftToSessionForDraft(draft)).not.toThrow();
+    const session = draftToSessionForDraft(draft);
+    expect(session.storyType).toBe("story-7");
+    expect("occasion" in (session as { toggles: object }).toggles).toBe(true);
   });
 });

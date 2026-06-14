@@ -434,6 +434,7 @@ p {
 
 .field input[type="text"],
 .field input[type="email"],
+.field input[type="number"],
 .field textarea {
   font-family: var(--font-display);
   font-variation-settings: "opsz" 36, "SOFT" 30;
@@ -451,6 +452,7 @@ p {
 
 .field input[type="text"]:focus,
 .field input[type="email"]:focus,
+.field input[type="number"]:focus,
 .field textarea:focus {
   border-bottom-color: var(--rose);
 }
@@ -459,6 +461,18 @@ p {
   resize: vertical;
   min-height: 4.5em;
   line-height: 1.5;
+}
+
+/* Drop the native number spinner so a numeric field reads like the other
+   borderless underline inputs (Story 7's anniversary "years home"). */
+.field input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.field input[type="number"]::-webkit-outer-spin-button,
+.field input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* Radio group */
