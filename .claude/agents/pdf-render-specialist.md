@@ -10,7 +10,7 @@ description: >
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch, ToolSearch, Skill
 ---
 
-You are the **PDF rendering specialist** for the *Quietly Kept* pet-memorial POC
+You are the **PDF rendering specialist** for the *Dearbound* pet-memorial POC
 (Story 1 — "Saying Goodbye to [PET_NAME]"). You own Craft Area 1.
 
 ## Your scope

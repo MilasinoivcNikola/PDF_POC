@@ -15,6 +15,7 @@ import { getOperatorUserId } from "@/lib/supabase/auth";
 import { listOrdersByStatus } from "@/lib/order/store";
 import type { Order } from "@/lib/order/types";
 import { getProduct } from "@/lib/catalog/products";
+import { BRAND } from "@/lib/brand";
 import { SignOutButton } from "@/app/(operator)/admin/SignOutButton";
 import { RequeueButton } from "@/app/(operator)/admin/RequeueButton";
 
@@ -53,7 +54,7 @@ export default async function AdminQueuePage() {
               opacity="0.7"
             />
           </svg>
-          Quietly Kept
+          {BRAND}
         </Link>
         <SignOutButton />
       </header>

@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 import { getOperatorUserId } from "@/lib/supabase/auth";
+import { BRAND } from "@/lib/brand";
 import { LoginForm } from "@/app/(operator)/admin/login/LoginForm";
 
 export default async function AdminLoginPage() {
@@ -30,7 +31,7 @@ export default async function AdminLoginPage() {
               opacity="0.7"
             />
           </svg>
-          Quietly Kept
+          {BRAND}
         </Link>
         <div className="label">Admin · Sign in</div>
       </header>

@@ -13,6 +13,7 @@
 import Link from "next/link";
 import { useWizard } from "@/components/wizard/WizardProvider";
 import { BookPreview } from "@/components/preview/BookPreview";
+import { BRAND } from "@/lib/brand";
 
 export default function PreviewPage() {
   const { draft, hydrated } = useWizard();
@@ -36,7 +37,7 @@ export default function PreviewPage() {
               opacity="0.7"
             />
           </svg>
-          Quietly Kept
+          {BRAND}
         </Link>
         <div className="label">
           Preview · {isLetter ? "Your letter" : "Your book"}

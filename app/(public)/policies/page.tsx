@@ -1,11 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { BRAND } from "@/lib/brand";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "How it's made · Policies — Quietly Kept",
-  description:
-    "How Quietly Kept books are made, our honesty about AI illustration, and our refund and privacy policies.",
+  title: `How it's made · Policies — ${BRAND}`,
+  description: `How ${BRAND} books are made, our honesty about AI illustration, and our refund and privacy policies.`,
 };
 
 // The Refunds & remakes section is FINAL (PM-approved, PR-09 — the deferred
@@ -31,10 +31,10 @@ export default function PoliciesPage() {
               opacity="0.7"
             />
           </svg>
-          Quietly Kept
+          {BRAND}
         </Link>
         <Link href="/books" className="btn-link">
-          ← The keepsakes
+          ← The books
         </Link>
       </header>
 
@@ -94,7 +94,7 @@ export default function PoliciesPage() {
 
       <footer className="site-footer">
         <Link href="/books" className="label">
-          The keepsakes
+          The books
         </Link>
         <p className="label">Made slowly · Made by hand</p>
       </footer>

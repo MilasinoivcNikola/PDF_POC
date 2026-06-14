@@ -107,7 +107,7 @@ function StoryDocument({
   // The cover is the first page of either product (Story-1 "cover", Story-2
   // "letter-cover"); its resolved title is the document <title>. Falling back to
   // the first page's title (then a generic string) keeps this product-agnostic.
-  const title = story[0]?.title ?? "Quietly Kept";
+  const title = story[0]?.title ?? "Dearbound";
   return (
     <html lang="en">
       <head>

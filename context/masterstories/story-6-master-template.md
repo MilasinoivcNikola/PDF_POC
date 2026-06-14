@@ -135,7 +135,7 @@ The book should take 4–5 minutes to read aloud and should feel, on the last pa
 
 ## Page-by-page master text
 
-> **Notation:** Regular type is published wording. *Italic notes* are for the ghostwriter/designer. Default voice is the adult, restrained Quietly Kept register (closer to Story 2 than to Story 1) — but this is a **narrative book**, not a letter; the narrator speaks *to* and *about* the pet, present tense throughout. Default tone assumes `[TRANSITION_FRAME] = still-here`.
+> **Notation:** Regular type is published wording. *Italic notes* are for the ghostwriter/designer. Default voice is the adult, restrained Dearbound register (closer to Story 2 than to Story 1) — but this is a **narrative book**, not a letter; the narrator speaks *to* and *about* the pet, present tense throughout. Default tone assumes `[TRANSITION_FRAME] = still-here`.
 
 ---
 

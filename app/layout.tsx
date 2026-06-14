@@ -3,9 +3,9 @@ import { fraunces, lora, jetbrainsMono } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Quietly Kept — A gentle goodbye",
+  title: "Dearbound — custom illustrated books starring your pet",
   description:
-    "A twelve-page personalized story to help your child understand and grieve the loss of a beloved pet.",
+    "Custom illustrated keepsake books starring your pet — from joyful gotcha-day and adventure tales to gentle memorials, each one personalized and hand-finished.",
 };
 
 export default function RootLayout({

@@ -1,9 +1,10 @@
-# Quietly Kept
+# Dearbound
 
-A local, single-user prototype that turns a pet photo and a few gentle answers
-into a twelve-page personalized memorial storybook PDF ("Saying Goodbye to
-[PET_NAME]"). Runs entirely on `localhost` — no accounts, no payments, no
-database. See `context/local-prototype-plan.md` for the full plan.
+Custom illustrated keepsake books starring your pet — a local-worker engine plus
+a public storefront that turns a pet photo and a few answers into a personalized,
+print-quality storybook PDF. The catalog spans joyful titles (gotcha-day,
+adventure, new-baby) and gentle memorials. See `context/commerce-roadmap.md` for
+the current direction and `context/local-prototype-plan.md` for the original plan.
 
 Built with **Next.js 15 (App Router)**, **TypeScript**, **Tailwind CSS**, and a
 hand-tuned editorial design system (ported from `prototypes/styles.css`).

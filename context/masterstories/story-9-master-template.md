@@ -92,7 +92,7 @@ The book should take 3-5 minutes to read aloud and be re-readable — once befor
 
 ## Page-by-page master text
 
-> **Notation:** Text in regular type is the published wording. *Italic notes* are for the ghostwriter/designer. Default tone below is the warm, read-aloud Quietly Kept voice. Variants for `[BABY_STATUS]`, `[OTHER_PETS_IN_HOME]`, and species follow each page.
+> **Notation:** Text in regular type is the published wording. *Italic notes* are for the ghostwriter/designer. Default tone below is the warm, read-aloud Dearbound voice. Variants for `[BABY_STATUS]`, `[OTHER_PETS_IN_HOME]`, and species follow each page.
 
 ---
 
@@ -345,7 +345,7 @@ For visual consistency across the book and across orders:
 - **Baby & adult rendering:** the baby is **generic and abstract** — a swaddled bundle, a tiny reaching hand, a soft silhouette in a bassinet — **never a specific or detailed face.** Adult/family figures are likewise stylized, 3/4 view or from behind, faces soft or unshown. This keeps the pet the hero, dodges uncanny-valley problems, lets any family see themselves, and makes an un-born baby renderable.
 - **Mood:** calm, settled, warm, *anticipatory in the happy sense.* The pet should read as content and secure in every frame, including the "something is changing" page (curious, never anxious).
 - **Avoid:** photographic realism, bright primary colors, clipart, any image where the pet looks worried, left out, or peripheral.
-- **Typography:** inherits the Story-1 / Quietly Kept system unchanged (Fraunces display, Lora body) — no new fonts, no new layout CSS. 8.5" × 11", the shared `narrative` / `cover` / `love` / `closing` / `dedication` / `back-cover` treatments.
+- **Typography:** inherits the Story-1 / Dearbound system unchanged (Fraunces display, Lora body) — no new fonts, no new layout CSS. 8.5" × 11", the shared `narrative` / `cover` / `love` / `closing` / `dedication` / `back-cover` treatments.
 
 ---
 

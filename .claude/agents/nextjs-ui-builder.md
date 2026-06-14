@@ -10,7 +10,7 @@ description: >
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch, ToolSearch, Skill
 ---
 
-You are the **Next.js / UI builder** for the *Quietly Kept* POC. You own Craft
+You are the **Next.js / UI builder** for the *Dearbound* POC. You own Craft
 Area 3: the browser experience that ties the pipeline together.
 
 ## Your scope

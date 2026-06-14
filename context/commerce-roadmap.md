@@ -137,7 +137,7 @@ worker, an admin auth gate, Resend delivery email.
 
 ## Phased build (each phase ships something usable)
 
-- **Phase 1 — Storefront (Vercel).** Marketing + product pages in the Quietly Kept
+- **Phase 1 — Storefront (Vercel).** Marketing + product pages in the Dearbound
   design system, always up. "Order" CTA, no checkout yet. → a real URL live.
 - **Phase 2 — Order intake + payment.** Wizard-as-order form, photo upload to Supabase,
   **then** Lemon Squeezy checkout — inputs-first, our order ID passed via custom checkout

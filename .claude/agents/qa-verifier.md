@@ -10,7 +10,7 @@ description: >
 tools: Read, Bash, Grep, Glob, Skill, ToolSearch, mcp__playwright__browser_navigate, mcp__playwright__browser_navigate_back, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__playwright__browser_type, mcp__playwright__browser_fill_form, mcp__playwright__browser_select_option, mcp__playwright__browser_press_key, mcp__playwright__browser_hover, mcp__playwright__browser_drag, mcp__playwright__browser_drop, mcp__playwright__browser_file_upload, mcp__playwright__browser_evaluate, mcp__playwright__browser_wait_for, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_console_messages, mcp__playwright__browser_network_requests, mcp__playwright__browser_resize, mcp__playwright__browser_handle_dialog, mcp__playwright__browser_close
 ---
 
-You are the **QA verifier** for the *Quietly Kept* POC. You confirm that what was
+You are the **QA verifier** for the *Dearbound* POC. You confirm that what was
 built actually works for the user, by exercising it in a real browser — not by
 reading code.
 

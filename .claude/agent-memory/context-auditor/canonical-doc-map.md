@@ -1,6 +1,6 @@
 ---
 name: canonical-doc-map
-description: Which standing doc owns which decision in the Quietly Kept project — audit drift against the right source
+description: Which standing doc owns which decision in the Dearbound project — audit drift against the right source
 metadata:
   type: project
 ---
@@ -38,6 +38,21 @@ intentionally **drops the `[PET_NAME]` merge field** from the master template's 
 master "Saying Goodbye to [PET_NAME]" → catalog "Saying Goodbye"; Story 2 "A Letter from
 [PET_NAME]" → "A Letter from Your Pet"; Story 4 "If [PET_NAME] Could Talk" → "If Your Pet Could
 Talk". A generic storefront title is the established pattern, not drift.
+
+Brand rename (Quietly Kept → **Dearbound**, 2026-06-15, feature/rename-dearbound). Decision D3:
+rewrite the *live* doc set (`CLAUDE.md` title, `README.md`, `commerce-roadmap.md` design-system
+ref, `.claude/agents/*`, `.claude/skills/feature/*`, `app/globals.css`/`lib/pdf/styles.css`
+headers, `.env.local.example`), **leave** the historical record (`context/history.md`,
+`context/history/*`, superseded `context/features/*`). The wordmark is single-sourced in
+`lib/brand.ts` (`BRAND = "Dearbound"`); a guard test (`lib/brand.guard.test.ts`) greps
+`app/`+`components/`+`lib/` (excl. tests) for the old string. Do NOT flag as drift: (a) the
+runtime localStorage key `quietly-kept:draft` (`lib/session/storage.ts`) — a code identifier,
+NOT the wordmark; renaming it would orphan persisted drafts; qa-verifier.md citing it is correct;
+(b) "Quietly Kept" surviving in `context/history*` / superseded specs (intentional record);
+(c) the guard test naming the old string. **The masterstories** (`context/masterstories/*`) were
+left untouched but still call the *current* house style / voice / catalog "Quietly Kept" — they
+were ambiguous under D3 (not in either list). Flag as nice-to-have staleness: a future story
+author reads these as source-of-truth and the brand reference now misleads.
 
 Roadmap-header scope-framing lag (recurring): `commerce-roadmap.md`'s header line
 "**Pet-memorial focused; catalog grows by authoring more book titles**" (line ~7) lagged the

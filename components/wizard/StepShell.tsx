@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ProgressBar } from "@/components/wizard/ProgressBar";
 import { useWizard } from "@/components/wizard/WizardProvider";
+import { BRAND } from "@/lib/brand";
 
 interface StepShellProps {
   /** Current step number, 1-based (drives the "Step NN of NN" counter). */
@@ -99,7 +100,7 @@ export function StepShell({
               opacity="0.7"
             />
           </svg>
-          Quietly Kept
+          {BRAND}
         </Link>
         <ProgressBar step={step} total={total} />
       </header>

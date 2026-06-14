@@ -6,7 +6,7 @@ argument-hint: load|start|review|qa|test|explain|complete
 
 # Feature Workflow
 
-Manages the full lifecycle of a feature from spec to merge for the *Quietly Kept*
+Manages the full lifecycle of a feature from spec to merge for the *Dearbound*
 pet-memorial PDF POC. Each action delegates the heavy lifting to a specialist
 agent in [.claude/agents/](../../agents/).
 
