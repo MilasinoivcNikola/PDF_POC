@@ -5,12 +5,12 @@ metadata:
   type: project
 ---
 
-`context/coding-standards.md` PDF-pipeline byte-identity rule (~L256-261) says the structural
-half is "test-enforced: `lib/pdf/template.test.tsx` / `template.story2.test.tsx`" — a **hard
-two-file enumeration**. But per-story template tests accrete: `template.story4.test.tsx` (PR-04)
-and `template.story6.test.tsx` (`feature/story-samples-06`, 2026-06-15) now also exist on disk.
-So the prose lists 2 of 4. Pre-existing lag (started at PR-04), re-exposed by each new
-template-touching story PR.
+`context/coding-standards.md` PDF-pipeline byte-identity rule (~L259-261) hard-lists the per-story
+template tests as `template.story2/story4/story6.test.tsx` — a **closed enumeration** (the
+`template*.test.tsx` glob is also written, but the parenthetical names specific files). Per-story
+template tests accrete: `template.story7.test.tsx` now also exists (`feature/story-samples-07`,
+2026-06-15) → list says story2/4/6 but disk has story2/4/6/**7** + template.test. Pre-existing lag
+(started at PR-04), re-exposed by each new template-touching story PR.
 
 **Recurring drift to expect:** any branch that adds `lib/pdf/template.storyN.test.tsx` widens the
 gap. The fix direction is **update the doc** — either drop the literal file list for a glob
@@ -18,11 +18,16 @@ gap. The fix direction is **update the doc** — either drop the literal file li
 misleads ("only these two lock structure") but the guarantee still holds and the real test files
 are discoverable.
 
-**Companion convention also unrecorded:** the byte-identity rule + new-book-playbook Step 3
-don't name the **page-id art allow-list** mechanism (`DEDICATION_ART_PAGE_IDS` / `LOVE_ART_PAGE_IDS`
-/ PR-04's `LETTER_FEATURE_PAGE_IDS`) as the canonical byte-safe way to make a SHARED layout
-component carry art for one new book while keeping every other product byte-identical. Playbook
-Step 3 (~L168-203) currently says "reuse a layout → skip this step, renderer already handles it" +
-documents only the ONE `letter` sign-off exception — so a future reuse-book author isn't told this
-second kind of in-bounds shared-renderer edit exists. See [[letter-layout-reuse-renderer-touch]]
+**Companion convention — the allow-list family now has a 4th member with a NOVEL twist.** Both
+coding-standards (~L262-265) + playbook Step 3 (~L184-193) enumerate the art-allow-list mechanism
+as `DEDICATION_ART_PAGE_IDS` / `LOVE_ART_PAGE_IDS` / `LETTER_FEATURE_PAGE_IDS`. `feature/story-samples-07`
+adds `CLOSING_COVER_FALLBACK_PAGE_IDS = ["welcome-closing"]` in `pages.tsx` — same per-story
+page-id-gating pattern, but the **first that reuses the COVER art** (passed as a new `coverSrc` arg
+threaded `StoryPages → renderPage → ClosingPage`, cover found by `layout === "cover"`) for a closing
+page that is NOT one of the book's illustration slots — rather than the page's own slot art. Story 7
+ends at `welcome-belong`; `welcome-closing` isn't a slot, so the generic placeholder face leaked.
+So **both docs' allow-list enumerations are now stale** (list 3 of 4), and neither records the
+"reuse cover art on a non-slot page" sub-variant. Same fix direction as the test list: update the
+doc (append the constant, or generalize the prose). Non-blocking — guarantee still holds, Story 1's
+`page-12` is its own slot so it's untouched/byte-identical. See [[letter-layout-reuse-renderer-touch]]
 (the generalized pattern), [[masterstory-slot-id-lag]], [[new-book-playbook-pr10]].
