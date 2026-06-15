@@ -354,10 +354,19 @@ function buildCatalog(): Product[] {
         "lovingly hand-finished within 24–48 hours. The gift for the kid who " +
         "thinks their dog is already a legend — because they're right.",
       priceUsd: PLACEHOLDER_STORY_8_PRICE_USD,
-      // No web-optimized samples on disk yet — the storefront card degrades to the
-      // placeholder art block until the samples follow-up ships (don't reference
-      // files that don't exist, or the card renders a broken image).
-      sampleImages: [],
+      sampleImages: [
+        "/samples/story-8-adventure/adventure-cover.jpg",
+        "/samples/story-8-adventure/adventure-ordinary.jpg",
+        "/samples/story-8-adventure/adventure-special.jpg",
+        "/samples/story-8-adventure/adventure-call.jpg",
+        "/samples/story-8-adventure/adventure-clue.jpg",
+        "/samples/story-8-adventure/adventure-deeper.jpg",
+        "/samples/story-8-adventure/adventure-discovery.jpg",
+        "/samples/story-8-adventure/adventure-wobble.jpg",
+        "/samples/story-8-adventure/adventure-climax.jpg",
+        "/samples/story-8-adventure/adventure-celebration.jpg",
+      ],
+      previewPdf: "/samples/story-8-adventure/preview.pdf",
       audience: "living",
     }),
     buildProduct("story-9-newbaby", "story-9", {

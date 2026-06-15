@@ -170,6 +170,7 @@ describe("story-1-book sample preview", () => {
       ["story-5-letter-to", "/samples/story-5-letter-to/preview.pdf"],
       ["story-6-tribute", "/samples/story-6-tribute/preview.pdf"],
       ["story-7-welcome", "/samples/story-7-welcome/preview.pdf"],
+      ["story-8-adventure", "/samples/story-8-adventure/preview.pdf"],
     ]);
     for (const product of getProducts()) {
       const expected = WITH_PREVIEW.get(product.productId);
@@ -572,9 +573,9 @@ describe("story-7-welcome catalog entry", () => {
 // priced at $34 (the locked launch price, the top of the catalog). Beyond the
 // generic list/no-drift guards above, assert the entry exists with the right
 // storyType, its illustrationCount is the registry's 10 (DERIVED, not a literal),
-// the placeholder price is 3400, marketing copy is non-empty (sampleImages is still
-// [] pending the samples follow-up — the card degrades to a placeholder), and its
-// id/storyType are unique.
+// the placeholder price is 3400, marketing copy is non-empty, its full 10-image
+// sample set + previewPdf are wired (Story Samples PR-08), and its id/storyType
+// are unique.
 
 describe("story-8-adventure catalog entry", () => {
   it("is present in the catalog with storyType 'story-8'", () => {
@@ -604,12 +605,27 @@ describe("story-8-adventure catalog entry", () => {
     expect(product.description.trim().length).toBeGreaterThan(0);
   });
 
-  it("has no sample images yet (storefront card degrades to placeholder until the samples follow-up)", () => {
-    // Story 8's web-optimized samples haven't been generated yet — public/samples/
-    // story-8-adventure/ is empty. sampleImages is intentionally [] so the /books
-    // card renders the placeholder art block instead of a broken <img>. The samples
-    // follow-up flips this back to non-empty.
-    expect(getProduct("story-8-adventure")!.sampleImages).toEqual([]);
+  it("wires the full 10-image adventure sample set (Story Samples PR-08), named by slot id", () => {
+    const product = getProduct("story-8-adventure")!;
+    expect(product.sampleImages).toEqual([
+      "/samples/story-8-adventure/adventure-cover.jpg",
+      "/samples/story-8-adventure/adventure-ordinary.jpg",
+      "/samples/story-8-adventure/adventure-special.jpg",
+      "/samples/story-8-adventure/adventure-call.jpg",
+      "/samples/story-8-adventure/adventure-clue.jpg",
+      "/samples/story-8-adventure/adventure-deeper.jpg",
+      "/samples/story-8-adventure/adventure-discovery.jpg",
+      "/samples/story-8-adventure/adventure-wobble.jpg",
+      "/samples/story-8-adventure/adventure-climax.jpg",
+      "/samples/story-8-adventure/adventure-celebration.jpg",
+    ]);
+    expect(product.sampleImages).toHaveLength(10);
+  });
+
+  it("exposes the downloadable preview PDF", () => {
+    expect(getProduct("story-8-adventure")!.previewPdf).toBe(
+      "/samples/story-8-adventure/preview.pdf",
+    );
   });
 
   it("leaves lsVariantId unset (resolved server-side at checkout)", () => {
