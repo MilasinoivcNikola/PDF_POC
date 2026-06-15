@@ -205,6 +205,7 @@ framework beyond this list without approval. The plan in
 - `DEPLOY_TARGET` (`public` | `operator`) is **non-secret** runtime config, not a key:
   it selects the deploy surface (see *Deploy-surface boundary* above). Default `operator`
   (full local app); the Vercel build sets `public` via `vercel.json`. Fine to commit.
+- `AI_SCENE_CONCURRENCY` is likewise **non-secret** runtime config (operator surface only — `lib/ai/*` is engine-only): the in-flight cap for the parallel Approach-A/C scene path, resolved by `resolveSceneConcurrency()` in `lib/ai/retry.ts` (unset/non-numeric/`<1` → `DEFAULT_CONCURRENCY` 3, clamped ≤16). No effect on Approach B. Never `NEXT_PUBLIC_*`.
 
 ---
 

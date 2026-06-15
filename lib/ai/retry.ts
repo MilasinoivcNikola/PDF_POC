@@ -205,12 +205,43 @@ function backoffDelay(
 // ---------------------------------------------------------------------------
 
 /**
- * Default in-flight cap for the parallel scene path. Conservative on purpose:
- * with the ~5 image-input requests/min ceiling, keeping only a few generations
- * in flight (combined with {@link withRetry}'s backoff) avoids a 429 storm while
- * still overlapping work. 3 leaves headroom under the limit for retried calls.
+ * Default in-flight cap for the parallel scene path, and the fallback when
+ * `AI_SCENE_CONCURRENCY` is unset (see {@link resolveSceneConcurrency}).
+ * Conservative on purpose: keeping only a few generations in flight (combined
+ * with {@link withRetry}'s backoff) avoids a 429 storm while still overlapping
+ * work. Operators on a higher tier (Tier 2's verified limit is 20 images/min)
+ * can dial this up via the env var without a code change.
  */
 export const DEFAULT_CONCURRENCY = 3;
+
+/**
+ * Upper bound for the env-tunable scene concurrency. Caps the in-flight burst at
+ * the model's per-minute image-ceiling headroom so a fat-fingered
+ * `AI_SCENE_CONCURRENCY=500` can't trigger a 429 storm. (Tier 2's verified limit
+ * is 20 images/min; 16 leaves room for `withRetry`'s retried calls.)
+ */
+const MAX_SCENE_CONCURRENCY = 16;
+
+/**
+ * Resolve the in-flight cap for the Approach-A/C parallel scene path from the
+ * environment. Reads `AI_SCENE_CONCURRENCY` (non-secret, operator-surface-only
+ * runtime config — never `NEXT_PUBLIC_*`): missing / non-numeric / `< 1` falls
+ * back to {@link DEFAULT_CONCURRENCY}, and anything above the ceiling clamps to
+ * {@link MAX_SCENE_CONCURRENCY}. Floors fractional values (parsed via
+ * `Number.parseInt`), matching `mapWithConcurrency`'s own `Math.floor` clamp.
+ *
+ * Pure (env is passed in, no IO) so it's unit-testable without touching
+ * `process.env`.
+ */
+export function resolveSceneConcurrency(
+  env: Record<string, string | undefined> = process.env,
+): number {
+  const parsed = Number.parseInt(env.AI_SCENE_CONCURRENCY ?? "", 10);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return DEFAULT_CONCURRENCY;
+  }
+  return Math.min(parsed, MAX_SCENE_CONCURRENCY);
+}
 
 /**
  * Like `Promise.all(items.map(fn))`, but never running more than `concurrency`

@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   withRetry,
   mapWithConcurrency,
+  resolveSceneConcurrency,
   isRateLimitError,
   suggestedRetryMs,
   DEFAULT_MAX_RETRIES,
@@ -222,5 +223,42 @@ describe("mapWithConcurrency", () => {
   it("handles an empty input set", async () => {
     const results = await mapWithConcurrency([], 3, async (n) => n);
     expect(results).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resolveSceneConcurrency — env-tunable Approach-A/C cap (default + clamp)
+// ---------------------------------------------------------------------------
+
+describe("resolveSceneConcurrency", () => {
+  it("falls back to DEFAULT_CONCURRENCY when the var is unset", () => {
+    expect(resolveSceneConcurrency({})).toBe(DEFAULT_CONCURRENCY);
+  });
+
+  it("uses a valid in-range integer", () => {
+    expect(resolveSceneConcurrency({ AI_SCENE_CONCURRENCY: "6" })).toBe(6);
+  });
+
+  it("falls back on a zero or negative value", () => {
+    expect(resolveSceneConcurrency({ AI_SCENE_CONCURRENCY: "0" })).toBe(DEFAULT_CONCURRENCY);
+    expect(resolveSceneConcurrency({ AI_SCENE_CONCURRENCY: "-2" })).toBe(DEFAULT_CONCURRENCY);
+  });
+
+  it("falls back on a non-numeric value", () => {
+    expect(resolveSceneConcurrency({ AI_SCENE_CONCURRENCY: "abc" })).toBe(DEFAULT_CONCURRENCY);
+  });
+
+  it("clamps a value above the ceiling to 16", () => {
+    expect(resolveSceneConcurrency({ AI_SCENE_CONCURRENCY: "500" })).toBe(16);
+  });
+
+  it("accepts the ceiling exactly", () => {
+    expect(resolveSceneConcurrency({ AI_SCENE_CONCURRENCY: "16" })).toBe(16);
+  });
+
+  it("floors a fractional value (parseInt truncation)", () => {
+    // "6.9" parses to 6 via Number.parseInt — matches mapWithConcurrency's
+    // Math.floor clamp; we never round up.
+    expect(resolveSceneConcurrency({ AI_SCENE_CONCURRENCY: "6.9" })).toBe(6);
   });
 });
