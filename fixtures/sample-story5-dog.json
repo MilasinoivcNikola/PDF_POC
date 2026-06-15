@@ -1,0 +1,33 @@
+{
+  "id": "sample-story5-dog",
+  "createdAt": "2026-06-15T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-5",
+  "pet": {
+    "name": "Biscuit",
+    "species": "dog",
+    "breedColor": "small senior terrier-mix with a short tan-and-grey brindle coat, a soft white-and-grey muzzle, one ear that flops and one that stands half up",
+    "pronoun": "she",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/sample-photos/dog-senior.jpg"
+  },
+  "owner": {
+    "names": "Margaret",
+    "relationship": "single"
+  },
+  "memories": {
+    "quirks": "the way you turned your whole body to look at me, not just your head, like I deserved the full effort",
+    "favoriteRitual": "the slow loop around the block after dinner, you setting the pace, me letting you",
+    "favoriteSpots": "the worn patch of carpet by the radiator, and the bottom step where you waited for me every evening",
+    "lastGoodDay": "the last warm afternoon, when you found a sunbeam on the kitchen floor and slept in it for hours while I worked beside you",
+    "whatIKeep": "your frayed red collar on the hook by the door, and the soft dent your weight left in the old armchair",
+    "nicknames": "Biscuit, Bisky, the old girl",
+    "dateAdopted": "Autumn 2009",
+    "datePassed": "May 2025"
+  },
+  "toggles": {
+    "deathType": "euthanasia",
+    "beliefFrame": "heaven"
+  },
+  "images": []
+}

@@ -167,6 +167,7 @@ describe("story-1-book sample preview", () => {
       ["story-1-book", "/samples/story-1-book/preview.pdf"],
       ["story-2-letter", "/samples/story-2-letter/preview.pdf"],
       ["story-4-talk", "/samples/story-4-talk/preview.pdf"],
+      ["story-5-letter-to", "/samples/story-5-letter-to/preview.pdf"],
     ]);
     for (const product of getProducts()) {
       const expected = WITH_PREVIEW.get(product.productId);
@@ -187,6 +188,12 @@ describe("story-1-book sample preview", () => {
   it("sets story-4-talk previewPdf to its published full-book sample PDF", () => {
     expect(getProduct("story-4-talk")!.previewPdf).toBe(
       "/samples/story-4-talk/preview.pdf",
+    );
+  });
+
+  it("sets story-5-letter-to previewPdf to its published full-book sample PDF", () => {
+    expect(getProduct("story-5-letter-to")!.previewPdf).toBe(
+      "/samples/story-5-letter-to/preview.pdf",
     );
   });
 
