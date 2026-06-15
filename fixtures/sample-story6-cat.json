@@ -1,0 +1,35 @@
+{
+  "id": "sample-story6-cat",
+  "createdAt": "2026-06-15T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-6",
+  "pet": {
+    "name": "Hazel",
+    "species": "cat",
+    "breedColor": "brown tabby gone grizzled and silver around the muzzle, with a white chest and chin and pale green eyes",
+    "pronoun": "she",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/sample-photos/cat-senior.jpg"
+  },
+  "owner": {
+    "names": "Diane",
+    "relationship": "single"
+  },
+  "memories": {
+    "ageOrStage": "sixteen now, slower but still the boss of the house",
+    "quirks": "the way you knead the blanket three times before you finally settle",
+    "stillLoves": "still climbs into the window box every morning to watch the birds",
+    "favoriteActivity": "the slow patrol of the garden fence we still take at dusk",
+    "favoriteRitual": "the saucer of warm milk I set down while the kettle boils",
+    "sleepingSpot": "the folded quilt on the radiator shelf",
+    "favoriteSpots": "the sunny sill above the kitchen sink, where the afternoon light lands",
+    "ownerMessage": "Thank you for sixteen years of quiet company.",
+    "nicknames": "Haze, the old lady",
+    "dateAdopted": "Autumn 2010"
+  },
+  "toggles": {
+    "transitionFrame": "still-here",
+    "otherPetsInHome": "yes"
+  },
+  "images": []
+}

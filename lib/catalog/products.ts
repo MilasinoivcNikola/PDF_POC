@@ -298,8 +298,14 @@ function buildCatalog(): Product[] {
       priceUsd: PLACEHOLDER_STORY_6_PRICE_USD,
       sampleImages: [
         "/samples/story-6-tribute/tribute-cover.jpg",
+        "/samples/story-6-tribute/tribute-page-1.jpg",
+        "/samples/story-6-tribute/tribute-page-2.jpg",
         "/samples/story-6-tribute/tribute-page-3.jpg",
+        "/samples/story-6-tribute/tribute-page-4.jpg",
+        "/samples/story-6-tribute/tribute-page-5.jpg",
+        "/samples/story-6-tribute/tribute-page-6.jpg",
       ],
+      previewPdf: "/samples/story-6-tribute/preview.pdf",
       // Living, not loss: a tribute to a pet who is STILL ALIVE — the deliberate
       // reclassification (filing "the goodbye" was a tone-miss). See PR-1 spec.
       audience: "living",

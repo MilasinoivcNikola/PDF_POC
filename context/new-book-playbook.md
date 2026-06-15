@@ -180,6 +180,17 @@ treatment).
 > sentinel **distinct** and never a standalone existing-body paragraph — that preserves the
 > byte-identity of the already-shipped letter books (match is exact-equality, so a distinct
 > string can't mis-split another book). Feature 20 did this for Story 4.
+>
+> **A second exception when reusing the `dedication` or `love` layout for an *illustrated*
+> book:** those two Story-1 layouts are text-only by default — `DedicationPage`/`LovePage` in
+> `lib/pdf/pages.tsx` render art **only** for page ids registered in `DEDICATION_ART_PAGE_IDS`
+> / `LOVE_ART_PAGE_IDS`. If your book maps an illustration slot onto either layout (Story 6
+> does: `tribute-page-1` → dedication portrait, `tribute-page-5/6` → love feature scenes), add
+> those ids to the matching allow-list there, or the generated illustration is silently dropped
+> from the book (it still shows in the storefront gallery). The allow-list must contain **only
+> your book's ids** — that keeps Story 1 (whose `page-1`/`page-10` are also dedication/love
+> slots, deliberately text-only in the book) byte-identical. Same shape as the `letter`
+> sentinel above; the Story-6 sample PR did this.
 
 To add one:
 

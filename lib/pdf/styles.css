@@ -538,6 +538,29 @@ em {
   margin-bottom: var(--s-8);
 }
 
+/* Story 6's `tribute-page-1` dedication carries a quiet single portrait in place
+   of the petal ornament — the "Story-1 dedication treatment" (a contained,
+   soft-cornered watercolor, calmer than the cover). Renders only on an allow-listed
+   dedication page with a src (see DEDICATION_ART_PAGE_IDS); Story 1's verse-only
+   dedication keeps the ornament and is byte-identical. */
+.dedication__art {
+  width: 3.4in;
+  height: 3.4in;
+  max-width: 100%;
+  margin: 0 auto var(--s-8);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.dedication__art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .dedication__verse {
   font-family: var(--font-body);
   font-size: 1.2rem;
@@ -654,6 +677,29 @@ em {
   font-style: italic;
   font-size: 1.2rem;
   color: var(--ink);
+}
+
+/* Story 6's `tribute-page-5` / `tribute-page-6` love pages carry a warm hero scene
+   below the closer — a contained, soft-cornered feature band. Renders only on an
+   allow-listed love page with a src (see LOVE_ART_PAGE_IDS); Story 1's text-only
+   "love stays" page (page-10) has no src here and stays byte-identical. Height is
+   clamped so the page still fits within its Letter break boundary. */
+.love__art {
+  width: 5in;
+  height: 3.6in;
+  max-width: 100%;
+  margin: var(--s-12) auto 0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.love__art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* --------------------------------------------------------------

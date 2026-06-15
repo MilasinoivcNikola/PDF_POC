@@ -168,6 +168,7 @@ describe("story-1-book sample preview", () => {
       ["story-2-letter", "/samples/story-2-letter/preview.pdf"],
       ["story-4-talk", "/samples/story-4-talk/preview.pdf"],
       ["story-5-letter-to", "/samples/story-5-letter-to/preview.pdf"],
+      ["story-6-tribute", "/samples/story-6-tribute/preview.pdf"],
     ]);
     for (const product of getProducts()) {
       const expected = WITH_PREVIEW.get(product.productId);
@@ -194,6 +195,12 @@ describe("story-1-book sample preview", () => {
   it("sets story-5-letter-to previewPdf to its published full-book sample PDF", () => {
     expect(getProduct("story-5-letter-to")!.previewPdf).toBe(
       "/samples/story-5-letter-to/preview.pdf",
+    );
+  });
+
+  it("sets story-6-tribute previewPdf to its published full-book sample PDF", () => {
+    expect(getProduct("story-6-tribute")!.previewPdf).toBe(
+      "/samples/story-6-tribute/preview.pdf",
     );
   });
 
@@ -465,12 +472,18 @@ describe("story-6-tribute catalog entry", () => {
     expect(product.description.trim().length).toBeGreaterThan(0);
   });
 
-  it("references non-empty sample images", () => {
+  it("lists all 7 sample images (cover + page-1..page-6) under the product path", () => {
     const product = getProduct("story-6-tribute")!;
-    expect(product.sampleImages.length).toBeGreaterThan(0);
-    for (const src of product.sampleImages) {
-      expect(src.trim().length).toBeGreaterThan(0);
-    }
+    expect(product.sampleImages).toEqual([
+      "/samples/story-6-tribute/tribute-cover.jpg",
+      "/samples/story-6-tribute/tribute-page-1.jpg",
+      "/samples/story-6-tribute/tribute-page-2.jpg",
+      "/samples/story-6-tribute/tribute-page-3.jpg",
+      "/samples/story-6-tribute/tribute-page-4.jpg",
+      "/samples/story-6-tribute/tribute-page-5.jpg",
+      "/samples/story-6-tribute/tribute-page-6.jpg",
+    ]);
+    expect(product.sampleImages).toHaveLength(7);
   });
 
   it("has a unique id/storyType not shared with the other books", () => {

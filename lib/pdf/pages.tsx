@@ -34,6 +34,23 @@ import { renderLetterBody, renderLetterCover } from "@/lib/pdf/pages-story2";
  */
 export type PageImageMap = Partial<Record<PageId, string>>;
 
+// The `dedication`/`love` layout pages that ALSO carry a generated illustration.
+// Story 1 reuses these layouts for its verse-only dedication (page-1) and its
+// text-only "love stays" page (page-10) — neither places an image, by design. But
+// Story 6 ("While You're Still Here") reuses the SAME layouts for slots that ARE
+// illustrated: its `tribute-page-1` dedication is a quiet single portrait, and its
+// `tribute-page-5` / `tribute-page-6` `love` pages each carry a warm hero scene.
+// Without this allow-list those three generated images are silently dropped from
+// the book (they generate, and show in the storefront gallery, but never reach the
+// PDF or the preview).
+//
+// Gated by an explicit page-id allow-list containing ONLY the Story-6 ids — the
+// same pattern pages-story2.tsx uses with LETTER_FEATURE_PAGE_IDS — so Story 1's
+// `page-1`/`page-10` (and any other product's dedication/love pages) are NOT in the
+// set and render exactly as before. Their PDFs and screen output stay byte-identical.
+const DEDICATION_ART_PAGE_IDS: readonly string[] = ["tribute-page-1"];
+const LOVE_ART_PAGE_IDS: readonly string[] = ["tribute-page-5", "tribute-page-6"];
+
 // ---------------------------------------------------------------------------
 // Small shared bits
 // ---------------------------------------------------------------------------
@@ -164,15 +181,27 @@ function CoverPage({ page, src }: { page: ResolvedPage; src?: string }) {
   );
 }
 
-function DedicationPage({ page }: { page: ResolvedPage }) {
+function DedicationPage({ page, src }: { page: ResolvedPage; src?: string }) {
   // Page 1's title is the verse opening ("For X, and for Y,") and body[0] the
   // closing line ("who loved them so very much."). `dedication` is the parent's
   // optional message, shown in its own distinct typeface block.
+  //
+  // A quiet single portrait renders ONLY on an allow-listed dedication page
+  // (Story 6's `tribute-page-1`) and only when a `src` is present — the
+  // "Story-1 dedication treatment" the brief asks for. Story 1's `page-1` is not
+  // in the set, so it ignores `src` and stays verse-only (byte-identical).
+  const showArt = DEDICATION_ART_PAGE_IDS.includes(page.id) && Boolean(src);
   return (
     <section className="story-page story-page--dedication" data-page={page.id}>
-      <div className="dedication__ornament">
-        <Ornament size={28} />
-      </div>
+      {showArt ? (
+        <div className="dedication__art">
+          <img src={src!} alt={page.illustrationBrief} />
+        </div>
+      ) : (
+        <div className="dedication__ornament">
+          <Ornament size={28} />
+        </div>
+      )}
       <p className="dedication__verse">
         {page.title}
         {page.body.map((text, i) => (
@@ -227,11 +256,16 @@ function TruthPage({ page, src }: { page: ResolvedPage; src?: string }) {
   );
 }
 
-function LovePage({ page }: { page: ResolvedPage }) {
+function LovePage({ page, src }: { page: ResolvedPage; src?: string }) {
   // Page 10: lead line, then the hero statement, then the "It stays" closer.
   const [lead, ...rest] = page.body;
   const closer = rest.length > 1 ? rest[rest.length - 1] : undefined;
   const hero = closer ? rest.slice(0, -1) : rest;
+  // A warm hero scene renders ONLY on an allow-listed love page (Story 6's
+  // `tribute-page-5` / `tribute-page-6`) and only when a `src` is present. Story
+  // 1's `page-10` is not in the set, so it ignores `src` and stays text-only
+  // (byte-identical).
+  const showArt = LOVE_ART_PAGE_IDS.includes(page.id) && Boolean(src);
   return (
     <section className="story-page story-page--love" data-page={page.id}>
       {lead ? <p className="love__lead">{lead}</p> : null}
@@ -244,6 +278,11 @@ function LovePage({ page }: { page: ResolvedPage }) {
         ))}
       </p>
       {closer ? <p className="love__closer">{closer}</p> : null}
+      {showArt ? (
+        <div className="love__art">
+          <img src={src!} alt={page.illustrationBrief} />
+        </div>
+      ) : null}
       <PageNumber value={page.pageNumber} />
     </section>
   );
@@ -311,11 +350,11 @@ export function renderPage(page: ResolvedPage, src?: string): ReactElement {
     case "cover":
       return <CoverPage key={page.id} page={page} src={src} />;
     case "dedication":
-      return <DedicationPage key={page.id} page={page} />;
+      return <DedicationPage key={page.id} page={page} src={src} />;
     case "truth":
       return <TruthPage key={page.id} page={page} src={src} />;
     case "love":
-      return <LovePage key={page.id} page={page} />;
+      return <LovePage key={page.id} page={page} src={src} />;
     case "closing":
       return <ClosingPage key={page.id} page={page} src={src} />;
     case "back-cover":

@@ -7,7 +7,8 @@ _Index of saved memories (one line each: `- [Title](file.md) — hook`)._
 - [Supabase Auth (PR-08)](supabase-auth-pr08.md) — admin auth gate built; settled supersessions + the 3 doc lags (deferred-decision line, @supabase/ssr dep, lib/supabase/ map)
 - [Deferred decisions blocking PRs](deferred-decisions-blocking-prs.md) — refund/remake, AI-honesty, pricing keyed to a blocking PR; check whether the named PR actually settled it (PR-09: still placeholder)
 - [New-book playbook (PR-10)](new-book-playbook-pr10.md) — context/new-book-playbook.md is the canonical add-a-book recipe; the citations to re-verify on a future new-book branch
-- [Letter-layout reuse touches the shared renderer](letter-layout-reuse-renderer-touch.md) — a `letter`-reuse book legitimately edits pages-story2.tsx (sign-off sentinel); "no shared renderer touched" wording goes stale
+- [Shared-layout reuse touches the renderer](letter-layout-reuse-renderer-touch.md) — reusing letter/dedication/love legitimately edits pages-story2.tsx OR pages.tsx via a per-story page-id allow-list (3x now); "reuse = no renderer touch" wording stale
+- [Byte-identity template-test list lag](byte-identity-template-test-list-lag.md) — coding-standards ~L259 hard-lists only template.test + story2; story4/story6 tests exist → enumeration stale; art-allow-list convention also unrecorded
 - [Masterstory slot-id / art-shape lag](masterstory-slot-id-lag.md) — a book's template guesses slot ids (`letter-*`) + offers "figureless"; the registry (`talk-*`) + spec (reference-anchored) win — bites on the imagery PR
 - [Playbook undocumented conventions](playbook-undocumented-conventions.md) — page-id prefix + Story-1-shape `slots+1` reference-anchor accounting followed in code (S4/5/6) but not in new-book-playbook.md
 - [Playbook Order.inputs union omission](playbook-order-inputs-union-omission.md) — every sellable book widens 3 inputs-unions (PR-22/24/26); reuse-guarantee omits it; nice-to-have not blocking

@@ -1,8 +1,30 @@
 ---
 name: letter-layout-reuse-renderer-touch
-description: A book that reuses Story 2's `letter` layout legitimately edits the shared `lib/pdf/pages-story2.tsx` sibling renderer — so "no shared renderer touched" byte-identity wording goes stale
+description: Reusing a shared PDF layout (letter / dedication / love) can still legitimately edit the shared renderer (pages-story2.tsx OR pages.tsx) via a per-story page-id allow-list — so "reuse = Step 3 skipped, no renderer touched" wording goes stale
 metadata:
   type: feedback
+---
+
+**Generalized pattern (confirmed 3x): "reuse an existing layout" does NOT mean "no shared
+renderer edit."** Three layout families have now needed a shared-renderer change on a reuse book
+because Story 1/2 baked in an assumption the reusing book breaks:
+- **`letter`** (Story 4/5 reuse): sign-off sentinel split in `pages-story2.tsx` →
+  `LETTER_SIGNOFFS` list (below).
+- **`dedication` + `love`** (Story 6 `feature/story-samples-06`, 2026-06-15): Story 1's
+  `dedication`/`love` pages are NEVER illustrated, so `DedicationPage`/`LovePage` in the SHARED
+  `lib/pdf/pages.tsx` ignored `src`. Story 6's `tribute-page-1` (dedication portrait) +
+  `tribute-page-5/6` (`love` hero scenes) ARE illustration slots → art was silently dropped from
+  the PDF/preview. Fix: per-story page-id allow-lists `DEDICATION_ART_PAGE_IDS = ["tribute-page-1"]`
+  / `LOVE_ART_PAGE_IDS = ["tribute-page-5","tribute-page-6"]` in `pages.tsx` + net-new
+  `.dedication__art`/`.love__art` CSS in BOTH `styles.css` + `globals.css` (parity held) +
+  `template.story6.test.tsx`. Byte-identity for Story 1 preserved because its page ids aren't in
+  the set and the art only shows when a `src` is present — the **exact `LETTER_FEATURE_PAGE_IDS`
+  pattern from PR-04** (see [[masterstory-slot-id-lag]] for the talk-page-4 sibling).
+
+This allow-list-scoped-to-one-product is the **canonical byte-safe way** to teach a shared layout
+component to carry art for a new book. Future shared-renderer edits should follow it; no doc
+records it as a named convention yet (drift — see below).
+
 ---
 
 When a new book reuses Story 2's `letter` / `letter-cover` layout wholesale (playbook Step 3
