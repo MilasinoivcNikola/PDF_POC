@@ -223,10 +223,11 @@ Add a `Product` to `lib/catalog/products.ts`'s `buildCatalog()` via `buildProduc
 - **`sampleImages`** — public web paths under `public/samples/<book-id>/` (Step 6).
 - **`previewPdf`** — **optional**: a full-book sample PDF under
   `public/samples/<book-id>/preview.pdf`, surfaced as a "See the full book (PDF)" link on the
-  detail page. **Omit it** unless you've captured one. Today only `story-1-book` carries one —
-  from a deliberate **one-time HIGH-tier** hero-title run (Step 6), the documented exception to
-  the Low-default sample rule, not a change to it. Plain string path, so the module stays
-  client-safe.
+  detail page. It is part of the **standard** sample set — wire it once a title's sample run
+  has produced a `preview.pdf` (Step 6); **omit it** only until then. The one exception is
+  `story-1-book`, which *additionally* carries a one-time **full-res HIGH** preview (a
+  deliberate hero-title run, not the slim mixed-tier default). Plain string path, so the
+  module stays client-safe.
 - **`audience`** — **required**: `"living"` (celebrate a pet who is still here) or `"loss"`
   (remember one who has died). Drives the storefront's two-world split; the partition test in
   `lib/catalog/products.test.ts` fails until the new id is added to the matching set, so classify

@@ -1,0 +1,33 @@
+{
+  "id": "sample-story2-cat",
+  "createdAt": "2026-06-15T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-2",
+  "pet": {
+    "name": "Clementine",
+    "species": "cat",
+    "breedColor": "long-haired British Longhair with a soft dove-grey coat and round copper eyes",
+    "pronoun": "she",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/sample-photos/cat.jpg"
+  },
+  "owner": {
+    "names": "Eleanor",
+    "relationship": "single"
+  },
+  "memories": {
+    "quirks": "the way you waited on the third stair every evening, exactly where the last of the light landed",
+    "favoriteRitual": "the slow first coffee, you curled against my arm before the day could start",
+    "favoriteSpots": "the warm square of windowsill above the radiator, and the folded blanket at the foot of the bed",
+    "nicknames": "Clem, Miss Clementine, the small grey shadow",
+    "dateAdopted": "Spring 2011",
+    "datePassed": "October 2025"
+  },
+  "toggles": {
+    "deathType": "peaceful",
+    "beliefFrame": "rainbow-bridge",
+    "giftFor": "self",
+    "newPet": "no"
+  },
+  "images": []
+}

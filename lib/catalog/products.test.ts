@@ -158,11 +158,29 @@ describe("story-1-book sample preview", () => {
     );
   });
 
-  it("is the ONLY product with a previewPdf (others omit the optional field)", () => {
+  it("sets the published previewPdf on the products shipped so far and omits it elsewhere", () => {
+    // Per-product previews now land as each title's sample set ships (the series
+    // is backfilling them, no longer Story-1-only). Assert the SET of products
+    // that should carry one — not a hardcoded count — so the next sample PR adds
+    // its id here rather than fighting an "exactly one" invariant.
+    const WITH_PREVIEW = new Map<string, string>([
+      ["story-1-book", "/samples/story-1-book/preview.pdf"],
+      ["story-2-letter", "/samples/story-2-letter/preview.pdf"],
+    ]);
     for (const product of getProducts()) {
-      if (product.productId === "story-1-book") continue;
-      expect(product.previewPdf).toBeUndefined();
+      const expected = WITH_PREVIEW.get(product.productId);
+      if (expected !== undefined) {
+        expect(product.previewPdf).toBe(expected);
+      } else {
+        expect(product.previewPdf).toBeUndefined();
+      }
     }
+  });
+
+  it("sets story-2-letter previewPdf to its published full-book sample PDF", () => {
+    expect(getProduct("story-2-letter")!.previewPdf).toBe(
+      "/samples/story-2-letter/preview.pdf",
+    );
   });
 
   it("keeps previewPdf an optional string when set (shape still valid)", () => {
