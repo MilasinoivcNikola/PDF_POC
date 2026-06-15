@@ -23,3 +23,14 @@ pointer and no matching row exists, that's a staleness/omission finding —
 Seen on `feature/public-refresh-detail-pages` (Public Refresh PR-4): the per-book
 "inside the book" TOC was deferred with "note in debt.md if still wanted" — no row was
 added. See [[canonical-doc-map]] (debt.md owns durable deferrals).
+
+**The dual direction — a branch that PAYS a debt row must remove/edit it.** When a
+spec says "on completion, remove the '<X>' debt row" (or drop a "Blocked on …" note
+from another row), that removal is also step-10 work the `complete` step performs —
+not the diff itself. So at audit time the rows are still present (correctly): the
+auditor's job is to **confirm the named rows exist with the exact wording** so the
+completion step can act, and confirm the code actually pays the debt the row describes.
+Seen on `feature/story9-illustration-wiring`: paid the "Story-9 illustration generation
+not wired (falls through to Story-1)" row (removed on complete) and dropped the
+"**Blocked on the Story-9 wiring gap below.**" note from the still-standing "Story-9
+storefront samples missing" row.
