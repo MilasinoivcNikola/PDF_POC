@@ -12,6 +12,28 @@ structural, not per-product. Verified on Story 4 (PR-22), Story 5 (PR-24), and
 again on Story 6 (PR-26) — all ran the recipe below fully green with zero findings,
 so the inheritance is now thrice-confirmed.
 
+**Sample-set PR class (Story 2 cat, feature/story-samples-02, 2026-06-15) — PASS,
+zero findings.** A "sample set" PR touches `lib/catalog/` (so it trips the commerce
+review rule) but the actual change surface is NARROW and carries no trust-boundary
+risk by construction: (1) a one-line static `previewPdf: "/samples/<id>/preview.pdf"`
+string on an existing product — a plain public-path literal, NOT a server-only ref, no
+IDOR/auth surface (it's a file under `public/`, served statically); products.ts stays
+pure/client-safe (grep: no lib/ai / lib/supabase/server / node:/fs / secret import);
+(2) overwritten storefront JPGs + a new slim `preview.pdf` under `public/samples/` —
+verified clean: JPGs carry only the empty `sips` Exif stub (76-byte APP1: ExifIFD ptr +
+ColorSpace + PixelX/PixelY 0x3E8, NO GPS/Make/Model/Artist/Copyright/DateTime) + empty
+8BIM APP13 IPTC stub; AI art = no camera PII; preview.pdf has no leaked /Users path,
+owner name, or secret; (3) a `fixtures/sample-story2-cat.json` synthetic Story2Session
+(names Clementine/Eleanor only — no email/phone/secret/real-customer photo; uses the
+committed royalty-free `uploads/sample-photos/cat.jpg`); (4) a test invariant relaxation
+(previewPdf no longer Story-1-only → a per-product allowlist map). ENTIRE trust boundary
+empty-diff (order route / lib/order / lib/supabase / migrations); boundary+catalog 69
+tests green. **Recipe for the next sample-set PR:** confirm previewPdf is a plain
+`/samples/...` literal (not a server ref) + products.ts has no engine/server-only import;
+`xxd -s 0x12 -l 180 <jpg>` → only the sips Exif stub (no GPS IFD / 0x010F Make / 0x013B
+Artist / 0x8298 Copyright); grep fixture for `@`/secret/real PII; trust boundary stays
+empty-diff.
+
 **Story 8 PR-B (feature 32, 2026-06-14) — NOW creatable + sellable:** PASS, zero
 findings — the inheritance holds a 4th time (Story 8 is the first Approach-B book to
 go sellable). Recipe ran fully green: `/api/order/route.ts` + `lib/order/types.ts` +
