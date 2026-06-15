@@ -49,12 +49,12 @@ Covers all 5 supported `Species` values (`dog | cat | rabbit | bird | other`):
 |-------|-------|---------|------------------------|
 | 1 | Saying Goodbye | Dog (boxer) | *existing, unchanged* |
 | 2 | A Letter from Your Pet | **Cat** | `uploads/sample-photos/cat.jpg` |
-| 4 | If Your Pet Could Talk | **Rabbit** | `uploads/sample-photos/rabbit.jpg` |
+| 4 | If Your Pet Could Talk | **Other** (e.g. guinea pig) | `uploads/sample-photos/other.jpg` |
 | 5 | A Letter to Your Pet | **Dog** (senior, non-boxer) | `uploads/sample-photos/dog-senior.jpg` |
 | 6 | While You're Still Here | **Cat** (senior) | `uploads/sample-photos/cat-senior.jpg` |
 | 7 | Welcome Home | **Bird** (parrot/cockatiel) | `uploads/sample-photos/bird.jpg` |
 | 8 | Amazing Adventures | **Dog** (energetic, e.g. corgi) | `uploads/sample-photos/dog-corgi.jpg` |
-| 9 | And the New Baby | **Other** (e.g. guinea pig) | `uploads/sample-photos/other.jpg` |
+| 9 | And the New Baby | **Rabbit** | `uploads/sample-photos/rabbit.jpg` |
 
 Photo-selection bar (same logic that made the Story-1 boxer work well):
 - **One clearly-front-facing animal**, distinctive coat/markings (a strong pet anchor for

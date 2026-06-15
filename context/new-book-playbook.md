@@ -268,15 +268,29 @@ The price configured on the LS variant must match the catalog's `priceUsd` (Step
 
 ## Step 6 — Samples
 
-Generate a few **Low**-tier sample books for the storefront detail page and save the chosen
-pages, web-optimized (~800px JPEG), under `public/samples/<book-id>/`; reference them in the
-catalog's `sampleImages` (Step 4). **Low is the default cost tier for sample generation** — a
-bare `generateAllIllustrations` run is all-LOW (its engine default for dev/iteration), so a
-sample book is ~$0.07–$0.08, not ~$0.70. (Real *production* book runs use the mixed
-`PRODUCTION_QUALITY` tier — HIGH hero slots + MEDIUM interiors, ~$1/book — passed explicitly by
-the worker; see `coding-standards.md` → *AI illustration*. That's deliberately separate from
-this LOW sample path.) Don't commit the canonical QA fixtures; pull sample frames from a fresh
-Low run.
+The **shipped storefront sample set** for every title is generated at the mixed
+`PRODUCTION_QUALITY` tier — the *same* tier the customer receives (HIGH hero slots + MEDIUM
+interiors + LOW reference, ~$1/book; see `coding-standards.md` → *AI illustration*) — via the
+shared capture harness (the standard path just below). The committed
+`public/samples/<book-id>/` assets are these PRODUCTION_QUALITY frames, so the storefront shows
+true quality. **LOW stays the engine default** for prompt iteration and throwaway QA-frame runs
+(a bare `generateAllIllustrations` is all-LOW, ~$0.07–$0.08/book) — reach for it when you only
+need frames to eyeball, but it is *not* what ships to `public/samples/`. Don't commit the
+canonical QA fixtures; the sample run uses its own fresh-id fixture (next).
+
+**Ship the full storefront sample set (the standard path).** Each title gets a full example
+book starring a different pet species, generated at the **same mixed `PRODUCTION_QUALITY`** the
+customer receives, via the shared capture harness:
+1. Add a tiny fixture (`fixtures/<story>-sample.json`) with a fresh `id` and `pet.photo`
+   pointing at the committed species photo (`uploads/sample-photos/<species>.jpg` — the one
+   tracked spot under `uploads/`; see `coding-standards.md` → *Files, IO, and persistence*).
+2. `npm run proto:sample fixtures/<story>-sample.json` — the PAID run (≈ $1/book): generates
+   every illustration at `PRODUCTION_QUALITY` and renders the full-res working PDF to
+   `./output/` (PNGs + manifest + `session.json` under `./generated/<id>/`).
+3. `tsx --tsconfig scripts/tsconfig.json scripts/sample-capture.ts --id <id> --out <book-id>`
+   — $0: `sips`-downscales the PNGs → slim web JPGs (named by slot id) + a slim `preview.pdf`
+   rendered **from the downscaled JPGs**, all written to `public/samples/<book-id>/`.
+4. Wire the catalog's `sampleImages` + `previewPdf` (Step 4).
 
 **Samples are optional / backfillable.** A book may register and sell with
 `sampleImages: []` — the `/books` card and detail page degrade to the placeholder art
@@ -285,13 +299,13 @@ backfill the samples when convenient; just keep `sampleImages` **empty until the
 actually exist** under `public/samples/<book-id>/` (a path pointing at a missing file
 renders a 404 `<img>`, which is the one thing the placeholder fallback is there to avoid).
 
-**Optional HIGH-tier hero exception (`previewPdf`).** A flagship title may also carry a
-full-book **preview PDF** + a fuller HIGH-tier sample gallery, captured by a one-time paid
-HIGH run (`generateAllIllustrations(session, { sceneQuality: "high", referenceQuality: "high" })`
-via a throwaway script — see `scripts/story1-high-run.ts` / `proto:story1-high` as the
-template) and committed as static assets. This is a **deliberate, sample-only exception** to
-the Low-default tier — it never changes the engine default; real customer orders still run Low.
-Set the catalog's `previewPdf` (Step 4) once the file exists.
+**`previewPdf` is part of the standard set.** Step 3 above already renders a slim, web-res
+`preview.pdf` (from the downscaled JPGs) for every title, so wire the catalog's `previewPdf`
+(Step 4) alongside `sampleImages`. The **one exception** is Story 1, which *also* carries a
+one-time **full-res HIGH** preview (~31 MB) from a deliberate `scripts/story1-high-run.ts` /
+`proto:story1-high` run — a sample-only flourish that never changes the engine default (real
+customer orders run the mixed tier). New titles don't need the HIGH variant; the slim
+PRODUCTION_QUALITY preview from Step 3 is the norm.
 
 ---
 

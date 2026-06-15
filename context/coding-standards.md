@@ -97,6 +97,13 @@ framework beyond this list without approval. The plan in
 
 - Runtime data dirs — `uploads/ generated/ sessions/ output/` — are gitignored and
   ESLint-ignored. Code may create/read files there; never commit their contents.
+  **One tracked exception:** `uploads/sample-photos/` (a `.gitignore` negation) holds
+  the committed royalty-free reference photos that drive the storefront **sample runs**
+  — version-controlled so each title's example book is reproducible from a clean
+  checkout (the rest of `uploads/` stays ignored). Those storefront samples are
+  generated at the locked mixed `PRODUCTION_QUALITY` (HIGH cover/hero + MEDIUM
+  interiors + LOW reference, same as the batch worker) via `scripts/sample-run.ts`,
+  then downscaled to slim web JPGs + a slim `preview.pdf` by `scripts/sample-capture.ts`.
 - **Two stores, by design.** The local POC **engine** persists to JSON files
   (`./sessions/[id].json`) + images under `./generated/[session-id]/` — keep this for
   the engine's inputs/artifacts. The **commerce layer** persists **orders** to
@@ -144,8 +151,11 @@ framework beyond this list without approval. The plan in
   config until set with the PM before PR-06; per-product `sampleImages` are the storefront's
   web-optimized sample art under `public/samples/`, populated in PR-04. The optional
   `previewPdf?` (a plain string path under `public/samples/<id>/preview.pdf`, same client-safe
-  rationale) is the storefront's downloadable full-book preview — set only for flagship titles
-  captured by a deliberate one-time HIGH-tier run (Story 1 only today), never the engine default.
+  rationale) is the storefront's downloadable full-book preview — generated for **any** title by
+  the one-time mixed `PRODUCTION_QUALITY` sample run (`scripts/sample-run.ts` →
+  `sample-capture.ts`, which renders a *slim* preview from the downscaled JPGs), never the engine
+  default. Story 1 additionally carries a one-time **full-res HIGH** preview (the deliberate
+  `proto:story1-high` exception).
 - **Commerce delivery layer** (`lib/delivery/`, PR-09): closes the MVP loop on Approve.
   `lib/delivery/token.ts` is **pure** (`node:crypto`) — `mintDeliveryToken()` (256-bit
   base64url, the order's unguessable download token) + `isWellFormedToken()` (cheap

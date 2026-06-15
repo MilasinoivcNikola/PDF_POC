@@ -26,6 +26,11 @@ output/*
 !generated/.gitkeep
 !sessions/.gitkeep
 !output/.gitkeep
+# Exception: the committed royalty-free reference photos that drive the
+# storefront sample runs (see context/coding-standards.md → Files, IO, and
+# persistence). The rest of uploads/ stays ignored.
+!uploads/sample-photos/
+!uploads/sample-photos/**
 
 # Claude Code local-only settings
 .claude/settings.local.json
