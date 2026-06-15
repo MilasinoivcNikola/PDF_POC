@@ -26,9 +26,12 @@
 
 ## Why this model (recap)
 
-- "Instant" (seconds) is impossible — a book is ~14 AI image calls at gpt-image-2's
-  ~5/min ceiling = 4–8 min. But **automated-async** (minutes-to-hours, no manual
-  labor) is fully feasible. The real choice was automated-async vs manual; automated wins.
+- "Instant" (seconds) is impossible — a book is ~14 AI image calls, each taking
+  seconds-to-tens-of-seconds to generate, so a book lands in minutes regardless of the
+  rate ceiling (originally sized against ~5/min; the verified Tier-2 limit is now 20
+  images/min — see `context/features/ai-concurrency-env.md`). But **automated-async**
+  (minutes-to-hours, no manual labor) is fully feasible. The real choice was
+  automated-async vs manual; automated wins.
 - A **human approval gate** is kept on purpose: this is a grief product, and shipping
   a bereaved customer a book where the pet drifted is unacceptable. The gate is a
   ~30-second glance + optional repaint, not manual authoring.

@@ -73,7 +73,7 @@ import {
   hashReferenceSet,
 } from "@/lib/ai/cache";
 import { isSafeSessionId, resolveUnder } from "@/lib/ai/paths";
-import { withRetry, mapWithConcurrency, DEFAULT_CONCURRENCY } from "@/lib/ai/retry";
+import { withRetry, mapWithConcurrency, resolveSceneConcurrency } from "@/lib/ai/retry";
 import type { Uploadable } from "openai";
 
 /** Cost/quality tier. Maps 1:1 to the SDK's `quality` enum. Default: low. */
@@ -403,8 +403,8 @@ async function generateAndSaveScene(
  *      check the cache, generate if needed, and save to ./generated/[id]/[page].png.
  *
  * Approach A and C scenes are independent ⇒ generated in PARALLEL, but through a
- * bounded worker pool (DEFAULT_CONCURRENCY) so the burst respects the live
- * ~5 image-input/min rate limit. Approach B accumulates prior scenes as
+ * bounded worker pool (resolveSceneConcurrency(), default 3) so the burst respects
+ * the live image-input/min rate limit. Approach B accumulates prior scenes as
  * references ⇒ generated SEQUENTIALLY in book order. Either way, every scene
  * call is wrapped in withRetry so a 429 is retried with backoff. Every write
  * goes through the traversal guards in lib/ai/paths.ts.
@@ -525,7 +525,7 @@ export async function generateAllIllustrations(
     // manifest order is identical to the old unbounded path.
     const results = await mapWithConcurrency(
       SCENE_PAGE_IDS,
-      DEFAULT_CONCURRENCY,
+      resolveSceneConcurrency(),
       async (page) => {
         const references = referencesForScene(approach, bundle, []);
         const { entry } = await generateAndSaveScene(
@@ -611,7 +611,7 @@ async function generateStory2Illustrations(
   const slots = getStory("story-2").illustrationSlots as readonly Story2PageId[];
   const prompts = buildStory2SlotPrompts(session);
 
-  return mapWithConcurrency(slots, DEFAULT_CONCURRENCY, async (slot) => {
+  return mapWithConcurrency(slots, resolveSceneConcurrency(), async (slot) => {
     const slotPrompt = prompts[slot];
     if (!slotPrompt) {
       throw new Error(`No Story-2 prompt builder for slot: ${slot}`);
@@ -687,7 +687,7 @@ async function generateStory4Illustrations(
   const slots = getStory("story-4").illustrationSlots as readonly Story4PageId[];
   const prompts = buildStory4SlotPrompts(session);
 
-  return mapWithConcurrency(slots, DEFAULT_CONCURRENCY, async (slot) => {
+  return mapWithConcurrency(slots, resolveSceneConcurrency(), async (slot) => {
     const slotPrompt = prompts[slot];
     if (!slotPrompt) {
       throw new Error(`No Story-4 prompt builder for slot: ${slot}`);
@@ -765,7 +765,7 @@ async function generateStory5Illustrations(
   const slots = getStory("story-5").illustrationSlots as readonly Story5PageId[];
   const prompts = buildStory5SlotPrompts(session);
 
-  return mapWithConcurrency(slots, DEFAULT_CONCURRENCY, async (slot) => {
+  return mapWithConcurrency(slots, resolveSceneConcurrency(), async (slot) => {
     const slotPrompt = prompts[slot];
     if (!slotPrompt) {
       throw new Error(`No Story-5 prompt builder for slot: ${slot}`);
@@ -885,7 +885,7 @@ async function generateStory6Illustrations(
 
   const sceneEntries = await mapWithConcurrency(
     slots,
-    DEFAULT_CONCURRENCY,
+    resolveSceneConcurrency(),
     async (slot) => {
       const slotPrompt = prompts[slot];
       if (!slotPrompt) {
@@ -1022,7 +1022,7 @@ async function generateStory7Illustrations(
 
   const sceneEntries = await mapWithConcurrency(
     slots,
-    DEFAULT_CONCURRENCY,
+    resolveSceneConcurrency(),
     async (slot) => {
       const slotPrompt = prompts[slot];
       if (!slotPrompt) {
