@@ -102,6 +102,10 @@ not buried in the write-up.
 
 - 2026-06-15 — Rename the brand to Dearbound — `feature/rename-dearbound` (f1fd117, merge 1eaf042) — branding string rename only ("Quietly Kept" → **Dearbound**, dearbound.com): new `lib/brand.ts` `BRAND` single-source across ~16 pages + `<title>` suffixes, new tagline ("custom illustrated books starring your pet"), softened catalog/nav label ("The keepsakes" → "The books"), email/PDF-fallback/live-docs/masterstories rebranded; "keepsake" kept as a product descriptor (D2), history + superseded specs left as the dated record (D3, prior brand Quietly Kept); guard test fails on any surviving "Quietly Kept" (mutation-verified). No behavior/layout/pricing change, PDFs byte-identical → [archive](history/2026-06-15-rename-brand-to-dearbound.md)
 
+## Milestone 15 — Public-pages refresh
+
+- 2026-06-15 — Public Refresh PR-1: Catalog Data Foundation — `feature/public-refresh-catalog-data` — data + pure helpers only, zero visible change: added `audience: "living" | "loss"` + optional `displayTitle?` to the `Product` contract, classified all 8 titles (5 living / 3 loss — the deliberate Story-6 "While You're Still Here" → living reclassification, partition-test-pinned), added `getProductsByAudience` / `productDisplayTitle` selectors; module stays pure/client-safe; new-book-playbook updated for the now-required `audience` field — unblocks PR-2/3/4 → [archive](history/2026-06-15-public-refresh-pr-1-catalog-data-foundation.md)
+
 ## Dev-process & tooling
 
 - 2026-06-13 — Feature 27: Lean the Context System — `feature/lean-context-system` (8acefc3, merge 8ce2183) — docs-only, zero-loss: tiered the history into a lean index + `context/history/` archive (39 files, byte-identical), trimmed `CLAUDE.md` `@`-loads to 5 live docs, pointed test-restating prose at its tests, added the `context/debt.md` ledger → [archive](history/2026-06-13-lean-context-system.md)
