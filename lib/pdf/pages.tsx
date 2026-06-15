@@ -51,6 +51,23 @@ export type PageImageMap = Partial<Record<PageId, string>>;
 const DEDICATION_ART_PAGE_IDS: readonly string[] = ["tribute-page-1"];
 const LOVE_ART_PAGE_IDS: readonly string[] = ["tribute-page-5", "tribute-page-6"];
 
+// The `closing` layout pages that reuse the COVER illustration (circled) as their
+// closing art when they have no own generated `src`. Story 1's closing page
+// (`page-12`) IS a generated illustration slot, so it always takes the first branch
+// and never needs this fallback. Story 7 ("Welcome Home"), by contrast, ends on
+// `welcome-closing` — a page that is NOT one of its illustration slots (its scene
+// list ends at `welcome-belong`), so with no src the generic PlaceholderPet face
+// leaked through for every Story-7 book. The masterstory's closing brief asks the
+// image to "rhyme with the cover," so on this page only we reuse the cover art in a
+// circular vignette ($0 — no new generation).
+//
+// Gated by an explicit page-id allow-list containing ONLY the Story-7 closing id —
+// the same pattern as DEDICATION_ART_PAGE_IDS / LOVE_ART_PAGE_IDS above. Story 1's
+// `page-12` (own src) and any other product's closing page (e.g. Story 8's
+// `adventure-closing`, Story 9's closing) are NOT in the set, so they keep their
+// exact current behavior and their PDFs stay byte-identical.
+const CLOSING_COVER_FALLBACK_PAGE_IDS: readonly string[] = ["welcome-closing"];
+
 // ---------------------------------------------------------------------------
 // Small shared bits
 // ---------------------------------------------------------------------------
@@ -288,13 +305,39 @@ function LovePage({ page, src }: { page: ResolvedPage; src?: string }) {
   );
 }
 
-function ClosingPage({ page, src }: { page: ResolvedPage; src?: string }) {
+function ClosingPage({
+  page,
+  src,
+  coverSrc,
+}: {
+  page: ResolvedPage;
+  src?: string;
+  coverSrc?: string;
+}) {
+  // Art slot precedence:
+  //   1. own generated `src` — the page's own closing illustration (Story 1's
+  //      `page-12`); rendered exactly as before, so Story 1 stays byte-identical.
+  //   2. else, on an allow-listed closing page (Story 7's `welcome-closing`) with
+  //      a cover image available — reuse the cover art in a circular vignette
+  //      (the `closing__art--circle` modifier), so the closing "rhymes with the
+  //      cover" instead of leaking the placeholder face. Costs $0.
+  //   3. else — the placeholder art (unchanged fallback for any other product's
+  //      closing page without art, and for Story 7 when no cover src is supplied,
+  //      e.g. the text-only `render:test` path).
+  const useCoverFallback =
+    !src && CLOSING_COVER_FALLBACK_PAGE_IDS.includes(page.id) && Boolean(coverSrc);
   return (
     <section className="story-page story-page--closing" data-page={page.id}>
       <div />
-      <div className="closing__art">
-        {src ? <img src={src} alt={page.illustrationBrief} /> : <PlaceholderPet />}
-      </div>
+      {useCoverFallback ? (
+        <div className="closing__art closing__art--circle">
+          <img src={coverSrc!} alt={page.illustrationBrief} />
+        </div>
+      ) : (
+        <div className="closing__art">
+          {src ? <img src={src} alt={page.illustrationBrief} /> : <PlaceholderPet />}
+        </div>
+      )}
       <div>
         <p className="closing__text">
           {page.body.map((text, i) => (
@@ -345,7 +388,11 @@ function BackCoverPage({ page }: { page: ResolvedPage }) {
  * `PageLayout` with no `default`, so a future product's new layout that forgets a
  * case is a compile-time error, not a silent fall-through to the wrong treatment.
  */
-export function renderPage(page: ResolvedPage, src?: string): ReactElement {
+export function renderPage(
+  page: ResolvedPage,
+  src?: string,
+  coverSrc?: string,
+): ReactElement {
   switch (page.layout) {
     case "cover":
       return <CoverPage key={page.id} page={page} src={src} />;
@@ -356,7 +403,7 @@ export function renderPage(page: ResolvedPage, src?: string): ReactElement {
     case "love":
       return <LovePage key={page.id} page={page} src={src} />;
     case "closing":
-      return <ClosingPage key={page.id} page={page} src={src} />;
+      return <ClosingPage key={page.id} page={page} src={src} coverSrc={coverSrc} />;
     case "back-cover":
       return <BackCoverPage key={page.id} page={page} />;
     case "narrative":
@@ -389,5 +436,12 @@ export function StoryPages({
   story: ResolvedStory;
   images: PageImageMap;
 }) {
-  return <>{story.map((page) => renderPage(page, images[page.id]))}</>;
+  // The cover illustration, found robustly by its `cover` layout (not a literal
+  // page id, so it works for any product — `cover`/`letter-cover` covers are by
+  // layout, and the closing fallback only ever uses the storybook `cover`). Passed
+  // through so an allow-listed closing page (Story 7) can reuse it circled when it
+  // has no own art — see CLOSING_COVER_FALLBACK_PAGE_IDS / ClosingPage.
+  const coverPage = story.find((page) => page.layout === "cover");
+  const coverSrc = coverPage ? images[coverPage.id] : undefined;
+  return <>{story.map((page) => renderPage(page, images[page.id], coverSrc))}</>;
 }

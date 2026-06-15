@@ -169,6 +169,7 @@ describe("story-1-book sample preview", () => {
       ["story-4-talk", "/samples/story-4-talk/preview.pdf"],
       ["story-5-letter-to", "/samples/story-5-letter-to/preview.pdf"],
       ["story-6-tribute", "/samples/story-6-tribute/preview.pdf"],
+      ["story-7-welcome", "/samples/story-7-welcome/preview.pdf"],
     ]);
     for (const product of getProducts()) {
       const expected = WITH_PREVIEW.get(product.productId);
@@ -533,12 +534,25 @@ describe("story-7-welcome catalog entry", () => {
     expect(product.description.trim().length).toBeGreaterThan(0);
   });
 
-  it("references non-empty sample images", () => {
+  it("pins the full 8-illustration bird sample set (real slot ids, book order)", () => {
     const product = getProduct("story-7-welcome")!;
-    expect(product.sampleImages.length).toBeGreaterThan(0);
-    for (const src of product.sampleImages) {
-      expect(src.trim().length).toBeGreaterThan(0);
-    }
+    expect(product.sampleImages).toEqual([
+      "/samples/story-7-welcome/welcome-cover.jpg",
+      "/samples/story-7-welcome/welcome-before.jpg",
+      "/samples/story-7-welcome/welcome-choosing.jpg",
+      "/samples/story-7-welcome/welcome-drive-home.jpg",
+      "/samples/story-7-welcome/welcome-first-night.jpg",
+      "/samples/story-7-welcome/welcome-learning.jpg",
+      "/samples/story-7-welcome/welcome-now-ours.jpg",
+      "/samples/story-7-welcome/welcome-belong.jpg",
+    ]);
+    expect(product.sampleImages).toHaveLength(8);
+  });
+
+  it("sets previewPdf to the published full-book sample PDF", () => {
+    expect(getProduct("story-7-welcome")!.previewPdf).toBe(
+      "/samples/story-7-welcome/preview.pdf",
+    );
   });
 
   it("has a unique id/storyType not shared with the other books", () => {

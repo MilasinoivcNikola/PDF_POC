@@ -327,8 +327,15 @@ function buildCatalog(): Product[] {
       priceUsd: PLACEHOLDER_STORY_7_PRICE_USD,
       sampleImages: [
         "/samples/story-7-welcome/welcome-cover.jpg",
-        "/samples/story-7-welcome/welcome-page-7.jpg",
+        "/samples/story-7-welcome/welcome-before.jpg",
+        "/samples/story-7-welcome/welcome-choosing.jpg",
+        "/samples/story-7-welcome/welcome-drive-home.jpg",
+        "/samples/story-7-welcome/welcome-first-night.jpg",
+        "/samples/story-7-welcome/welcome-learning.jpg",
+        "/samples/story-7-welcome/welcome-now-ours.jpg",
+        "/samples/story-7-welcome/welcome-belong.jpg",
       ],
+      previewPdf: "/samples/story-7-welcome/preview.pdf",
       audience: "living",
     }),
     buildProduct("story-8-adventure", "story-8", {

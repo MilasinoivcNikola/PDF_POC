@@ -1838,6 +1838,15 @@ p {
   object-fit: cover;
 }
 
+/* Cover-art-reused-as-closing (Story 7's `welcome-closing`) — screen mirror of the
+   print `.closing__art--circle`: a tighter, ringed round vignette that rhymes with
+   the cover. See lib/pdf/styles.css for the print sizing. */
+.closing__art--circle {
+  width: 55%;
+  max-width: 180px;
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px rgba(168, 129, 71, 0.4);
+}
+
 .closing__art svg {
   position: absolute;
   inset: 20%;
@@ -2227,6 +2236,13 @@ p {
   aspect-ratio: auto;
   max-width: 100%;
   margin: var(--s-8) auto;
+}
+
+/* The circled cover-fallback closing (Story 7) at preview scale: a smaller framed
+   medallion than a full closing scene. Mirrors the print `.closing__art--circle`. */
+.preview-page .closing__art--circle {
+  width: 3in;
+  height: 3in;
 }
 
 .preview-page .closing__text {
