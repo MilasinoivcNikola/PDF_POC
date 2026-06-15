@@ -63,6 +63,19 @@ export interface Product {
    * `illustrationSlots` (never hardcoded) so it can't drift from the engine.
    */
   illustrationCount: number;
+  /**
+   * Which world the title belongs to: `living` celebrates a pet who is still
+   * here, `loss` remembers one who has died. Drives the storefront's two-world
+   * split ("celebrate them" vs "remember them"). The customer-facing words are
+   * set in the page copy, not here — this is the internal classification.
+   */
+  audience: "living" | "loss";
+  /**
+   * Optional card/landing title override for when the stored `title` reads
+   * incomplete on a standalone card. Falls back to `title` when unset — use
+   * `productDisplayTitle(p)` to resolve.
+   */
+  displayTitle?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,7 +141,10 @@ const PLACEHOLDER_STORY_9_PRICE_USD = 2700;
 function buildProduct(
   productId: string,
   storyType: StoryType,
-  meta: Pick<Product, "title" | "tagline" | "description" | "sampleImages"> & {
+  meta: Pick<
+    Product,
+    "title" | "tagline" | "description" | "sampleImages" | "audience" | "displayTitle"
+  > & {
     priceUsd: number;
   },
 ): Product {
@@ -142,6 +158,8 @@ function buildProduct(
     lsVariantId: undefined,
     sampleImages: meta.sampleImages,
     illustrationCount: getStory(storyType).illustrationSlots.length,
+    audience: meta.audience,
+    displayTitle: meta.displayTitle,
   };
 }
 
@@ -170,6 +188,7 @@ function buildCatalog(): Product[] {
         "/samples/story-1-book/page-4.jpg",
         "/samples/story-1-book/page-10.jpg",
       ],
+      audience: "loss",
     }),
     buildProduct("story-2-letter", "story-2", {
       title: "A Letter from Your Pet",
@@ -186,6 +205,7 @@ function buildCatalog(): Product[] {
         "/samples/story-2-letter/letter-cover.jpg",
         "/samples/story-2-letter/letter-page-5.jpg",
       ],
+      audience: "loss",
     }),
     buildProduct("story-4-talk", "story-4", {
       title: "If Your Pet Could Talk",
@@ -205,6 +225,7 @@ function buildCatalog(): Product[] {
         "/samples/story-4-talk/talk-cover.jpg",
         "/samples/story-4-talk/talk-page-4.jpg",
       ],
+      audience: "living",
     }),
     buildProduct("story-5-letter-to", "story-5", {
       title: "A Letter to Your Pet",
@@ -224,6 +245,7 @@ function buildCatalog(): Product[] {
         "/samples/story-5-letter-to/note-cover.jpg",
         "/samples/story-5-letter-to/note-page-5.jpg",
       ],
+      audience: "loss",
     }),
     buildProduct("story-6-tribute", "story-6", {
       title: "While You're Still Here",
@@ -244,6 +266,9 @@ function buildCatalog(): Product[] {
         "/samples/story-6-tribute/tribute-cover.jpg",
         "/samples/story-6-tribute/tribute-page-3.jpg",
       ],
+      // Living, not loss: a tribute to a pet who is STILL ALIVE — the deliberate
+      // reclassification (filing "the goodbye" was a tone-miss). See PR-1 spec.
+      audience: "living",
     }),
     buildProduct("story-7-welcome", "story-7", {
       title: "Welcome Home",
@@ -264,6 +289,7 @@ function buildCatalog(): Product[] {
         "/samples/story-7-welcome/welcome-cover.jpg",
         "/samples/story-7-welcome/welcome-page-7.jpg",
       ],
+      audience: "living",
     }),
     buildProduct("story-8-adventure", "story-8", {
       title: "The Amazing Adventures of Your Pet",
@@ -285,6 +311,7 @@ function buildCatalog(): Product[] {
         "/samples/story-8-adventure/adventure-cover.jpg",
         "/samples/story-8-adventure/adventure-leap.jpg",
       ],
+      audience: "living",
     }),
     buildProduct("story-9-newbaby", "story-9", {
       title: "And the New Baby",
@@ -307,6 +334,10 @@ function buildCatalog(): Product[] {
         "/samples/story-9-newbaby/newbaby-cover.jpg",
         "/samples/story-9-newbaby/newbaby-page-7.jpg",
       ],
+      audience: "living",
+      // The only displayTitle override: "And the New Baby" reads incomplete on a
+      // standalone card, so the card/landing show the full phrase.
+      displayTitle: "Your Pet and the New Baby",
     }),
   ];
 }
@@ -322,4 +353,21 @@ export function getProducts(): Product[] {
 /** Look up one product by its catalog id; `null` for an unknown id. */
 export function getProduct(productId: string): Product | null {
   return getProducts().find((p) => p.productId === productId) ?? null;
+}
+
+/**
+ * The catalog filtered to one world (`living` celebrates / `loss` remembers),
+ * preserving catalog order. One place for the storefront's two-world split so
+ * pages don't each re-implement the filter.
+ */
+export function getProductsByAudience(audience: "living" | "loss"): Product[] {
+  return getProducts().filter((p) => p.audience === audience);
+}
+
+/**
+ * The title to show on a card/landing/detail: the `displayTitle` override when
+ * set, otherwise the stored `title`. The one place that resolves the fallback.
+ */
+export function productDisplayTitle(p: Product): string {
+  return p.displayTitle ?? p.title;
 }

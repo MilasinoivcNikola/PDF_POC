@@ -211,6 +211,14 @@ Add a `Product` to `lib/catalog/products.ts`'s `buildCatalog()` via `buildProduc
   `getStory(storyType).illustrationSlots.length`, so it can't drift from the engine. Leave
   that as-is.
 - **`sampleImages`** — public web paths under `public/samples/<book-id>/` (Step 6).
+- **`audience`** — **required**: `"living"` (celebrate a pet who is still here) or `"loss"`
+  (remember one who has died). Drives the storefront's two-world split; the partition test in
+  `lib/catalog/products.test.ts` fails until the new id is added to the matching set, so classify
+  deliberately. (Story 4 is a precedent for judgement: primarily living, with a memorial checkout
+  option — its primary shelf still wins, so it's `living`.)
+- **`displayTitle`** — optional card/landing title override; **omit it** unless the stored `title`
+  reads incomplete on a standalone card (today only Story 9 sets it). Resolve via
+  `productDisplayTitle(p)`, never `p.title` directly.
 - `lsVariantId` is left `undefined` in the catalog **on purpose** — see Step 5.
 
 ### Client-safe boundary (do not break this)
@@ -353,6 +361,8 @@ buildProduct("story-3-booklet", "story-3", {
   description: "…",                 // from the master template's customer-facing copy
   priceUsd: PLACEHOLDER_STORY_3_PRICE_USD,
   sampleImages: ["/samples/story-3-booklet/cover.jpg"],
+  audience: "loss",                 // required: "living" | "loss" — classify deliberately
+  // displayTitle: only if the stored title reads incomplete on a card (usually omit)
   // illustrationCount is DERIVED by buildProduct from the registry — do not set it
 }),
 ```

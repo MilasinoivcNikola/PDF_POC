@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 
-import { getProduct, getProducts } from "@/lib/catalog/products";
+import {
+  getProduct,
+  getProducts,
+  getProductsByAudience,
+  productDisplayTitle,
+} from "@/lib/catalog/products";
 import { getStory } from "@/lib/story/registry";
 import type { StoryType } from "@/lib/session/types";
 
@@ -113,6 +118,108 @@ describe("getProducts", () => {
       expect(product.title.trim().length).toBeGreaterThan(0);
       expect(product.tagline.trim().length).toBeGreaterThan(0);
       expect(product.description.trim().length).toBeGreaterThan(0);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Audience split — the living/loss classification (public-refresh PR-1)
+// ---------------------------------------------------------------------------
+//
+// The catalog carries `audience: "living" | "loss"` so the storefront can render
+// its two-world split ("celebrate them" vs "remember them") from data. The
+// load-bearing assertion is the EXACT PARTITION: it pins the deliberate Story-6
+// reclassification (a tribute to a still-alive pet is `living`, not `loss`) and
+// catches a future title added without a deliberate classification. The split is
+// 5 living / 3 loss (not 4/4) — which is why counts are derived, never hardcoded.
+
+const LIVING_IDS = [
+  "story-4-talk",
+  "story-6-tribute",
+  "story-7-welcome",
+  "story-8-adventure",
+  "story-9-newbaby",
+];
+const LOSS_IDS = ["story-1-book", "story-2-letter", "story-5-letter-to"];
+
+describe("audience classification", () => {
+  it("gives every product a valid audience ('living' | 'loss')", () => {
+    for (const product of getProducts()) {
+      expect(["living", "loss"]).toContain(product.audience);
+    }
+  });
+
+  it("partitions the catalog exactly per the mapping (5 living / 3 loss)", () => {
+    const living = getProducts()
+      .filter((p) => p.audience === "living")
+      .map((p) => p.productId);
+    const loss = getProducts()
+      .filter((p) => p.audience === "loss")
+      .map((p) => p.productId);
+    // Assert the SETS so a future title added without a deliberate classification
+    // (or the Story-6 reclassification silently regressing) fails here.
+    expect(new Set(living)).toEqual(new Set(LIVING_IDS));
+    expect(new Set(loss)).toEqual(new Set(LOSS_IDS));
+    expect(living).toHaveLength(5);
+    expect(loss).toHaveLength(3);
+  });
+});
+
+describe("getProductsByAudience", () => {
+  it("returns the living members in catalog order", () => {
+    const ids = getProductsByAudience("living").map((p) => p.productId);
+    expect(ids).toEqual(
+      getProducts()
+        .filter((p) => LIVING_IDS.includes(p.productId))
+        .map((p) => p.productId),
+    );
+    expect(new Set(ids)).toEqual(new Set(LIVING_IDS));
+  });
+
+  it("returns the loss members in catalog order", () => {
+    const ids = getProductsByAudience("loss").map((p) => p.productId);
+    expect(ids).toEqual(
+      getProducts()
+        .filter((p) => LOSS_IDS.includes(p.productId))
+        .map((p) => p.productId),
+    );
+    expect(new Set(ids)).toEqual(new Set(LOSS_IDS));
+  });
+
+  it("partitions getProducts() with no overlap and no omission", () => {
+    const living = getProductsByAudience("living");
+    const loss = getProductsByAudience("loss");
+    const all = getProducts();
+    // Sizes sum to the whole catalog...
+    expect(living.length + loss.length).toBe(all.length);
+    // ...no product appears in both worlds...
+    const livingIds = new Set(living.map((p) => p.productId));
+    for (const p of loss) {
+      expect(livingIds.has(p.productId)).toBe(false);
+    }
+    // ...and together they cover every product exactly once.
+    const union = new Set([...living, ...loss].map((p) => p.productId));
+    expect(union).toEqual(new Set(all.map((p) => p.productId)));
+  });
+});
+
+describe("productDisplayTitle", () => {
+  it("returns the override for story-9-newbaby", () => {
+    const product = getProduct("story-9-newbaby")!;
+    expect(productDisplayTitle(product)).toBe("Your Pet and the New Baby");
+  });
+
+  it("falls back to title for every other product (the only override is Story 9)", () => {
+    for (const product of getProducts()) {
+      if (product.productId === "story-9-newbaby") continue;
+      expect(product.displayTitle).toBeUndefined();
+      expect(productDisplayTitle(product)).toBe(product.title);
+    }
+  });
+
+  it("never resolves to an empty display title", () => {
+    for (const product of getProducts()) {
+      expect(productDisplayTitle(product).trim().length).toBeGreaterThan(0);
     }
   });
 });
