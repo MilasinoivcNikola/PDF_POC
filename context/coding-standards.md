@@ -256,9 +256,13 @@ These three areas have rules that general web code doesn't.
   **Byte-identity rule:** a change that touches the shared template must leave every
   *existing* product's PDF output byte-identical (verified by raw length + a
   timestamp-normalized SHA — headless Chrome stamps a per-second `/CreationDate`). The
-  structural half is test-enforced: `lib/pdf/template.test.tsx` / `template.story2.test.tsx`
-  lock each product's section count + layout tags, so re-run them rather than restating which
-  pages exist.
+  structural half is test-enforced: the `lib/pdf/template*.test.tsx` suite (`template.test.tsx`
+  + the per-story `template.story2/story4/story6.test.tsx`) locks each product's section count
+  + layout tags, so re-run them rather than restating which pages exist. A shared layout that
+  some products illustrate and others don't (e.g. `dedication`/`love`) gates its art by a
+  per-story page-id allow-list in `pages.tsx` (`DEDICATION_ART_PAGE_IDS` / `LOVE_ART_PAGE_IDS`,
+  mirroring the `letter` `LETTER_FEATURE_PAGE_IDS` pattern) — that is how a new title carries
+  art on a reused layout while every existing product stays byte-identical.
 - Print CSS owns page geometry: `@page` size + margins, `break-inside: avoid` /
   `break-before: page` for page boundaries, `preferCSSPageSize: true` in Puppeteer.
 - Output is 8.5×11 (or 8×8 square), **≥300 DPI**. Size raster images for 300 DPI at

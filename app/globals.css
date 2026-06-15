@@ -1660,6 +1660,27 @@ p {
   margin-bottom: var(--s-6);
 }
 
+/* SCREEN mirror of the print .dedication__art rule (Story 6 `tribute-page-1`):
+   a quiet single portrait in place of the ornament. Responsive height here; the
+   .preview-page block below pins it to the print 3.4in for a true-scale model. */
+.dedication__art {
+  width: clamp(2.4in, 40vw, 3.4in);
+  height: clamp(2.4in, 40vw, 3.4in);
+  max-width: 100%;
+  margin: 0 auto var(--s-8);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.dedication__art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .dedication__verse {
   font-family: var(--font-body);
   font-size: clamp(1rem, 1.8vw, 1.2rem);
@@ -1763,6 +1784,27 @@ p {
   font-style: italic;
   font-size: 1.2rem;
   color: var(--ink);
+}
+
+/* SCREEN mirror of the print .love__art rule (Story 6 `tribute-page-5` /
+   `tribute-page-6`): a warm hero scene below the closer. Responsive height here;
+   the .preview-page block below pins it to the print 5x3.6in for a true-scale model. */
+.love__art {
+  width: clamp(3.4in, 55vw, 5in);
+  height: clamp(2.4in, 40vw, 3.6in);
+  max-width: 100%;
+  margin: var(--s-8) auto 0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.love__art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Page 12 — closing */
@@ -2144,6 +2186,14 @@ p {
   margin-top: var(--s-12);
 }
 
+/* Dedication portrait (Story 6) at the print inch box (3.4x3.4in). */
+.preview-page .dedication__art {
+  width: 3.4in;
+  height: 3.4in;
+  max-width: 100%;
+  margin: 0 auto var(--s-8);
+}
+
 /* --- Page 7 — gentle truth --- */
 .preview-page .story-page--truth .story-art {
   margin-bottom: var(--s-8);
@@ -2160,6 +2210,14 @@ p {
 
 .preview-page .love__closer {
   margin-top: var(--s-12);
+}
+
+/* Love hero scene (Story 6) at the print inch box (5x3.6in). */
+.preview-page .love__art {
+  width: 5in;
+  height: 3.6in;
+  max-width: 100%;
+  margin: var(--s-12) auto 0;
 }
 
 /* --- Page 12 — closing --- */
