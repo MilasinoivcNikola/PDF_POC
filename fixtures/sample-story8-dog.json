@@ -1,0 +1,28 @@
+{
+  "id": "sample-story8-dog",
+  "createdAt": "2026-06-15T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-8",
+  "pet": {
+    "name": "Pickle",
+    "species": "dog",
+    "breedColor": "Pembroke Welsh corgi with a red-and-white coat, a white blaze down the nose, very short legs, and big upright ears",
+    "pronoun": "she",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/sample-photos/dog-corgi.jpg"
+  },
+  "adventure": {
+    "superpower": "the Great Round-Up",
+    "favoriteActivity": "rounding up the family's slippers into one tidy pile by the door",
+    "quirks": "boops the back of everyone's knees to steer them where she wants them to go",
+    "sidekickName": "Maple",
+    "childName": "Nora",
+    "nicknames": "Pickle-pie, the Loaf"
+  },
+  "toggles": {
+    "adventureTheme": "backyard-mystery",
+    "heroCount": "pet-plus",
+    "childAgeBracket": "6-8"
+  },
+  "images": []
+}
