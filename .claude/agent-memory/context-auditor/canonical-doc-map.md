@@ -54,11 +54,18 @@ left untouched but still call the *current* house style / voice / catalog "Quiet
 were ambiguous under D3 (not in either list). Flag as nice-to-have staleness: a future story
 author reads these as source-of-truth and the brand reference now misleads.
 
-Roadmap-header scope-framing lag (recurring): `commerce-roadmap.md`'s header line
-"**Pet-memorial focused; catalog grows by authoring more book titles**" (line ~7) lagged the
-catalog broadening. Story 4 ("If [PET_NAME] Could Talk", PR-22) is by deliberate master-template
-decision a **living/celebration** product (default = living pet; birthday/gotcha-day gift), with
-memorial only a secondary toggle. The newest decision doc for Story 4 is its master template
-(ranked #1 candidate, celebration-default). The Phase-5 *body* ("each new title = a new registry
-entry") stays correct; only the header's "Pet-memorial focused" framing understates the line.
-Flag as staleness when a non-memorial product lands; recommend updating the roadmap header.
+Roadmap-header scope-framing lag — RESOLVED (verified 2026-06-15 on
+feature/public-refresh-catalog-data). `commerce-roadmap.md`'s header (lines 7-9) now reads
+"**Pet-keepsake focused** — both memorial titles … and celebration / living titles (e.g.
+Story 4 …)", so it no longer understates the broadened catalog. Do NOT re-flag the header as
+memorial-only drift. (History: it formerly said "Pet-memorial focused" and lagged Story 4's
+living/celebration default.)
+
+Audience field convention (new, PR public-refresh-1, 2026-06-15): `lib/catalog/products.ts`
+`Product` now carries a **required** `audience: "living" | "loss"` + optional `displayTitle?`.
+Living = pet still here, loss = pet has died; Story 6 "While You're Still Here" is deliberately
+**living** (masterstory confirms: tribute to a still-alive pet, memorial path dropped).
+Recurring drift to expect on the **next new-book branch**: `new-book-playbook.md` Step 4 field
+checklist (~line 201) + worked `buildProduct` example (~line 350) OMIT `audience`, which is now
+required — a book authored from the playbook won't compile + fails the partition test in
+`products.test.ts`. See [[new-book-playbook-pr10]].
