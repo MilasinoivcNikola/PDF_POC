@@ -211,6 +211,12 @@ Add a `Product` to `lib/catalog/products.ts`'s `buildCatalog()` via `buildProduc
   `getStory(storyType).illustrationSlots.length`, so it can't drift from the engine. Leave
   that as-is.
 - **`sampleImages`** — public web paths under `public/samples/<book-id>/` (Step 6).
+- **`previewPdf`** — **optional**: a full-book sample PDF under
+  `public/samples/<book-id>/preview.pdf`, surfaced as a "See the full book (PDF)" link on the
+  detail page. **Omit it** unless you've captured one. Today only `story-1-book` carries one —
+  from a deliberate **one-time HIGH-tier** hero-title run (Step 6), the documented exception to
+  the Low-default sample rule, not a change to it. Plain string path, so the module stays
+  client-safe.
 - **`audience`** — **required**: `"living"` (celebrate a pet who is still here) or `"loss"`
   (remember one who has died). Drives the storefront's two-world split; the partition test in
   `lib/catalog/products.test.ts` fails until the new id is added to the matching set, so classify
@@ -265,6 +271,14 @@ block (a tinted panel with the paw mark), not a broken image. So ship the book f
 backfill the samples when convenient; just keep `sampleImages` **empty until the files
 actually exist** under `public/samples/<book-id>/` (a path pointing at a missing file
 renders a 404 `<img>`, which is the one thing the placeholder fallback is there to avoid).
+
+**Optional HIGH-tier hero exception (`previewPdf`).** A flagship title may also carry a
+full-book **preview PDF** + a fuller HIGH-tier sample gallery, captured by a one-time paid
+HIGH run (`generateAllIllustrations(session, { sceneQuality: "high", referenceQuality: "high" })`
+via a throwaway script — see `scripts/story1-high-run.ts` / `proto:story1-high` as the
+template) and committed as static assets. This is a **deliberate, sample-only exception** to
+the Low-default tier — it never changes the engine default; real customer orders still run Low.
+Set the catalog's `previewPdf` (Step 4) once the file exists.
 
 ---
 

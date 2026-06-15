@@ -1,0 +1,28 @@
+{
+  "id": "story1-high",
+  "createdAt": "2026-06-15T00:00:00.000Z",
+  "status": "ready",
+  "pet": {
+    "name": "Bo",
+    "species": "dog",
+    "breedColor": "fawn-and-white boxer with a dark mask over his eyes and muzzle and a white blaze down his chest",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/high-run-candidates/test-image.jpg"
+  },
+  "child": {
+    "name": "Liam",
+    "ageBracket": "6-8"
+  },
+  "memories": {
+    "favoriteActivity": "racing across the backyard after a tennis ball",
+    "sleepingSpot": "curled up at the foot of your bed",
+    "favoriteMemory": "The afternoon Bo splashed into the creek after you, and you both came home muddy and happy, grinning the whole way."
+  },
+  "toggles": {
+    "deathType": "natural",
+    "beliefFrame": "rainbow-bridge",
+    "otherPetsInHome": "no"
+  },
+  "images": []
+}

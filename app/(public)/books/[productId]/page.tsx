@@ -168,6 +168,16 @@ export default async function BookDetailPage({ params }: DetailProps) {
                   />
                 </svg>
               </Link>
+              {product.previewPdf ? (
+                <a
+                  href={product.previewPdf}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn--ghost"
+                >
+                  See the full book (PDF)
+                </a>
+              ) : null}
               <p className={styles.ctaMeta}>
                 A few gentle questions and a photo. We paint it and send you a
                 print-quality PDF.

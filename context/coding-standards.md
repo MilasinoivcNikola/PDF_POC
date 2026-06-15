@@ -142,7 +142,10 @@ framework beyond this list without approval. The plan in
   boundary guard bans all of `lib/ai/*` from the public graph, so a registry helper that
   imported a prompt builder would reintroduce the break PR-04 fixed. Prices are placeholder
   config until set with the PM before PR-06; per-product `sampleImages` are the storefront's
-  web-optimized sample art under `public/samples/`, populated in PR-04.
+  web-optimized sample art under `public/samples/`, populated in PR-04. The optional
+  `previewPdf?` (a plain string path under `public/samples/<id>/preview.pdf`, same client-safe
+  rationale) is the storefront's downloadable full-book preview — set only for flagship titles
+  captured by a deliberate one-time HIGH-tier run (Story 1 only today), never the engine default.
 - **Commerce delivery layer** (`lib/delivery/`, PR-09): closes the MVP loop on Approve.
   `lib/delivery/token.ts` is **pure** (`node:crypto`) — `mintDeliveryToken()` (256-bit
   base64url, the order's unguessable download token) + `isWellFormedToken()` (cheap
