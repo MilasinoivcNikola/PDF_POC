@@ -68,6 +68,10 @@ export const story1Definition: StoryDefinition = {
     return resolveStory(session);
   },
   illustrationSlots: SCENE_PAGE_IDS,
+  // The cover (storefront hero) + the closing scene (the emotional bookend) render
+  // at the HIGH production tier; every interior page is MEDIUM. The back cover is
+  // text-only, not a slot. Other titles default to cover-only (see `heroSlotsFor`).
+  heroSlots: ["cover", "page-12"],
   pdfFilename(session: StorySession): string {
     return storyPdfFilename(session.pet.name);
   },

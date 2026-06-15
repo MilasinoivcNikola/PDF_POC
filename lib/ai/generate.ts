@@ -32,6 +32,7 @@ import type {
   Story6Session,
   Story7Session,
   Story8Session,
+  StoryType,
 } from "@/lib/session/types";
 import type {
   PageId,
@@ -66,7 +67,7 @@ import {
 } from "@/lib/ai/story7-prompts";
 import { buildStory8SlotPrompts } from "@/lib/ai/story8-prompts";
 import { ADVENTURE_SCENE_PAGE_IDS } from "@/lib/story/story-8";
-import { getStory } from "@/lib/story/registry";
+import { getStory, heroSlotsFor } from "@/lib/story/registry";
 import {
   findCachedImage,
   hashPrompt,
@@ -262,13 +263,58 @@ export async function generateImageFromPrompt(
 export interface GenerateOptions {
   /** Pet-consistency strategy. Default "A" (photo + reference per scene). */
   approach?: ConsistencyApproach;
-  /** Quality tier for the scene pages. Default "low" (the project default for real book runs). */
+  /**
+   * Quality tier for the INTERIOR scene pages. Default "low" (the engine default
+   * for dev/prototype iteration). The locked production policy sets this to
+   * "medium" — see `PRODUCTION_QUALITY`.
+   */
   sceneQuality?: Quality;
+  /**
+   * Quality tier for the hero slots — the cover + any emotional bookend (per the
+   * registry's `heroSlots`). Falls back to `sceneQuality` when unset, preserving
+   * the uniform-tier behavior every existing caller/test relied on. The locked
+   * production policy sets this to "high".
+   */
+  heroSceneQuality?: Quality;
   /**
    * Quality tier for the locked reference illustration. Default "low" — the
    * reference only anchors appearance; the scenes are the printed art.
    */
   referenceQuality?: Quality;
+}
+
+/**
+ * The locked production quality policy for every real book the batch worker
+ * generates and every operator repaint: HIGH for the hero slots (cover +
+ * emotional bookends), MEDIUM for the interior pages, LOW for the never-printed
+ * reference anchor. Factored into ONE constant so the worker
+ * (`lib/order/worker.ts`) and the repaint route can't drift. The engine defaults
+ * stay LOW (this is a deliberate opt-in, matching the cost-tier rule).
+ */
+export const PRODUCTION_QUALITY: Readonly<
+  Required<Pick<GenerateOptions, "sceneQuality" | "heroSceneQuality" | "referenceQuality">>
+> = {
+  sceneQuality: "medium",
+  heroSceneQuality: "high",
+  referenceQuality: "low",
+};
+
+/**
+ * Resolve the quality tier for ONE page under a generation run's options. A hero
+ * page (cover or an emotional bookend, per the registry's `heroSlots`) takes
+ * `heroSceneQuality` — falling back to `sceneQuality`, then "low"; an interior page
+ * takes `sceneQuality`, then "low". With `heroSceneQuality` unset this collapses to
+ * the old uniform `sceneQuality ?? "low"` for every page (back-compatible). Pure.
+ * Exported for unit coverage (the per-page tier matrix).
+ */
+export function qualityForPage(
+  storyType: StoryType,
+  page: PageId,
+  opts: Pick<GenerateOptions, "sceneQuality" | "heroSceneQuality">,
+): Quality {
+  const interior = opts.sceneQuality ?? "low";
+  const isHero = (heroSlotsFor(storyType) as readonly string[]).includes(page);
+  return isHero ? opts.heroSceneQuality ?? interior : interior;
 }
 
 /**
@@ -447,7 +493,8 @@ export async function generateAllIllustrations(
   }
 
   const approach = options.approach ?? "A";
-  const sceneQuality = options.sceneQuality ?? "low";
+  // Per-page tier is resolved via `qualityForPage(storyType, page, options)` at the
+  // scene call sites (hero slots → heroSceneQuality, interiors → sceneQuality).
   const referenceQuality = options.referenceQuality ?? "low";
 
   if (!isSafeSessionId(session.id)) {
@@ -512,7 +559,7 @@ export async function generateAllIllustrations(
         page,
         prompts[page],
         references,
-        sceneQuality,
+        qualityForPage(storyType, page, options),
       );
       sceneEntries.push(entry);
       priorScenes.push(bytes);
@@ -533,7 +580,7 @@ export async function generateAllIllustrations(
           page,
           prompts[page],
           references,
-          sceneQuality,
+          qualityForPage(storyType, page, options),
         );
         return entry;
       },
@@ -596,8 +643,6 @@ async function generateStory2Illustrations(
   session: Story2Session,
   options: GenerateOptions,
 ): Promise<GeneratedImage[]> {
-  const quality = options.sceneQuality ?? "low";
-
   if (!isSafeSessionId(session.id)) {
     throw new Error(`Unsafe session id: ${session.id}`);
   }
@@ -616,6 +661,7 @@ async function generateStory2Illustrations(
     if (!slotPrompt) {
       throw new Error(`No Story-2 prompt builder for slot: ${slot}`);
     }
+    const quality = qualityForPage("story-2", slot, options);
     return generateAndSaveStory2Slot(session, slot, slotPrompt, photoBytes, quality);
   });
 }
@@ -672,8 +718,6 @@ async function generateStory4Illustrations(
   session: Story4Session,
   options: GenerateOptions,
 ): Promise<GeneratedImage[]> {
-  const quality = options.sceneQuality ?? "low";
-
   if (!isSafeSessionId(session.id)) {
     throw new Error(`Unsafe session id: ${session.id}`);
   }
@@ -692,6 +736,7 @@ async function generateStory4Illustrations(
     if (!slotPrompt) {
       throw new Error(`No Story-4 prompt builder for slot: ${slot}`);
     }
+    const quality = qualityForPage("story-4", slot, options);
     return generateAndSaveStory4Slot(session, slot, slotPrompt, photoBytes, quality);
   });
 }
@@ -750,8 +795,6 @@ async function generateStory5Illustrations(
   session: Story5Session,
   options: GenerateOptions,
 ): Promise<GeneratedImage[]> {
-  const quality = options.sceneQuality ?? "low";
-
   if (!isSafeSessionId(session.id)) {
     throw new Error(`Unsafe session id: ${session.id}`);
   }
@@ -770,6 +813,7 @@ async function generateStory5Illustrations(
     if (!slotPrompt) {
       throw new Error(`No Story-5 prompt builder for slot: ${slot}`);
     }
+    const quality = qualityForPage("story-5", slot, options);
     return generateAndSaveStory5Slot(session, slot, slotPrompt, photoBytes, quality);
   });
 }
@@ -831,7 +875,7 @@ async function generateStory6Illustrations(
   session: Story6Session,
   options: GenerateOptions,
 ): Promise<GeneratedImage[]> {
-  const sceneQuality = options.sceneQuality ?? "low";
+  // Per-slot tier resolved via `qualityForPage` in the scene loop below.
   const referenceQuality = options.referenceQuality ?? "low";
 
   if (!isSafeSessionId(session.id)) {
@@ -891,6 +935,7 @@ async function generateStory6Illustrations(
       if (!slotPrompt) {
         throw new Error(`No Story-6 prompt builder for slot: ${slot}`);
       }
+      const sceneQuality = qualityForPage("story-6", slot, options);
       return generateAndSaveStory6Scene(session, slot, slotPrompt, references, sceneQuality);
     },
   );
@@ -967,7 +1012,7 @@ async function generateStory7Illustrations(
   session: Story7Session,
   options: GenerateOptions,
 ): Promise<GeneratedImage[]> {
-  const sceneQuality = options.sceneQuality ?? "low";
+  // Per-slot tier resolved via `qualityForPage` in the scene loop below.
   const referenceQuality = options.referenceQuality ?? "low";
 
   if (!isSafeSessionId(session.id)) {
@@ -1028,6 +1073,7 @@ async function generateStory7Illustrations(
       if (!slotPrompt) {
         throw new Error(`No Story-7 prompt builder for slot: ${slot}`);
       }
+      const sceneQuality = qualityForPage("story-7", slot, options);
       return generateAndSaveStory7Scene(session, slot, slotPrompt, bundle, sceneQuality);
     },
   );
@@ -1075,6 +1121,16 @@ const STORY8_GENERATION_ORDER: readonly Story8PageId[] = [
  * a default-tier change. Every other slot stays Low.
  */
 const STORY8_MEDIUM_SLOT: Story8PageId = "adventure-climax";
+
+/**
+ * Raise a tier to AT LEAST Medium (the Story-8 climax's PR-0-validated drift
+ * floor): Low → Medium, Medium → Medium, High → High. Applied on top of the
+ * general `qualityForPage` policy so the climax never renders below Medium, while
+ * a production High (or any deliberate higher-fidelity run) is preserved.
+ */
+function atLeastMedium(quality: Quality): Quality {
+  return quality === "low" ? "medium" : quality;
+}
 
 /**
  * Pages 10/11 (`adventure-home`, `adventure-closing`) carry NO generation slot — they
@@ -1125,11 +1181,12 @@ async function generateStory8Illustrations(
   session: Story8Session,
   options: GenerateOptions,
 ): Promise<GeneratedImage[]> {
-  // Tiers: Low default for the reference + the calm/action scenes; Medium ONLY for
-  // the climax. `options.sceneQuality`, when passed, overrides the Low default for
-  // the non-climax scenes (e.g. a deliberate high-fidelity run); the climax stays
-  // Medium regardless (its tier is the PR-0-validated floor, not a knob).
-  const sceneQuality = options.sceneQuality ?? "low";
+  // Tiers: the general per-page policy (`qualityForPage`) resolves each slot —
+  // interiors → `sceneQuality`, hero slots → `heroSceneQuality` — with the Low
+  // engine default when unset. The Story-8 climax keeps its PR-0-validated MEDIUM
+  // FLOOR ON TOP of that (never below Medium, never a knob): a low-tier dev run
+  // still bumps the climax to Medium, while the production policy's Medium/High
+  // already meets or exceeds the floor. See the scene loop below.
   const referenceQuality = options.referenceQuality ?? "low";
 
   if (!isSafeSessionId(session.id)) {
@@ -1191,7 +1248,10 @@ async function generateStory8Illustrations(
       throw new Error(`No Story-8 prompt builder for slot: ${page}`);
     }
     const references = referencesForScene("B", bundle, priorScenes);
-    const quality = page === STORY8_MEDIUM_SLOT ? "medium" : sceneQuality;
+    // General per-page policy, then the climax's PR-0 MEDIUM floor on top.
+    const resolved = qualityForPage("story-8", page, options);
+    const quality =
+      page === STORY8_MEDIUM_SLOT ? atLeastMedium(resolved) : resolved;
     const { entry, bytes } = await generateAndSaveScene(
       session as unknown as StorySession,
       page,
@@ -1247,7 +1307,7 @@ async function generateStory8Illustrations(
 export async function regenerateSceneIllustration(
   session: StorySession,
   page: PageId,
-  options: Pick<GenerateOptions, "sceneQuality"> = {},
+  options: Pick<GenerateOptions, "sceneQuality" | "heroSceneQuality"> = {},
 ): Promise<GeneratedImage> {
   if (!isSafeSessionId(session.id)) {
     throw new Error(`Unsafe session id: ${session.id}`);
@@ -1262,7 +1322,10 @@ export async function regenerateSceneIllustration(
     throw new Error(`Page ${page} is not an illustrated scene.`);
   }
 
-  const sceneQuality = options.sceneQuality ?? "low";
+  // Resolve THIS page's tier under the same per-page policy the full-book run uses,
+  // so a repainted hero comes back at its production tier (e.g. HIGH for the cover),
+  // not a flat tier. The per-story slot helpers below take that resolved tier.
+  const sceneQuality = qualityForPage(storyType, page, options);
 
   if (storyType === "story-2") {
     return regenerateStory2Slot(
@@ -1555,8 +1618,9 @@ async function regenerateStory8Slot(
   const references = [photoBytes, referenceBytes];
 
   // The climax keeps its Medium floor even on a repaint (its tier is the
-  // PR-0-validated highest-drift floor, not a per-call knob).
-  const slotQuality = slot === STORY8_MEDIUM_SLOT ? "medium" : quality;
+  // PR-0-validated highest-drift floor, not a per-call knob): the resolved tier is
+  // raised to at least Medium for the climax, and otherwise used as-is.
+  const slotQuality = slot === STORY8_MEDIUM_SLOT ? atLeastMedium(quality) : quality;
   const promptHash = hashPrompt(slotPrompt.prompt);
   const referenceHash = hashReferenceSet(references);
   const bytes = await generateSceneIllustration(references, slotPrompt.prompt, slotQuality);

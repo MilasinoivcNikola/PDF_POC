@@ -17,9 +17,23 @@ const readSessionMock = vi.fn();
 const writeSessionMock = vi.fn();
 const readFileMock = vi.fn();
 
+// The locked mixed production policy the route threads into the repaint so a
+// hero page comes back at its production tier. Mirrors lib/ai/generate's constant;
+// kept literal here to keep the mock self-contained (vitest's strict mock access
+// requires every consumed export be present on the mock).
+const PRODUCTION_QUALITY = {
+  sceneQuality: "medium",
+  heroSceneQuality: "high",
+  referenceQuality: "low",
+} as const;
+
 vi.mock("@/lib/ai/generate", () => ({
-  regenerateSceneIllustration: (session: StorySession, page: string) =>
-    regenerateMock(session, page),
+  regenerateSceneIllustration: (
+    session: StorySession,
+    page: string,
+    options?: unknown,
+  ) => regenerateMock(session, page, options),
+  PRODUCTION_QUALITY,
 }));
 
 vi.mock("@/lib/session/disk", () => ({
@@ -170,9 +184,14 @@ describe("POST /api/regenerate-illustration — happy path", () => {
       `data:image/png;base64,${Buffer.from("PNGBYTES").toString("base64")}`,
     );
 
-    // Exactly one paid regen call, for this page.
+    // Exactly one paid regen call, for this page — at the locked mixed production
+    // tier (so a repainted hero comes back HIGH, not the engine's LOW dev default).
     expect(regenerateMock).toHaveBeenCalledTimes(1);
-    expect(regenerateMock).toHaveBeenCalledWith(expect.anything(), "page-5");
+    expect(regenerateMock).toHaveBeenCalledWith(
+      expect.anything(),
+      "page-5",
+      PRODUCTION_QUALITY,
+    );
 
     // The persisted manifest replaced ONLY page-5; reference + cover untouched.
     expect(writeSessionMock).toHaveBeenCalledTimes(1);

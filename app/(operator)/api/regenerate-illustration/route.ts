@@ -17,7 +17,7 @@ import { promises as fs } from "node:fs";
 
 import { readSession, writeSession } from "@/lib/session/disk";
 import { isSafeSessionId } from "@/lib/ai/paths";
-import { regenerateSceneIllustration } from "@/lib/ai/generate";
+import { regenerateSceneIllustration, PRODUCTION_QUALITY } from "@/lib/ai/generate";
 import { getStory } from "@/lib/story/registry";
 import { assertOperator } from "@/lib/runtime/surface";
 import type { PageId } from "@/lib/story/master-text";
@@ -95,7 +95,11 @@ export async function POST(request: Request): Promise<Response> {
 
   let entry: GeneratedImage;
   try {
-    entry = await regenerateSceneIllustration(session, args.page);
+    // Apply the same locked mixed production policy the batch worker uses, so a
+    // repainted hero page (e.g. the cover) comes back at its production tier (HIGH),
+    // not the engine's LOW dev default. The shared PRODUCTION_QUALITY constant keeps
+    // the worker and this repaint path from drifting.
+    entry = await regenerateSceneIllustration(session, args.page, PRODUCTION_QUALITY);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Illustration regeneration failed.";

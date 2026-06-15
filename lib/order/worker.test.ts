@@ -11,6 +11,7 @@ import {
   type WorkerDeps,
 } from "./worker";
 import { assertTransition } from "./state";
+import { PRODUCTION_QUALITY } from "@/lib/ai/generate";
 import { resolveUnder } from "@/lib/ai/paths";
 import type { Order, OrderStatus } from "./types";
 import type { GeneratedImage, StorySession, Story2Session } from "@/lib/session/types";
@@ -349,6 +350,25 @@ describe("processOrder", () => {
     expect(written.id).toBe(ORDER_ID);
     expect(written.status).toBe("ready");
     expect(written.images).toEqual(MANIFEST);
+  });
+
+  it("generates at the locked mixed production tier (medium / high / low), not bare", async () => {
+    // The worker must opt the full-book run into PRODUCTION_QUALITY explicitly — the
+    // engine default is LOW (dev/iteration). This is the one call that pays for the
+    // mixed HIGH-hero / MEDIUM-interior / LOW-reference policy.
+    const order = orderWith();
+    const { deps, generate } = makeDeps([order]);
+
+    await processOrder(order, deps, noop);
+
+    expect(generate).toHaveBeenCalledTimes(1);
+    const passedOptions = generate.mock.calls[0][1];
+    expect(passedOptions).toEqual(PRODUCTION_QUALITY);
+    expect(passedOptions).toMatchObject({
+      sceneQuality: "medium",
+      heroSceneQuality: "high",
+      referenceQuality: "low",
+    });
   });
 
   it("downloads the photo to scratch before generating", async () => {
