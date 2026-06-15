@@ -259,6 +259,13 @@ catalog's `sampleImages` (Step 4). **Low is the default cost tier** for real boo
 overrides for final/cover renders) — a sample book is ~$0.07–$0.08, not ~$0.70. Don't commit
 the canonical QA fixtures; pull sample frames from a fresh Low run.
 
+**Samples are optional / backfillable.** A book may register and sell with
+`sampleImages: []` — the `/books` card and detail page degrade to the placeholder art
+block (a tinted panel with the paw mark), not a broken image. So ship the book first and
+backfill the samples when convenient; just keep `sampleImages` **empty until the files
+actually exist** under `public/samples/<book-id>/` (a path pointing at a missing file
+renders a 404 `<img>`, which is the one thing the placeholder fallback is there to avoid).
+
 ---
 
 ## The standing guards (every new book must clear these)

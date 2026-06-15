@@ -459,8 +459,9 @@ describe("story-7-welcome catalog entry", () => {
 // priced at $34 (the locked launch price, the top of the catalog). Beyond the
 // generic list/no-drift guards above, assert the entry exists with the right
 // storyType, its illustrationCount is the registry's 10 (DERIVED, not a literal),
-// the placeholder price is 3400, marketing copy + sampleImages are non-empty, and
-// its id/storyType are unique.
+// the placeholder price is 3400, marketing copy is non-empty (sampleImages is still
+// [] pending the samples follow-up — the card degrades to a placeholder), and its
+// id/storyType are unique.
 
 describe("story-8-adventure catalog entry", () => {
   it("is present in the catalog with storyType 'story-8'", () => {
@@ -490,12 +491,12 @@ describe("story-8-adventure catalog entry", () => {
     expect(product.description.trim().length).toBeGreaterThan(0);
   });
 
-  it("references non-empty sample images", () => {
-    const product = getProduct("story-8-adventure")!;
-    expect(product.sampleImages.length).toBeGreaterThan(0);
-    for (const src of product.sampleImages) {
-      expect(src.trim().length).toBeGreaterThan(0);
-    }
+  it("has no sample images yet (storefront card degrades to placeholder until the samples follow-up)", () => {
+    // Story 8's web-optimized samples haven't been generated yet — public/samples/
+    // story-8-adventure/ is empty. sampleImages is intentionally [] so the /books
+    // card renders the placeholder art block instead of a broken <img>. The samples
+    // follow-up flips this back to non-empty.
+    expect(getProduct("story-8-adventure")!.sampleImages).toEqual([]);
   });
 
   it("leaves lsVariantId unset (resolved server-side at checkout)", () => {
@@ -519,8 +520,9 @@ describe("story-8-adventure catalog entry", () => {
 // scenes), priced at $27 (the lowest in the catalog, reflecting its unproven,
 // no-named-competitor status). Beyond the generic list/no-drift guards above, assert
 // the entry exists with the right storyType, its illustrationCount is the registry's
-// 7 (DERIVED, not a literal), the placeholder price is 2700, marketing copy +
-// sampleImages are non-empty, and its id/storyType are unique.
+// 7 (DERIVED, not a literal), the placeholder price is 2700, marketing copy is
+// non-empty (sampleImages is still [] pending the samples follow-up — the card
+// degrades to a placeholder), and its id/storyType are unique.
 
 describe("story-9-newbaby catalog entry", () => {
   it("is present in the catalog with storyType 'story-9'", () => {
@@ -550,12 +552,12 @@ describe("story-9-newbaby catalog entry", () => {
     expect(product.description.trim().length).toBeGreaterThan(0);
   });
 
-  it("references non-empty sample images", () => {
-    const product = getProduct("story-9-newbaby")!;
-    expect(product.sampleImages.length).toBeGreaterThan(0);
-    for (const src of product.sampleImages) {
-      expect(src.trim().length).toBeGreaterThan(0);
-    }
+  it("has no sample images yet (storefront card degrades to placeholder until the samples follow-up)", () => {
+    // Story 9's web-optimized samples haven't been generated yet — public/samples/
+    // story-9-newbaby/ is empty. sampleImages is intentionally [] so the /books card
+    // renders the placeholder art block instead of a broken <img>. The samples
+    // follow-up flips this back to non-empty.
+    expect(getProduct("story-9-newbaby")!.sampleImages).toEqual([]);
   });
 
   it("leaves lsVariantId unset (resolved server-side at checkout)", () => {

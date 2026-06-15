@@ -27,16 +27,53 @@
   margin: 0 auto;
 }
 
+/* Audience section ("To celebrate them" / "To remember them") */
+.catSection {
+  margin: 0 auto var(--s-20);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  margin-bottom: var(--s-8);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.sectionHead h2 {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+  font-size: var(--t-2xl);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.sectionHead :global(.label) {
+  margin-left: auto;
+}
+
+/* `label--rose` is not a global utility class in this app; scope the rose tint
+   to the loss section's count chip so the page stays self-contained. */
+.sectionHeadLoss :global(.label--rose) {
+  color: var(--rose);
+}
+
 /* Card grid — one card per product */
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--s-8);
-  max-width: 880px;
-  margin: 0 auto;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
   .grid {
     grid-template-columns: 1fr;
   }
@@ -61,6 +98,11 @@
   color: var(--ink);
 }
 
+/* Living cards take the gold accent (the PR-2 two-family system). */
+.cardJoyful:hover {
+  border-color: var(--gold);
+}
+
 .cardArt {
   aspect-ratio: 4 / 3;
   background: linear-gradient(135deg, var(--rose-faint) 0%, var(--cream-deep) 100%);
@@ -73,12 +115,52 @@
   object-fit: cover;
 }
 
+/* Placeholder art for cards without a sample image yet (Story 8 / 9). A soft
+   tinted panel with the centered paw — intentional, not a broken image.
+   Ported from the prototype's .ph / .ph--joyful / .ph__paw. */
+.cardArtPlaceholder {
+  position: relative;
+  background:
+    radial-gradient(ellipse at 32% 38%, var(--rose-soft) 0%, transparent 58%),
+    radial-gradient(ellipse at 70% 64%, var(--sage-soft) 0%, transparent 58%),
+    var(--cream-deep);
+}
+
+.cardArtPlaceholderJoyful {
+  background:
+    radial-gradient(ellipse at 32% 38%, var(--gold-soft) 0%, transparent 58%),
+    radial-gradient(ellipse at 72% 66%, var(--rose-soft) 0%, transparent 58%),
+    var(--cream-deep);
+}
+
+.cardArtPaw {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 42%;
+  height: 42%;
+  opacity: 0.45;
+  color: var(--ink-soft);
+}
+
 .cardBody {
   display: flex;
   flex-direction: column;
   gap: var(--s-2);
   padding: var(--s-8);
   flex: 1;
+}
+
+.cardKicker {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--rose);
+}
+
+.cardJoyful .cardKicker {
+  color: var(--gold);
 }
 
 .cardTitle {
@@ -102,9 +184,19 @@
 
 .cardMeta {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  margin-top: var(--s-4);
+  gap: var(--s-3);
+  margin-top: auto;
+  padding-top: var(--s-4);
+}
+
+.cardDetail {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
 }
 
 .cardPrice {
@@ -124,4 +216,8 @@
 .card:hover .cardArrow {
   color: var(--rose);
   transform: translateX(3px);
+}
+
+.cardJoyful:hover .cardArrow {
+  color: var(--gold);
 }
