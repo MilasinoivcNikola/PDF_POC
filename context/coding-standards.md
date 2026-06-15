@@ -257,12 +257,17 @@ These three areas have rules that general web code doesn't.
   *existing* product's PDF output byte-identical (verified by raw length + a
   timestamp-normalized SHA — headless Chrome stamps a per-second `/CreationDate`). The
   structural half is test-enforced: the `lib/pdf/template*.test.tsx` suite (`template.test.tsx`
-  + the per-story `template.story2/story4/story6.test.tsx`) locks each product's section count
-  + layout tags, so re-run them rather than restating which pages exist. A shared layout that
-  some products illustrate and others don't (e.g. `dedication`/`love`) gates its art by a
-  per-story page-id allow-list in `pages.tsx` (`DEDICATION_ART_PAGE_IDS` / `LOVE_ART_PAGE_IDS`,
-  mirroring the `letter` `LETTER_FEATURE_PAGE_IDS` pattern) — that is how a new title carries
-  art on a reused layout while every existing product stays byte-identical.
+  + the per-story `template.story2/story4/story6/story7.test.tsx`) locks each product's section
+  count + layout tags, so re-run them rather than restating which pages exist. A shared layout
+  that some products illustrate and others don't (e.g. `dedication`/`love`) gates its art by a
+  per-story page-id allow-list in `pages.tsx` (`DEDICATION_ART_PAGE_IDS` / `LOVE_ART_PAGE_IDS` /
+  `CLOSING_COVER_FALLBACK_PAGE_IDS`, mirroring the `letter` `LETTER_FEATURE_PAGE_IDS` pattern) —
+  that is how a new title carries art on a reused layout while every existing product stays
+  byte-identical. `CLOSING_COVER_FALLBACK_PAGE_IDS` is the one variant that reuses the **cover**
+  art rather than the page's own slot art: Story 7's `welcome-closing` is *not* an illustration
+  slot, so its `closing` layout would leak the generic `PlaceholderPet` — instead it falls back
+  to the cover image in a circular vignette (the cover src is threaded `StoryPages → renderPage
+  → ClosingPage`, cover located by `layout === "cover"`).
 - Print CSS owns page geometry: `@page` size + margins, `break-inside: avoid` /
   `break-before: page` for page boundaries, `preferCSSPageSize: true` in Puppeteer.
 - Output is 8.5×11 (or 8×8 square), **≥300 DPI**. Size raster images for 300 DPI at

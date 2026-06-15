@@ -735,6 +735,16 @@ em {
   object-fit: cover;
 }
 
+/* Cover-art-reused-as-closing (Story 7's `welcome-closing`): a tighter, framed
+   round vignette than a full closing scene — a bookend that "rhymes with the
+   cover." Smaller and ringed in the warm gold token so it reads as a deliberate
+   keepsake medallion, consistent with the quiet "— end —" page. */
+.closing__art--circle {
+  width: 3in;
+  height: 3in;
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px rgba(168, 129, 71, 0.4);
+}
+
 .closing__art svg {
   position: absolute;
   inset: 20%;

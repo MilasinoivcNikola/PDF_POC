@@ -191,6 +191,17 @@ treatment).
 > your book's ids** — that keeps Story 1 (whose `page-1`/`page-10` are also dedication/love
 > slots, deliberately text-only in the book) byte-identical. Same shape as the `letter`
 > sentinel above; the Story-6 sample PR did this.
+>
+> **A third exception when reusing the `closing` layout for a book whose closing page is *not*
+> an illustration slot:** `ClosingPage` renders the page's own generated art if present, else
+> the generic `PlaceholderPet` face. Story 1's closing (`page-12`) *is* a slot, so it has art;
+> but Story 7's `welcome-closing` is text-only-by-design (its 8 slots end at `welcome-belong`),
+> so the placeholder leaked into the book. The fix reuses the **cover** image circled — add your
+> closing page id to `CLOSING_COVER_FALLBACK_PAGE_IDS` in `lib/pdf/pages.tsx` and it falls back
+> to the cover art in a vignette instead of the placeholder. Only-your-ids rule applies (keeps
+> every other product's closing byte-identical). Unlike the dedication/love case there is no
+> "add a slot" remedy — the closing isn't a generated slot at all; if you instead want a
+> *distinct* generated closing scene, register a real 9th slot rather than using this fallback.
 
 To add one:
 

@@ -1,0 +1,35 @@
+{
+  "id": "sample-story7-bird",
+  "createdAt": "2026-06-15T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-7",
+  "pet": {
+    "name": "Kiwi",
+    "species": "bird",
+    "breedColor": "a grey cockatiel with a sunny yellow face and crest, bright orange cheek patches, and white flashes along the wings",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/sample-photos/bird.jpg"
+  },
+  "owner": {
+    "names": "Dana and Theo",
+    "relationship": "couple"
+  },
+  "memories": {
+    "favoriteActivity": "whistling the first three notes of every song until someone whistles back",
+    "sleepingSpot": "tucked up on the high corner perch by the kitchen window",
+    "quirks": "the crest that shoots straight up when the kettle clicks; the soft chatter to his reflection in the toaster",
+    "homecomingMemory": "He clung to the side of the travel carrier the whole way, dead quiet, and then the moment we opened it at home he stepped onto Theo's finger like he'd always lived there.",
+    "familyMembers": "Dana, Theo, and the old tabby Marmalade who watches the cage like a soap opera",
+    "childName": "Theo",
+    "nicknames": "Kiwi-bird, the little whistler",
+    "dateAdopted": "May 2022"
+  },
+  "toggles": {
+    "occasion": "gotcha-day-anniversary",
+    "adoptionSource": "rescue",
+    "lifeStage": "adult",
+    "yearsHome": "3"
+  },
+  "images": []
+}
