@@ -2375,3 +2375,234 @@ a.admin__row-main:hover .admin__row-title {
   gap: var(--s-4);
   padding: var(--s-6) var(--s-4) 0;
 }
+
+/* --------------------------------------------------------------
+   Public Refresh (001) — shared chrome + landing
+   New classes, all built from existing tokens. The simple
+   .site-header / .site-footer above are KEPT for the operator
+   pages that still use the old inline markup; these coexist.
+   -------------------------------------------------------------- */
+
+/* Header nav cluster — mono labels, generous tracking, the .label rhythm. */
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--s-8);
+}
+.site-nav a {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink-muted);
+}
+.site-nav a:hover {
+  color: var(--rose);
+}
+.site-nav a[aria-current] {
+  color: var(--ink);
+}
+
+/* Richer 3-column footer — brand + tagline + two link columns. */
+.footer-rich {
+  margin-top: auto;
+  padding-top: var(--s-20);
+  border-top: 1px solid var(--border-hairline);
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: var(--s-12);
+}
+.footer-rich__brand .wordmark {
+  margin-bottom: var(--s-4);
+}
+.footer-rich__tagline {
+  font-style: italic;
+  color: var(--ink-soft);
+  max-width: 24em;
+  font-size: var(--t-sm);
+}
+.footer-rich__col h4 {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink-muted);
+  margin-bottom: var(--s-5);
+  font-variation-settings: normal;
+}
+.footer-rich__col a {
+  display: block;
+  font-style: italic;
+  color: var(--ink-soft);
+  margin-bottom: var(--s-3);
+}
+.footer-rich__col a:hover {
+  color: var(--rose);
+}
+@media (max-width: 720px) {
+  .footer-rich {
+    grid-template-columns: 1fr;
+    gap: var(--s-8);
+  }
+}
+
+/* Hero (landing). */
+.hero {
+  text-align: center;
+  padding: var(--s-8) 0 var(--s-16);
+}
+.hero__ornament {
+  color: var(--rose);
+  margin: 0 auto var(--s-6);
+  width: 48px;
+  height: 48px;
+}
+.hero__title {
+  margin: 0 auto var(--s-8);
+  max-width: 14em;
+}
+.hero__title em {
+  color: var(--rose);
+  font-style: italic;
+}
+.hero__lede {
+  margin: 0 auto var(--s-10);
+}
+.hero__cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+}
+.hero__cta-meta {
+  font-style: italic;
+  color: var(--ink-muted);
+  font-size: var(--t-sm);
+}
+
+/* "Two worlds" lead-in to the catalog (landing). living = gold, loss = rose. */
+.worlds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-8);
+  max-width: 1080px;
+  margin: 0 auto var(--s-24);
+}
+@media (max-width: 820px) {
+  .worlds {
+    grid-template-columns: 1fr;
+  }
+}
+.world {
+  position: relative;
+  padding: var(--s-12) var(--s-10);
+  border: 1px solid var(--border);
+  background: var(--paper);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+.world:hover {
+  border-color: var(--rose);
+  transform: translateY(-3px);
+}
+.world--living:hover {
+  border-color: var(--gold);
+}
+.world__kicker {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--rose);
+}
+.world--living .world__kicker {
+  color: var(--gold);
+}
+.world__title {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.world__title em {
+  color: var(--rose);
+  font-style: italic;
+}
+.world--living .world__title em {
+  color: var(--gold);
+}
+.world__body {
+  font-family: var(--font-body);
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+.world__count {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.14em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+.world__link {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--ink);
+}
+.world:hover .world__link {
+  color: var(--rose);
+}
+.world--living:hover .world__link {
+  color: var(--gold);
+}
+
+/* "How it works" trust strip (landing). */
+.how {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-12);
+  max-width: 920px;
+  margin: 0 auto var(--s-24);
+  padding-top: var(--s-16);
+  border-top: 1px solid var(--border-hairline);
+}
+.how__step {
+  text-align: center;
+}
+.how__num {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  display: block;
+  margin-bottom: var(--s-3);
+}
+.how__title {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 400;
+  font-variation-settings: "opsz" 144, "SOFT" 50;
+  margin-bottom: var(--s-2);
+}
+.how__body {
+  font-family: var(--font-body);
+  font-size: var(--t-sm);
+  color: var(--ink-soft);
+  line-height: 1.6;
+  max-width: 18em;
+  margin: 0 auto;
+}
+@media (max-width: 720px) {
+  .how {
+    grid-template-columns: 1fr;
+    gap: var(--s-10);
+  }
+}

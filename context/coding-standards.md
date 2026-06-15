@@ -56,7 +56,8 @@ framework beyond this list without approval. The plan in
 - Keep `"use client"` at the leaf, not the layout — push interactivity down so as
   much as possible stays server-rendered.
 - One default-exported component per `page.tsx` / `layout.tsx`. Shared UI goes in
-  `components/{wizard,preview}/` as named exports.
+  `components/{wizard,preview,site}/` (e.g. `site/` holds the public `SiteHeader` /
+  `SiteFooter` chrome) as named exports.
 - Route handlers live under a **deploy-surface route group** and export named HTTP
   verbs (`export async function POST()`): engine/operator routes at
   `app/(operator)/api/*/route.ts`, public routes at `app/(public)/api/*/route.ts`.

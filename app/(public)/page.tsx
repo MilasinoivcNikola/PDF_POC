@@ -1,48 +1,43 @@
 import Link from "next/link";
-import { BRAND } from "@/lib/brand";
-import styles from "./page.module.css";
+import { getProducts, getProductsByAudience } from "@/lib/catalog/products";
+import { SiteHeader } from "@/components/site/SiteHeader";
+import { SiteFooter } from "@/components/site/SiteFooter";
 
-const tocEntries: { num: string; page: string; title: React.ReactNode }[] = [
-  { num: "i", page: "01", title: "Cover & dedication" },
-  { num: "ii", page: "02", title: "Once, in a home full of love…" },
-  { num: "iii", page: "03", title: <em>The two of you</em> },
-  { num: "iv", page: "04", title: "Every day was an adventure" },
-  { num: "v", page: "05", title: "A favorite, quiet place" },
-  { num: "vi", page: "06", title: <em>The day to remember</em> },
-  { num: "vii", page: "07", title: "The gentle truth" },
-  { num: "viii", page: "08", title: "All of your feelings" },
-  { num: "ix", page: "09", title: <em>A comforting place</em> },
-  { num: "x", page: "10", title: "Love stays" },
-  { num: "xi", page: "11", title: "Things to do" },
-  { num: "xii", page: "12", title: <em>Always, always loved</em> },
+// Spell a small count as a capitalized word so the landing copy reads naturally
+// while staying DERIVED from the catalog (never a typed number). Falls back to
+// the digit above the table — the catalog stays well within range.
+const NUMBER_WORDS = [
+  "Zero",
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+  "Nine",
+  "Ten",
+  "Eleven",
+  "Twelve",
 ];
 
+function numberWord(n: number): string {
+  return NUMBER_WORDS[n] ?? String(n);
+}
+
 export default function Home() {
+  const totalCount = getProducts().length;
+  const livingCount = getProductsByAudience("living").length;
+  const lossCount = getProductsByAudience("loss").length;
+
   return (
     <div className="page-wrap">
-      <header className="site-header">
-        <div className="wordmark">
-          <svg
-            className="wordmark__ornament"
-            viewBox="0 0 20 20"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M6 8 Q4 5 6 4 Q8 5 7 8 Z M13 8 Q15 5 13 4 Q11 5 12 8 Z M3 12 Q1 10 3 9 Q5 10 4 12 Z M16 12 Q18 10 16 9 Q14 10 15 12 Z M10 17 Q5 17 5 12 Q5 9 10 9 Q15 9 15 12 Q15 17 10 17 Z"
-              fill="currentColor"
-              opacity="0.7"
-            />
-          </svg>
-          {BRAND}
-        </div>
-        <Link href="/books" className="label">
-          The books
-        </Link>
-      </header>
+      <SiteHeader />
 
-      <main className={styles.landing}>
-        <section className={styles.landingHero}>
-          <div className={`${styles.landingOrnament} fade-in fade-in-1`}>
+      <main>
+        <section className="hero">
+          <div className="hero__ornament fade-in fade-in-1">
             <svg
               width="48"
               height="48"
@@ -58,22 +53,18 @@ export default function Home() {
             </svg>
           </div>
 
-          <h1 className={`display-xl ${styles.landingTitle} fade-in fade-in-2`}>
-            Custom illustrated books
-            <br />
-            starring <em>your</em> pet.
+          <h1 className="display-xl hero__title fade-in fade-in-2">
+            Custom illustrated books starring <em>your</em> pet.
           </h1>
 
-          <p className={`lede ${styles.landingLede} fade-in fade-in-3`}>
-            Personalized pet keepsakes, illustrated from a photo of your own pet
-            and written with care. A story to read with your child, a pair of
-            goodbye letters — one in your pet&apos;s voice, one in yours — a joyful
-            letter for the one still curled up beside you, a living tribute made
-            while they&apos;re still here, or the story of the day they came home.
-            Made by hand, for you.
+          <p className="lede hero__lede fade-in fade-in-3">
+            Personalized keepsakes, illustrated from a photo of your own pet and
+            written with care — a joyful adventure for a child, the story of the
+            day they came home, a living tribute while they&apos;re still beside
+            you, or a gentle goodbye. Painted by hand, made for you.
           </p>
 
-          <div className={`${styles.landingCta} fade-in fade-in-3`}>
+          <div className="hero__cta fade-in fade-in-3">
             <Link href="/books" className="btn btn--primary">
               See the books
               <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
@@ -85,260 +76,97 @@ export default function Home() {
                 />
               </svg>
             </Link>
-            <p className={styles.landingCtaMeta}>
-              Six keepsakes, each made to order. Delivered as a print-quality
-              PDF.
+            <p className="hero__cta-meta">
+              {numberWord(totalCount)} keepsakes, each made to order. Delivered as
+              a print-quality PDF.
             </p>
-          </div>
-
-          <div className={`${styles.chooser} fade-in fade-in-4`}>
-            <Link href="/books/story-1-book" className={styles.chooserCard}>
-              <span className={styles.chooserKicker}>For a child</span>
-              <h2 className={styles.chooserTitle}>
-                A story for <em>your child</em>.
-              </h2>
-              <p className={styles.chooserBody}>
-                A twelve-page illustrated book to help a child understand and
-                grieve the loss of a pet — gentle, honest, and read aloud
-                together.
-              </p>
-              <span className={styles.chooserLink}>
-                See the book
-                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
-                  <path
-                    d="M1 6h16m0 0L12 1m5 5l-5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-            </Link>
-
-            <Link href="/books/story-2-letter" className={styles.chooserCard}>
-              <span className={styles.chooserKicker}>In memory · from them</span>
-              <h2 className={styles.chooserTitle}>
-                A goodbye, in <em>their voice</em>.
-              </h2>
-              <p className={styles.chooserBody}>
-                A keepsake letter written from your pet&apos;s perspective at the
-                Rainbow Bridge, addressed to you by name. Made to be printed,
-                framed, and kept.
-              </p>
-              <span className={styles.chooserLink}>
-                See the letter
-                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
-                  <path
-                    d="M1 6h16m0 0L12 1m5 5l-5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-            </Link>
-
-            <Link href="/books/story-5-letter-to" className={styles.chooserCard}>
-              <span className={styles.chooserKicker}>In memory · from you</span>
-              <h2 className={styles.chooserTitle}>
-                A goodbye, in <em>your voice</em>.
-              </h2>
-              <p className={styles.chooserBody}>
-                The companion letter — written this time by you, to the pet who is
-                gone. The thank-you, the apology, the last good day. One from them,
-                one from you.
-              </p>
-              <span className={styles.chooserLink}>
-                See the letter
-                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
-                  <path
-                    d="M1 6h16m0 0L12 1m5 5l-5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-            </Link>
-
-            <Link href="/books/story-4-talk" className={styles.chooserCard}>
-              <span className={styles.chooserKicker}>For a good day</span>
-              <h2 className={styles.chooserTitle}>
-                If they <em>could talk</em>.
-              </h2>
-              <p className={styles.chooserBody}>
-                A joyful letter in your living pet&apos;s own voice — the things
-                they&apos;d say if they had the words for one afternoon. For a
-                birthday, a gotcha day, or no reason at all.
-              </p>
-              <span className={styles.chooserLink}>
-                See the letter
-                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
-                  <path
-                    d="M1 6h16m0 0L12 1m5 5l-5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-            </Link>
-
-            {/* Story 6 — the one LIVING tribute, made before a pet dies. Set apart
-                from the four after-loss titles with its own accent. */}
-            <Link
-              href="/books/story-6-tribute"
-              className={`${styles.chooserCard} ${styles.chooserCardLiving}`}
-            >
-              <span className={styles.chooserKicker}>
-                Still here · a living tribute
-              </span>
-              <h2 className={styles.chooserTitle}>
-                While they&apos;re <em>still here</em>.
-              </h2>
-              <p className={styles.chooserBody}>
-                The one book made before goodbye — an illustrated tribute to a pet
-                who is still with you, a senior companion or one facing a hard
-                diagnosis. For the time you have, not the time you&apos;re afraid
-                of losing.
-              </p>
-              <span className={styles.chooserLink}>
-                See the book
-                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
-                  <path
-                    d="M1 6h16m0 0L12 1m5 5l-5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-            </Link>
-
-            {/* Story 7 — the catalog's FIRST joyful, non-memorial title. Set apart
-                from the grief titles with its own bright golden accent — a beginning,
-                not a goodbye. */}
-            <Link
-              href="/books/story-7-welcome"
-              className={`${styles.chooserCard} ${styles.chooserCardJoyful}`}
-            >
-              <span className={styles.chooserKicker}>
-                Welcome home · a gotcha-day book
-              </span>
-              <h2 className={styles.chooserTitle}>
-                The day they <em>came home</em>.
-              </h2>
-              <p className={styles.chooserBody}>
-                A joyful storybook of your pet&apos;s origin — the empty house
-                before, the day you found each other, the first night, and all the
-                ways they became family. For a new arrival or an annual Gotcha Day.
-              </p>
-              <span className={styles.chooserLink}>
-                See the book
-                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
-                  <path
-                    d="M1 6h16m0 0L12 1m5 5l-5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-            </Link>
-
-            {/* Story 8 — the catalog's most PLAYFUL title: a kids' adventure with
-                your actual pet as the hero. Set apart even from Story 7's gentle
-                joy with its own bright adventurous accent. */}
-            <Link
-              href="/books/story-8-adventure"
-              className={`${styles.chooserCard} ${styles.chooserCardAdventure}`}
-            >
-              <span className={styles.chooserKicker}>
-                A joyful adventure starring your pet
-              </span>
-              <h2 className={styles.chooserTitle}>
-                Their amazing <em>adventure</em>.
-              </h2>
-              <p className={styles.chooserBody}>
-                A playful picture book where your <em>actual</em> pet — painted
-                from your photo, not a breed picker — is the hero of a save-the-day
-                quest alongside your child. Tell us their real quirk and we&apos;ll
-                make it their superpower. The gift for the kid who thinks their dog
-                is already a legend.
-              </p>
-              <span className={styles.chooserLink}>
-                See the book
-                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
-                  <path
-                    d="M1 6h16m0 0L12 1m5 5l-5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-            </Link>
-
-            {/* Story 9 — the family-transition keepsake: the pet as the original
-                first family member and the new baby's big sibling. A warm,
-                non-memorial growing-family book with its own soft sage accent. */}
-            <Link
-              href="/books/story-9-newbaby"
-              className={`${styles.chooserCard} ${styles.chooserCardNewbaby}`}
-            >
-              <span className={styles.chooserKicker}>
-                A keepsake for the first family member
-              </span>
-              <h2 className={styles.chooserTitle}>
-                Their new <em>big sibling</em>.
-              </h2>
-              <p className={styles.chooserBody}>
-                A warm storybook that celebrates your pet as the one who was here
-                first — and the new baby&apos;s big sibling. Whether you&apos;re
-                expecting or the baby has arrived, it says what every pet parent
-                wants their animal to know: <em>you are not being replaced. Our
-                family is growing, and there&apos;s room for everyone.</em>
-              </p>
-              <span className={styles.chooserLink}>
-                See the book
-                <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
-                  <path
-                    d="M1 6h16m0 0L12 1m5 5l-5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-            </Link>
           </div>
         </section>
 
-        <section className={`${styles.toc} fade-in fade-in-5`}>
-          <div className={styles.tocHeader}>
-            <h2 className={styles.tocTitle}>Inside the story</h2>
-            <span className="label">A story for your child · Twelve pages</span>
-          </div>
+        <section className="worlds fade-in fade-in-4">
+          <Link href="/books#living" className="world world--living">
+            <span className="world__kicker">For the days you have</span>
+            <h2 className="world__title">
+              A book to <em>celebrate</em> them.
+            </h2>
+            <p className="world__body">
+              Joyful, living titles — a kids&apos; adventure where your pet is the
+              hero, the story of their gotcha day, a letter in their happy voice,
+              or a keepsake for the new big sibling. For a birthday, an adoption,
+              or no reason at all.
+            </p>
+            <span className="world__count">
+              {numberWord(livingCount)} celebration titles
+            </span>
+            <span className="world__link">
+              See the celebration books
+              <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
+                <path
+                  d="M1 6h16m0 0L12 1m5 5l-5 5"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+          </Link>
 
-          <div className={styles.tocGrid}>
-            {tocEntries.map((entry) => (
-              <div className={styles.tocEntry} key={entry.page}>
-                <span className={styles.tocNum}>{entry.num}</span>
-                <span className={styles.tocEntryTitle}>{entry.title}</span>
-                <span className={styles.tocEntryDots}></span>
-                <span className={styles.tocEntryPage}>{entry.page}</span>
-              </div>
-            ))}
+          <Link href="/books#loss" className="world">
+            <span className="world__kicker">For the goodbye</span>
+            <h2 className="world__title">
+              A book to <em>remember</em> them.
+            </h2>
+            <p className="world__body">
+              Gentle memorial titles — a story to help a child grieve, and a pair
+              of goodbye letters: one in your pet&apos;s voice, one in yours. Made
+              slowly, with care.
+            </p>
+            <span className="world__count">
+              {numberWord(lossCount)} memorial titles
+            </span>
+            <span className="world__link">
+              See the memorial books
+              <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
+                <path
+                  d="M1 6h16m0 0L12 1m5 5l-5 5"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+          </Link>
+        </section>
+
+        <section className="how fade-in fade-in-5">
+          <div className="how__step">
+            <span className="how__num">01</span>
+            <h3 className="how__title">Tell us about them</h3>
+            <p className="how__body">
+              A few gentle questions, your pet&apos;s name and quirks, and one
+              photo you love.
+            </p>
+          </div>
+          <div className="how__step">
+            <span className="how__num">02</span>
+            <h3 className="how__title">We paint it by hand</h3>
+            <p className="how__body">
+              Every illustration is made to look like your actual pet — not a
+              breed picked from a list — and reviewed by a person.
+            </p>
+          </div>
+          <div className="how__step">
+            <span className="how__num">03</span>
+            <h3 className="how__title">Your book arrives</h3>
+            <p className="how__body">
+              A print-quality PDF, emailed within 24–48 hours, ready to keep or
+              print and frame.
+            </p>
           </div>
         </section>
       </main>
 
-      <footer className="site-footer">
-        <Link href="/policies" className="label">
-          How it&apos;s made · Policies
-        </Link>
-        <p className="label">Made slowly · Made by hand</p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
