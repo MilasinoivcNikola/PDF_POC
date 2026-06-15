@@ -123,6 +123,60 @@ describe("getProducts", () => {
 });
 
 // ---------------------------------------------------------------------------
+// story-1-book — the HIGH-tier sample preview (Story 1 sample-preview follow-up)
+// ---------------------------------------------------------------------------
+//
+// Story 1 is the first (and currently only) product with a published full-book
+// sample: 13 web-optimized JPGs (cover + page-1..page-12) plus a `previewPdf` for
+// the "see the full book" affordance on the detail page. These assertions pin the
+// expanded sample set and the optional previewPdf contract.
+
+describe("story-1-book sample preview", () => {
+  it("lists all 13 sample images (cover + page-1..page-12) under the product path", () => {
+    const product = getProduct("story-1-book")!;
+    expect(product.sampleImages).toEqual([
+      "/samples/story-1-book/cover.jpg",
+      "/samples/story-1-book/page-1.jpg",
+      "/samples/story-1-book/page-2.jpg",
+      "/samples/story-1-book/page-3.jpg",
+      "/samples/story-1-book/page-4.jpg",
+      "/samples/story-1-book/page-5.jpg",
+      "/samples/story-1-book/page-6.jpg",
+      "/samples/story-1-book/page-7.jpg",
+      "/samples/story-1-book/page-8.jpg",
+      "/samples/story-1-book/page-9.jpg",
+      "/samples/story-1-book/page-10.jpg",
+      "/samples/story-1-book/page-11.jpg",
+      "/samples/story-1-book/page-12.jpg",
+    ]);
+    expect(product.sampleImages).toHaveLength(13);
+  });
+
+  it("sets previewPdf to the published full-book sample PDF", () => {
+    expect(getProduct("story-1-book")!.previewPdf).toBe(
+      "/samples/story-1-book/preview.pdf",
+    );
+  });
+
+  it("is the ONLY product with a previewPdf (others omit the optional field)", () => {
+    for (const product of getProducts()) {
+      if (product.productId === "story-1-book") continue;
+      expect(product.previewPdf).toBeUndefined();
+    }
+  });
+
+  it("keeps previewPdf an optional string when set (shape still valid)", () => {
+    for (const product of getProducts()) {
+      // Either omitted (undefined) or a non-empty string path — never any other type.
+      if (product.previewPdf !== undefined) {
+        expect(typeof product.previewPdf).toBe("string");
+        expect(product.previewPdf.trim().length).toBeGreaterThan(0);
+      }
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Audience split — the living/loss classification (public-refresh PR-1)
 // ---------------------------------------------------------------------------
 //

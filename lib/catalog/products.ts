@@ -59,6 +59,13 @@ export interface Product {
    */
   sampleImages: string[];
   /**
+   * Optional public web path to a full-book sample PDF (served from
+   * `public/samples/<productId>/preview.pdf`) — the storefront's "see the full
+   * book" affordance. Plain string path only, so this module stays pure and
+   * client-safe. Omitted on products without a generated sample PDF.
+   */
+  previewPdf?: string;
+  /**
    * How many illustrations the book generates. DERIVED from the registry's
    * `illustrationSlots` (never hardcoded) so it can't drift from the engine.
    */
@@ -143,7 +150,13 @@ function buildProduct(
   storyType: StoryType,
   meta: Pick<
     Product,
-    "title" | "tagline" | "description" | "sampleImages" | "audience" | "displayTitle"
+    | "title"
+    | "tagline"
+    | "description"
+    | "sampleImages"
+    | "previewPdf"
+    | "audience"
+    | "displayTitle"
   > & {
     priceUsd: number;
   },
@@ -157,6 +170,7 @@ function buildProduct(
     priceUsd: meta.priceUsd,
     lsVariantId: undefined,
     sampleImages: meta.sampleImages,
+    previewPdf: meta.previewPdf,
     illustrationCount: getStory(storyType).illustrationSlots.length,
     audience: meta.audience,
     displayTitle: meta.displayTitle,
@@ -185,9 +199,22 @@ function buildCatalog(): Product[] {
       priceUsd: PLACEHOLDER_STORY_1_PRICE_USD,
       sampleImages: [
         "/samples/story-1-book/cover.jpg",
+        "/samples/story-1-book/page-1.jpg",
+        "/samples/story-1-book/page-2.jpg",
+        "/samples/story-1-book/page-3.jpg",
         "/samples/story-1-book/page-4.jpg",
+        "/samples/story-1-book/page-5.jpg",
+        "/samples/story-1-book/page-6.jpg",
+        "/samples/story-1-book/page-7.jpg",
+        "/samples/story-1-book/page-8.jpg",
+        "/samples/story-1-book/page-9.jpg",
         "/samples/story-1-book/page-10.jpg",
+        "/samples/story-1-book/page-11.jpg",
+        "/samples/story-1-book/page-12.jpg",
       ],
+      // The full HIGH-tier sample book — the only product with a published sample
+      // PDF; surfaced as the "see the full book" affordance on the detail page.
+      previewPdf: "/samples/story-1-book/preview.pdf",
       audience: "loss",
     }),
     buildProduct("story-2-letter", "story-2", {
