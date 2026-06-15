@@ -260,12 +260,26 @@ These three areas have rules that general web code doesn't.
 - Model: `gpt-image-2-2026-04-21`. Verify the exact param names
   (`reference_images`, `quality`, `size`) against the live SDK at build time — the
   Images API has renamed params before.
-- **Cost tiers are a hard rule:** `low` is the default — for iterating on prompts **and**
-  for real book runs (scene generation defaults to `low`); `medium`/`high` are deliberate
-  opt-in overrides for higher fidelity (e.g. final/cover renders). Default new code to the
-  cheapest tier that fits.
+- **Cost tiers are a hard rule:** `low` is the **engine default** — used for iterating on
+  prompts and for any dev/prototype run (`sceneQuality`/`referenceQuality`/`heroSceneQuality`
+  all default to `low`, so a bare `generateAllIllustrations(session)` is all-LOW). `medium`/
+  `high` are deliberate opt-in overrides for higher fidelity. Default new code to the cheapest
+  tier that fits.
+- **Locked production policy (the mixed tier).** Real book generation runs a fixed mixed
+  policy, NOT a uniform tier: **hero slots → `high`** (the cover everywhere, plus any
+  emotional bookend), **interior pages → `medium`**, **reference → `low`** (never printed,
+  only anchors the pet). This is factored into the single `PRODUCTION_QUALITY` constant in
+  `lib/ai/generate.ts`, passed explicitly by **both** the batch worker (`lib/order/worker.ts`)
+  and the operator repaint route — so the two paths can't drift, and a repainted hero comes
+  back at its production tier. Per-page resolution is the pure `qualityForPage(storyType, page,
+  opts)` helper. Net cost ≈ **~$1/book** (vs ~$3 all-HIGH, ~$0.07 all-LOW). The hero slots are
+  registry data: `StoryDefinition.heroSlots?` (sits beside `illustrationSlots`), read via
+  `heroSlotsFor(storyType)` which defaults to the title's own cover — `illustrationSlots[0]`,
+  whatever its id (`"cover"`, `"letter-cover"`, …) — so every cover renders HIGH for free.
+  Story 1 sets `["cover", "page-12"]` to also elevate its closing bookend.
 - **Cache by `hash(prompt + reference images)`.** Regenerating one page must re-call
-  the API for that page only — never the whole book.
+  the API for that page only — never the whole book. **Quality is NOT in the cache key**, so
+  flipping a slot's tier does not invalidate an on-disk PNG (existing fixtures stay free hits).
 - Pet consistency is the central craft problem (Approach A → B in the plan). Prompt
   builders live in `lib/ai/prompts.ts`, one per scene; orchestration in `generate.ts`.
   Pass references as base64 data URLs.

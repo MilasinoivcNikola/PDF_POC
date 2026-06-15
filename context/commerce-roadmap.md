@@ -32,6 +32,9 @@
   images/min — see `context/features/ai-concurrency-env.md`). But **automated-async**
   (minutes-to-hours, no manual labor) is fully feasible. The real choice was
   automated-async vs manual; automated wins.
+- **Image COGS per book ≈ ~$1** under the locked mixed-tier policy (HIGH hero slots +
+  MEDIUM interiors + LOW reference — see `context/features/mixed-tier-illustration-quality.md`),
+  vs ~$3 all-HIGH. Comfortably inside the $20–40 price band.
 - A **human approval gate** is kept on purpose: this is a grief product, and shipping
   a bereaved customer a book where the pet drifted is unacceptable. The gate is a
   ~30-second glance + optional repaint, not manual authoring.

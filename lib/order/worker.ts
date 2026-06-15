@@ -27,7 +27,7 @@ import { listOrdersByStatus, updateOrderStatus } from "@/lib/order/store";
 import { IllegalTransitionError } from "@/lib/order/state";
 import { getPhoto } from "@/lib/supabase/storage";
 import { writeSession } from "@/lib/session/disk";
-import { generateAllIllustrations } from "@/lib/ai/generate";
+import { generateAllIllustrations, PRODUCTION_QUALITY } from "@/lib/ai/generate";
 import { mapWithConcurrency } from "@/lib/ai/retry";
 import { isSafeSessionId } from "@/lib/ai/paths";
 import type { Order } from "@/lib/order/types";
@@ -252,13 +252,14 @@ export type OrderOutcome = "succeeded" | "failed" | "skipped";
  * 2. Reconcile the photo: download from Supabase → local scratch ./uploads/[id]/
  *    (extension sniffed from the bytes so the engine gets the right content-type),
  *    and build the engine session whose `pet.photo` points at that scratch path.
- * 3. Run the engine at Low tier (the standing cost rule — generateAllIllustrations
- *    defaults to Low for reference + scenes). A never-failed order generates exactly
- *    once; the per-page cache only saves a re-run when the engine sees a populated
- *    manifest, which the worker does NOT feed back into `order.inputs` — so an
- *    explicit `failed → queued` retry currently re-spends the full book (~$0.08).
- *    Acceptable for this PR (operator-initiated, low-frequency); improving retry
- *    cache reuse is a follow-up that belongs with PR-08's reject/retry flow.
+ * 3. Run the engine at the locked MIXED production tier (PRODUCTION_QUALITY: HIGH
+ *    hero slots + MEDIUM interiors + LOW reference, ~$1/book) — passed explicitly,
+ *    since the engine default stays LOW for dev/iteration. A never-failed order
+ *    generates exactly once; the per-page cache only saves a re-run when the engine
+ *    sees a populated manifest, which the worker does NOT feed back into
+ *    `order.inputs` — so an explicit `failed → queued` retry currently re-spends the
+ *    full book (~$1). Acceptable for this PR (operator-initiated, low-frequency);
+ *    improving retry cache reuse is a follow-up that belongs with the reject/retry flow.
  * 4. Persist the session + manifest to ./sessions/[id].json (the PR-08 admin reads
  *    the local book by id from there — the canonical source; no Supabase churn).
  *    The manifest is NOT written back to `order.inputs`, which is why a retry can't
@@ -303,14 +304,20 @@ export async function processOrder(
 
     const session = buildEngineSession(order, ext);
 
-    // --- 3. Generate the book (Low tier is the standing rule) ------------------
-    // generateAllIllustrations defaults to Low for both reference and scenes, and
-    // respects the ~5 img/min rate limit via its internal bounded worker pool +
-    // withRetry backoff. We rely on that default explicitly here. The engine caches
-    // per page, but the worker only re-reaches generation for a COMPLETED order via
-    // an explicit `failed → queued` retry, which currently re-spends the full book
+    // --- 3. Generate the book (the locked mixed production tier) ----------------
+    // Production runs the mixed-tier policy explicitly (PRODUCTION_QUALITY): HIGH for
+    // hero slots (cover + emotional bookends), MEDIUM for interiors, LOW for the
+    // never-printed reference anchor (~$1/book vs ~$3 all-HIGH). The engine DEFAULT
+    // stays LOW for dev/prototype iteration — production opts in here, the one place
+    // the policy is applied for a full book. generateAllIllustrations respects the
+    // rate limit via its internal bounded worker pool + withRetry backoff. The engine
+    // caches per page, but the worker only re-reaches generation for a COMPLETED order
+    // via an explicit `failed → queued` retry, which currently re-spends the full book
     // (see the processOrder docblock); a never-failed order is generated exactly once.
-    const manifest: GeneratedImage[] = await deps.generateAllIllustrations(session);
+    const manifest: GeneratedImage[] = await deps.generateAllIllustrations(
+      session,
+      PRODUCTION_QUALITY,
+    );
 
     // --- 4. Persist session + manifest for the PR-08 admin ---------------------
     // The admin reads the local book by id from ./sessions/[id].json (same as the

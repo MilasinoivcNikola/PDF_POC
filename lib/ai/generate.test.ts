@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   buildReferencePrompt,
   generateReferenceIllustration,
+  qualityForPage,
+  PRODUCTION_QUALITY,
   IMAGE_MODEL,
 } from "./generate";
 import type { IllustrationStyle } from "@/lib/session/types";
@@ -78,6 +80,73 @@ describe("buildReferencePrompt", () => {
   it("treats a whitespace-only description as blank", () => {
     const prompt = buildReferencePrompt("   ", "watercolor");
     expect(prompt).not.toContain("The pet is");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// qualityForPage (pure) — the mixed-tier per-page policy
+// ---------------------------------------------------------------------------
+
+describe("qualityForPage", () => {
+  // Story 1's hero slots are ["cover", "page-12"]; every other page is interior.
+  // Every other registered story defaults to ["cover"] only.
+
+  it("returns sceneQuality for an interior page (then 'low' when unset)", () => {
+    expect(qualityForPage("story-1", "page-5", { sceneQuality: "medium" })).toBe(
+      "medium",
+    );
+    expect(qualityForPage("story-1", "page-5", {})).toBe("low");
+  });
+
+  it("returns heroSceneQuality for a hero page (cover + Story-1 closing)", () => {
+    expect(
+      qualityForPage("story-1", "cover", {
+        sceneQuality: "medium",
+        heroSceneQuality: "high",
+      }),
+    ).toBe("high");
+    expect(
+      qualityForPage("story-1", "page-12", {
+        sceneQuality: "medium",
+        heroSceneQuality: "high",
+      }),
+    ).toBe("high");
+  });
+
+  it("falls a hero page back to sceneQuality when heroSceneQuality is unset", () => {
+    expect(qualityForPage("story-1", "cover", { sceneQuality: "medium" })).toBe(
+      "medium",
+    );
+  });
+
+  it("falls a hero page back to 'low' when no options are passed (back-compat)", () => {
+    expect(qualityForPage("story-1", "cover", {})).toBe("low");
+    expect(qualityForPage("story-1", "page-12", {})).toBe("low");
+  });
+
+  it("with no options, every page resolves to 'low' (uniform old behavior)", () => {
+    for (const page of ["cover", "page-1", "page-12"] as const) {
+      expect(qualityForPage("story-1", page, {})).toBe("low");
+    }
+  });
+
+  it("under the production policy: Story-1 hero pages HIGH, interiors MEDIUM", () => {
+    expect(qualityForPage("story-1", "cover", PRODUCTION_QUALITY)).toBe("high");
+    expect(qualityForPage("story-1", "page-12", PRODUCTION_QUALITY)).toBe("high");
+    expect(qualityForPage("story-1", "page-1", PRODUCTION_QUALITY)).toBe("medium");
+  });
+
+  it("treats a non-Story-1 closing page as interior (Story 1 alone elevates page-12)", () => {
+    // page-12 is only a hero slot for Story 1; for any other story it is interior.
+    expect(qualityForPage("story-9", "page-12", PRODUCTION_QUALITY)).toBe("medium");
+  });
+});
+
+describe("PRODUCTION_QUALITY (locked mixed-tier policy)", () => {
+  it("is HIGH hero / MEDIUM interior / LOW reference", () => {
+    expect(PRODUCTION_QUALITY.heroSceneQuality).toBe("high");
+    expect(PRODUCTION_QUALITY.sceneQuality).toBe("medium");
+    expect(PRODUCTION_QUALITY.referenceQuality).toBe("low");
   });
 });
 

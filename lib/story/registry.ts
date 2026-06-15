@@ -102,6 +102,16 @@ export interface StoryDefinition {
   resolve(session: StorySession): ResolvedStory;
   /** Page slots that get a generated scene illustration, in book order. */
   illustrationSlots: readonly PageId[];
+  /**
+   * Page slots rendered at the elevated "hero" tier (the cover + any emotional
+   * bookend). When omitted, defaults to the title's cover — the first entry of
+   * `illustrationSlots`, which is the cover for every story (Story 1 `"cover"`,
+   * the rest namespace it, e.g. `"letter-cover"`) — so every book's cover is its
+   * storefront hero at HIGH for free. Pure data: the production tier policy in
+   * lib/ai/generate.ts reads it via `heroSlotsFor` to pick HIGH for these pages,
+   * MEDIUM for the rest.
+   */
+  heroSlots?: readonly PageId[];
   /** The download filename for this session's rendered PDF. */
   pdfFilename(session: StorySession): string;
   /** The wizard steps, step count, and progress checklist for this product. */
@@ -135,4 +145,18 @@ export function getStory(storyType: StoryType): StoryDefinition {
     throw new Error(`No story definition registered for storyType: ${storyType}`);
   }
   return definition;
+}
+
+/**
+ * The page slots a story renders at the elevated "hero" tier (cover + any
+ * emotional bookend). Returns the definition's `heroSlots` or, by default, the
+ * title's cover slot — `illustrationSlots[0]`, the cover for every story
+ * (Story 1 `"cover"`, the rest namespace it, e.g. `"letter-cover"`). So every
+ * book gets a HIGH cover for free regardless of its cover id, and a title
+ * elevates a further bookend only by declaring `heroSlots` in its definition
+ * (Story 1 → cover + the closing `page-12`). Pure/client-safe (data only).
+ */
+export function heroSlotsFor(storyType: StoryType): readonly PageId[] {
+  const definition = getStory(storyType);
+  return definition.heroSlots ?? [definition.illustrationSlots[0]];
 }

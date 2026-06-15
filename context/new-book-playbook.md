@@ -129,6 +129,16 @@ The registry is the single seam that makes the app multi-product. Two edits:
        book is reference-anchored, **add its `storyType` to `REFERENCE_ANCHOR_STORIES`** in
        `app/(operator)/api/generate-illustrations/route.ts` (a hand-maintained set, not derived)
        so the wizard progress bar counts the `+1`. Easy to forget — it bites in the wizard PR.
+   - **`heroSlots?: readonly PageId[]`** — **optional**: the page slots rendered at the
+     elevated **HIGH** production tier (cover + any emotional bookend); interiors render at
+     MEDIUM, the reference at LOW (the locked mixed policy — see `coding-standards.md` →
+     *AI illustration*, applied via `PRODUCTION_QUALITY` / `qualityForPage`). **Omit it** and
+     the book defaults to **cover-only HIGH** via `heroSlotsFor`, which uses the title's own
+     cover — `illustrationSlots[0]`, whatever its id (e.g. `welcome-cover`) — so the cover
+     renders HIGH for free with no per-title data. The right choice for most titles. Set it
+     only to elevate a further bookend: Story 1 uses `["cover", "page-12"]` (cover + the
+     closing scene), and when you set it explicitly you must list the book's own slot ids
+     (e.g. `["welcome-cover", "..."]`), not the bare `"cover"`. Pure data — no `lib/ai/*` import.
    - **`pdfFilename(session): string`** — build it with a helper in **`lib/pdf/filename.ts`**
      (pure string module, kept out of `lib/pdf/render.ts` so the registry stays
      puppeteer-free — see Step 4's client-safe note). Add a `<book>PdfFilename(petName)`
@@ -260,10 +270,13 @@ The price configured on the LS variant must match the catalog's `priceUsd` (Step
 
 Generate a few **Low**-tier sample books for the storefront detail page and save the chosen
 pages, web-optimized (~800px JPEG), under `public/samples/<book-id>/`; reference them in the
-catalog's `sampleImages` (Step 4). **Low is the default cost tier** for real book runs
-(`generateAllIllustrations` defaults scenes to `low`; `medium`/`high` are deliberate opt-in
-overrides for final/cover renders) — a sample book is ~$0.07–$0.08, not ~$0.70. Don't commit
-the canonical QA fixtures; pull sample frames from a fresh Low run.
+catalog's `sampleImages` (Step 4). **Low is the default cost tier for sample generation** — a
+bare `generateAllIllustrations` run is all-LOW (its engine default for dev/iteration), so a
+sample book is ~$0.07–$0.08, not ~$0.70. (Real *production* book runs use the mixed
+`PRODUCTION_QUALITY` tier — HIGH hero slots + MEDIUM interiors, ~$1/book — passed explicitly by
+the worker; see `coding-standards.md` → *AI illustration*. That's deliberately separate from
+this LOW sample path.) Don't commit the canonical QA fixtures; pull sample frames from a fresh
+Low run.
 
 **Samples are optional / backfillable.** A book may register and sell with
 `sampleImages: []` — the `/books` card and detail page degrade to the placeholder art
@@ -365,6 +378,7 @@ export const story3Definition: StoryDefinition = {
     return resolveStory3(session as unknown as Story3Session);
   },
   illustrationSlots: BOOKLET_SCENE_PAGE_IDS, // [] for a text-only book
+  // heroSlots: ["cover", "..."],            // OPTIONAL — omit for cover-only HIGH
   pdfFilename(session) {
     return bookletPdfFilename(session.pet.name);
   },

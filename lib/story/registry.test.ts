@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { getStory } from "@/lib/story/registry";
+import { getStory, heroSlotsFor } from "@/lib/story/registry";
 import { story1Definition } from "@/lib/story/story-1";
 import { resolveStory } from "@/lib/story/variants";
 import { storyPdfFilename } from "@/lib/pdf/render";
@@ -50,6 +50,35 @@ describe("getStory registry lookup", () => {
   it("throws for an unknown storyType outside the union", () => {
     // Belt-and-braces against a malformed on-disk value cast through the boundary.
     expect(() => getStory("story-99" as StoryType)).toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// heroSlotsFor — the mixed-tier hero-slot policy (data only)
+// ---------------------------------------------------------------------------
+
+describe("heroSlotsFor", () => {
+  it("defaults to the title's own cover slot when no heroSlots are declared", () => {
+    // Every non-Story-1 title is cover-only (their files set no heroSlots). The
+    // default is the title's cover — illustrationSlots[0], whatever its id — so
+    // namespaced covers (e.g. "letter-cover") still render HIGH, not just "cover".
+    expect(heroSlotsFor("story-2")).toEqual(["letter-cover"]);
+    expect(heroSlotsFor("story-6")).toEqual(["tribute-cover"]);
+    expect(heroSlotsFor("story-9")).toEqual(["baby-cover"]);
+  });
+
+  it("the default is exactly the first illustration slot of the title", () => {
+    expect(heroSlotsFor("story-2")).toEqual([getStory("story-2").illustrationSlots[0]]);
+    expect(heroSlotsFor("story-7")).toEqual([getStory("story-7").illustrationSlots[0]]);
+    expect(heroSlotsFor("story-8")).toEqual([getStory("story-8").illustrationSlots[0]]);
+  });
+
+  it('returns ["cover", "page-12"] for Story 1 (cover + the closing bookend)', () => {
+    expect(heroSlotsFor("story-1")).toEqual(["cover", "page-12"]);
+  });
+
+  it("reads the value off the Story-1 definition (data, not duplicated)", () => {
+    expect(heroSlotsFor("story-1")).toEqual(story1Definition.heroSlots);
   });
 });
 
