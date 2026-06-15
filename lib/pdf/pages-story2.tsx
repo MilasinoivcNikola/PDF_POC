@@ -51,6 +51,16 @@ function signoffIndexOf(body: string[]): number {
 // carry a wash `src`), keeping their PDFs byte-identical.
 const LETTER_WASH_PAGE_IDS: readonly string[] = ["letter-page-5", "note-page-5"];
 
+// The body pages that carry a prominent FEATURE illustration — a full pet-in-scene
+// watercolor, NOT the softened/clamped Page-5 wash. Story 4 ("If [PET_NAME] Could
+// Talk") reuses the `letter` layout but its Page-4 "daily joy" slot (`talk-page-4`)
+// is a full pet portrait like the cover, so it deserves the feature treatment, not
+// the feathered wash mask. Keyed ONLY on `talk-page-4`, so it cannot touch Story 2's
+// `letter-page-5` or Story 5's `note-page-5` (both still take the wash path), keeping
+// their PDFs byte-identical. A body page is exactly one of: feature, wash, or
+// text-only.
+const LETTER_FEATURE_PAGE_IDS: readonly string[] = ["talk-page-4"];
+
 // ---------------------------------------------------------------------------
 // Small shared bits
 // ---------------------------------------------------------------------------
@@ -131,6 +141,11 @@ function LetterBodyPage({ page, src }: { page: ResolvedPage; src?: string }) {
   // (letter-page-5 / note-page-5) and only when present; every other body page
   // ignores `src`, staying text-only.
   const showWash = LETTER_WASH_PAGE_IDS.includes(page.id) && Boolean(src);
+  // The Page-4 feature illustration (Story 4's `talk-page-4`) — a full pet-in-
+  // scene portrait, rendered ONLY on a feature page and only when present. A body
+  // page is exactly one of feature / wash / text-only; the id allow-lists are
+  // disjoint, so these never both fire.
+  const showFeature = LETTER_FEATURE_PAGE_IDS.includes(page.id) && Boolean(src);
 
   return (
     <section className="letter-page letter-page--body" data-page={page.id}>
@@ -142,6 +157,9 @@ function LetterBodyPage({ page, src }: { page: ResolvedPage; src?: string }) {
         ))}
       </div>
       {showWash ? <LetterWash src={src!} alt={page.illustrationBrief} /> : null}
+      {showFeature ? (
+        <LetterFeature src={src!} alt={page.illustrationBrief} />
+      ) : null}
       {hasSignature ? <LetterSignature lines={signature} /> : null}
     </section>
   );
@@ -159,6 +177,24 @@ function LetterBodyPage({ page, src }: { page: ResolvedPage; src?: string }) {
 function LetterWash({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="letter-page__wash">
+      <img src={src} alt={alt} />
+    </div>
+  );
+}
+
+/**
+ * The Page-4 feature illustration — a prominent, full-content-width pet-in-scene
+ * watercolor (Story 4's "daily joy" portrait, photo-anchored like the cover).
+ * Unlike `LetterWash`, this is a real feature image: larger, no feathered mask,
+ * rounded corners matching the cover art (`.letter-cover__mark img`). Its height is
+ * clamped conservatively in CSS so it reads as a feature yet still fits below the
+ * page's prose without forcing a 7th page (the section keeps `break-inside: avoid`).
+ * Rendered only when a `src` is present (see LetterBodyPage), so it never leaves an
+ * empty slot on a book without art.
+ */
+function LetterFeature({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="letter-page__feature">
       <img src={src} alt={alt} />
     </div>
   );
@@ -197,8 +233,9 @@ export function renderLetterCover(page: ResolvedPage, src?: string) {
 
 /**
  * Render a Story-2 letter body page (signature block handled within). `src` is
- * the optional Premium belief-frame wash — used only on the belief-wash page
- * (`letter-page-5`); other body pages ignore it.
+ * the optional Premium illustration: the belief-frame wash on a wash page
+ * (`letter-page-5` / `note-page-5`), or a full pet-in-scene feature on a feature
+ * page (Story 4's `talk-page-4`). Every other body page ignores it (text-only).
  */
 export function renderLetterBody(page: ResolvedPage, src?: string) {
   return <LetterBodyPage key={page.id} page={page} src={src} />;

@@ -950,6 +950,31 @@ em {
   opacity: 0.88;
 }
 
+/* --- Feature illustration (Story 4 Page 4 only, Premium) -------------------
+   A prominent, full-content-width pet-in-scene watercolor — NOT the softened
+   Page-5 wash. Larger than the wash (it reads as a feature, like the cover
+   portrait), full opacity, rounded corners matching the cover art
+   (.letter-cover__mark img), and NO feather mask. Height is clamped
+   conservatively (3.6in vs the wash's 2.4in) so that, with Page 4's four prose
+   paragraphs and the 1.25in letter margins, the page still fits — the section's
+   `break-inside: avoid` holds and it can never force a 7th page. Rendered only
+   when a real src is present (see LetterBodyPage), so there is never an empty
+   slot on a no-art book. */
+.letter-page__feature {
+  margin-top: var(--s-12);
+  width: 100%;
+  height: 3.6in;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.letter-page__feature img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
 /* --- Signature block (Page 6 only) --- */
 .letter-signature {
   margin-top: var(--s-12);

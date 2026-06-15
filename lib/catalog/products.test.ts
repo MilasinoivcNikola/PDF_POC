@@ -166,6 +166,7 @@ describe("story-1-book sample preview", () => {
     const WITH_PREVIEW = new Map<string, string>([
       ["story-1-book", "/samples/story-1-book/preview.pdf"],
       ["story-2-letter", "/samples/story-2-letter/preview.pdf"],
+      ["story-4-talk", "/samples/story-4-talk/preview.pdf"],
     ]);
     for (const product of getProducts()) {
       const expected = WITH_PREVIEW.get(product.productId);
@@ -180,6 +181,12 @@ describe("story-1-book sample preview", () => {
   it("sets story-2-letter previewPdf to its published full-book sample PDF", () => {
     expect(getProduct("story-2-letter")!.previewPdf).toBe(
       "/samples/story-2-letter/preview.pdf",
+    );
+  });
+
+  it("sets story-4-talk previewPdf to its published full-book sample PDF", () => {
+    expect(getProduct("story-4-talk")!.previewPdf).toBe(
+      "/samples/story-4-talk/preview.pdf",
     );
   });
 

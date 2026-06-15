@@ -255,6 +255,9 @@ function buildCatalog(): Product[] {
         "/samples/story-4-talk/talk-cover.jpg",
         "/samples/story-4-talk/talk-page-4.jpg",
       ],
+      // The full mixed-tier sample book (the catalog's first "other"-species
+      // sample, a guinea pig); surfaced as the "see the full book" affordance.
+      previewPdf: "/samples/story-4-talk/preview.pdf",
       audience: "living",
     }),
     buildProduct("story-5-letter-to", "story-5", {

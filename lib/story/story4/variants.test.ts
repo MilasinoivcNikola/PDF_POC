@@ -558,13 +558,19 @@ describe("species selects the voice on Pages 2, 3, 4", () => {
 
   it("species fills the Page 6 'As much as a {species} can love' line", () => {
     // The clause renders sentence-initial ("...the only way I know how: ... As
-    // much as a dog can love"), so the leading "As" is capitalized.
+    // much as a dog can love"), so the leading "As" is capitalized. The raw
+    // species word reads naturally for dog/cat/rabbit/bird; the open-ended
+    // "other" has no natural single word ("a other"), so it renders the graceful
+    // "a friend can love" instead (matching speciesDescriptor's other → friend).
     for (const species of SPECIES) {
       const page6 = pageById(
         resolveStory4(story4SessionWith({ pet: { species } })),
         "talk-page-6",
       ).body.join(" ");
-      expect(page6).toContain(`As much as a ${species} can love`);
+      const noun = species === "other" ? "friend" : species;
+      expect(page6).toContain(`As much as a ${noun} can love`);
+      // The broken raw-word rendering must never survive.
+      expect(page6).not.toContain("a other can love");
     }
   });
 });

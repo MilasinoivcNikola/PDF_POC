@@ -322,19 +322,32 @@ function page5Body(
 // ---------------------------------------------------------------------------
 
 /**
+ * The noun for the Page-6 climax ("as much as a ___ can love"). For dog/cat/
+ * rabbit/bird this stays the literal `{species}` placeholder so merge substitutes
+ * the raw species word (output byte-identical to before this helper existed). The
+ * `"other"` species has no natural single word — its raw value renders the broken
+ * "a other" — so it composes the graceful "friend" directly (matching
+ * `speciesDescriptor`'s `other → "friend"`), no placeholder to substitute.
+ */
+function climaxSpeciesNoun(species: Species): string {
+  return species === "other" ? "friend" : "{species}";
+}
+
+/**
  * Compose the full Page-6 body for tense. The signature tail (TALK_SIGNOFF +
  * "{petName}") is identical in both paths; merge appends the optional nickname /
  * date line after it. Memorial swaps the prose body for the full past-tense
  * rewrite. The living path NEVER closes in a past-tense valediction; the memorial
  * path NEVER uses "watching over you".
  */
-function page6Body(living: boolean): string[] {
+function page6Body(living: boolean, species: Species): string[] {
+  const noun = climaxSpeciesNoun(species);
   if (living) {
     return [
       "So go on. Have the good day. Eat the good thing. Take the long way home.",
       "And when you walk back through that door — I'll be the one who acts like you've been gone a year. Every time. That's not me forgetting how long you were gone. That's me, telling you the only way I know how:",
       "There you are. There you are. It's you.",
-      "I love you. I always do. As much as a {species} can love — which, it turns out, is an enormous amount.",
+      `I love you. I always do. As much as a ${noun} can love — which, it turns out, is an enormous amount.`,
       TALK_SIGNOFF,
       "{petName}",
     ];
@@ -345,7 +358,7 @@ function page6Body(living: boolean): string[] {
   return [
     "So go on. Have the good day. Eat the good thing. Take the long way home — and notice the things I used to notice with you. The grass after rain. The light moving in the late afternoon. The dog two houses down, barking at nothing.",
     "And when you miss me — be sad for exactly as long as you need to be. Then, when you're ready, and only then, be happy again. I'd want that. I always did.",
-    "I loved you. I always will, as much as a {species} can love — which, it turns out, was an enormous amount.",
+    `I loved you. I always will, as much as a ${noun} can love — which, it turns out, was an enormous amount.`,
     TALK_SIGNOFF,
     "{petName}",
   ];
@@ -418,7 +431,7 @@ export function composeVariants4(session: Story4Session): Story4Story {
     "talk-page-5",
     page5Body(living, relationship, deathType, beliefFrame),
   );
-  setBody(story, "talk-page-6", page6Body(living));
+  setBody(story, "talk-page-6", page6Body(living, species));
   applyGiftFor(story, giftFor);
 
   return story;
