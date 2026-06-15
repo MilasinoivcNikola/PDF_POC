@@ -1,0 +1,33 @@
+{
+  "id": "sample-story4-other",
+  "createdAt": "2026-06-15T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-4",
+  "pet": {
+    "name": "Pepper",
+    "species": "other",
+    "breedColor": "a tri-colour guinea pig with a white blaze, a caramel saddle, and a swirl of black around one ear",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/sample-photos/other.jpg"
+  },
+  "owner": {
+    "names": "Maya",
+    "relationship": "single"
+  },
+  "memories": {
+    "quirks": "the little burst of happy squeaks you make the second you hear the fridge open",
+    "favoriteRitual": "our breakfast handoff — a sprig of parsley over the side of the hutch, every single morning",
+    "favoriteSpots": "the cosy fleece tunnel by the window where the afternoon sun pools",
+    "favoriteActivity": "popcorning across the rug like the floor is made of springs",
+    "nicknames": "Pep, Sir Pepper, the little potato",
+    "dateAdopted": "May 2023"
+  },
+  "toggles": {
+    "livingOrMemorial": "living",
+    "giftFor": "self",
+    "deathType": "peaceful",
+    "beliefFrame": "rainbow-bridge"
+  },
+  "images": []
+}

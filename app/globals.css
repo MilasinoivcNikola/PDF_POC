@@ -1999,6 +1999,25 @@ p {
   opacity: 0.88;
 }
 
+/* Feature illustration (Story 4 Page 4 only) — SCREEN mirror of the print rule.
+   Responsive height here; the .preview-page block below pins it to the print
+   3.6in for a true-scale model. Full opacity, rounded corners, no feather mask —
+   a prominent feature, not the softened wash. */
+.letter-page__feature {
+  margin-top: var(--s-12);
+  width: 100%;
+  height: clamp(2.4in, 33vw, 3.6in);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.letter-page__feature img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
 .letter-signature {
   margin-top: var(--s-12);
   font-family: var(--font-body);
@@ -2202,6 +2221,11 @@ p {
 /* The belief wash at the print inch height so the preview is a true scale model. */
 .preview-page .letter-page__wash {
   height: 2.4in;
+}
+
+/* The Page-4 feature image at the print inch height so the preview is true-scale. */
+.preview-page .letter-page__feature {
+  height: 3.6in;
 }
 
 /* --------------------------------------------------------------
