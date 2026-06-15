@@ -51,11 +51,51 @@
   object-fit: cover;
 }
 
+/* Placeholder gallery art for books without sample images yet (Story 8/9). A soft
+   tinted panel with the centered paw — intentional, not a broken image. Ported
+   from the prototype's .ph / .ph--joyful / .ph__paw and the catalog card. The
+   loss (default) tint leans rose+sage; the living variant leans gold+rose. */
+.galleryPlaceholder {
+  position: relative;
+  background:
+    radial-gradient(ellipse at 32% 38%, var(--rose-soft) 0%, transparent 58%),
+    radial-gradient(ellipse at 70% 64%, var(--sage-soft) 0%, transparent 58%),
+    var(--cream-deep);
+}
+
+.galleryJoyful .galleryPlaceholder {
+  background:
+    radial-gradient(ellipse at 32% 38%, var(--gold-soft) 0%, transparent 58%),
+    radial-gradient(ellipse at 72% 66%, var(--rose-soft) 0%, transparent 58%),
+    var(--cream-deep);
+}
+
+.galleryPaw {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 36%;
+  height: 36%;
+  opacity: 0.45;
+  color: var(--ink-soft);
+}
+
 /* Info column */
 .info {
   position: sticky;
   top: var(--s-8);
   align-self: start;
+}
+
+/* Audience-tinted eyebrow label (PR-1/PR-4): rose remembers (loss), gold
+   celebrates (living) — matching the catalog card's family accent. `.label`
+   itself is the global utility; these only carry the colour. */
+.eyebrowRose {
+  color: var(--rose);
+}
+
+.eyebrowGold {
+  color: var(--gold);
 }
 
 .title {
@@ -70,6 +110,11 @@
   line-height: 1.3;
   color: var(--rose);
   margin-bottom: var(--s-8);
+}
+
+/* Living titles take the gold tagline accent to match the gold eyebrow. */
+.taglineGold {
+  color: var(--gold);
 }
 
 .description {

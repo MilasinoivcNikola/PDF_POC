@@ -35,7 +35,7 @@ export default function PoliciesPage() {
         </header>
 
         <article className={`${styles.sections} fade-in fade-in-2`}>
-          <section className={styles.section}>
+          <section id="how-its-made" className={styles.section}>
             <h2 className={styles.sectionTitle}>How your book is made</h2>
             <p>
               {/* PLACEHOLDER — PM sign-off before launch */}
@@ -48,7 +48,7 @@ export default function PoliciesPage() {
             </p>
           </section>
 
-          <section className={styles.section}>
+          <section id="refunds-and-remakes" className={styles.section}>
             <h2 className={styles.sectionTitle}>Refunds &amp; remakes</h2>
             <p>
               We make each book to order, from your own photos and words, and
@@ -63,7 +63,7 @@ export default function PoliciesPage() {
             </p>
           </section>
 
-          <section className={styles.section}>
+          <section id="privacy" className={styles.section}>
             <h2 className={styles.sectionTitle}>Your privacy</h2>
             <p>
               {/* PLACEHOLDER — PM sign-off before launch */}
