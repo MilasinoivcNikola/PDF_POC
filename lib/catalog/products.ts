@@ -278,6 +278,7 @@ function buildCatalog(): Product[] {
         "/samples/story-5-letter-to/note-cover.jpg",
         "/samples/story-5-letter-to/note-page-5.jpg",
       ],
+      previewPdf: "/samples/story-5-letter-to/preview.pdf",
       audience: "loss",
     }),
     buildProduct("story-6-tribute", "story-6", {
