@@ -307,10 +307,10 @@ function buildCatalog(): Product[] {
         "lovingly hand-finished within 24–48 hours. The gift for the kid who " +
         "thinks their dog is already a legend — because they're right.",
       priceUsd: PLACEHOLDER_STORY_8_PRICE_USD,
-      sampleImages: [
-        "/samples/story-8-adventure/adventure-cover.jpg",
-        "/samples/story-8-adventure/adventure-leap.jpg",
-      ],
+      // No web-optimized samples on disk yet — the storefront card degrades to the
+      // placeholder art block until the samples follow-up ships (don't reference
+      // files that don't exist, or the card renders a broken image).
+      sampleImages: [],
       audience: "living",
     }),
     buildProduct("story-9-newbaby", "story-9", {
@@ -330,10 +330,9 @@ function buildCatalog(): Product[] {
         "hours. Read it to your pet before the baby comes, or keep it as the " +
         "first chapter of your growing family's story.",
       priceUsd: PLACEHOLDER_STORY_9_PRICE_USD,
-      sampleImages: [
-        "/samples/story-9-newbaby/newbaby-cover.jpg",
-        "/samples/story-9-newbaby/newbaby-page-7.jpg",
-      ],
+      // No web-optimized samples on disk yet — see the Story 8 note above; the card
+      // degrades to the placeholder art block until the samples follow-up ships.
+      sampleImages: [],
       audience: "living",
       // The only displayTitle override: "And the New Baby" reads incomplete on a
       // standalone card, so the card/landing show the full phrase.
