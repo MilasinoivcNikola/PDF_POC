@@ -1,0 +1,16 @@
+---
+name: species-other-grammar-fix-review-calibration
+description: The fix that pays down the catalog-wide raw-{species}/"a other" grammar debt for Stories 1/2/5/7/8 via a derived speciesNoun merge field — clean PASS
+metadata:
+  type: project
+---
+
+`fix/species-other-grammar` — paid down the medium debt row "`species: "other"` renders broken grammar in printed text" for the 5 remaining titles (Stories 1/2/5/7/8). This is the engine-side fix the [[story-samples-04-review-calibration]] guinea-pig leak ("a other can love") and the [[story9-text-review-calibration]] Trap-1 class were waiting on. Verdict: **clean PASS**.
+
+**Mechanism (validated as correct):** each of the 5 merge `values` maps gained `speciesNoun: pet.species === "other" ? "friend" : clean(pet.species)` beside the existing `species: clean(pet.species)`; printed-prose `{species}` tokens swapped to `{speciesNoun}` at the spec's enumerated sites. NOT routed through `speciesDescriptor` (which maps other→"friend" but also dog→"boy"/cat→"kitty" — would have broken non-other byte-identity). Stories 4/6/9 correctly left alone (4 = `climaxSpeciesNoun()` local helper at story4/variants.ts:333; 9 = local `speciesNoun` page builders, e.g. `page6BondBody` at story9/variants.ts:79+354 which `setBody`-overrides the master-text raw-`{species}` line at story9/master-text.ts:170 — that master-text line is DEAD, not a leak).
+
+**The load-bearing byte-identity check (how to verify this class fast):** `Species` is a strict 5-literal union (`lib/session/types.ts:14`: dog/cat/rabbit/bird/other) with no braces/whitespace, so `clean()` (strip `{}` + collapse ws + trim, `lib/story/merge.ts:134`) is a NO-OP on every species literal. Therefore raw `pet.species === "other"` and `clean(pet.species) === "other"` are equivalent, and for non-other `speciesNoun === species === clean(pet.species)` exactly → byte-identical. All 5 maps import the SAME shared `clean` from `lib/story/merge.ts` (story2/5/7/8 re-export it). If a future variant ever made `clean` lowercase/normalize, re-audit — but as written it's safe.
+
+**Corrected-tests scrutiny (validated, not masking a regression):** two pre-existing Story-2 tests were asserting the BUG — `story2/merge.test.ts` looped `SPECIES` (incl. "other") asserting `"just a ${species}."` (= `"just a other."` for other), and `story2/variants.test.ts` explicitly listed "other" asserting both `"just a other."` and `as much as a other can love` present. The fix substitutes `noun = species==="other"?"friend":species` and ADDS negative assertions (`not.toContain('"just a other."')` etc.). This is the SAME masking pattern as story-samples-04's `variants.test.ts:567` pinning "a other can love" as expected — correcting it is right.
+
+**Scope discipline (validated):** zero `illustrationBrief` strings changed (grep of changed brief/breedColor-species/paw-print/watercolor lines empty) — image briefs keep raw `{species}` deliberately (not printed, keeps output byte-identical, matches how 4/9 scoped theirs). Story-7 two-occurrence lines (master:171 + variants:174, "a {species}…a {species}") had BOTH swapped. master-text↔variants parity held for 5/7/8. No stray files, no secrets. tsc --noEmit clean, 724 story tests green.
