@@ -24,61 +24,8 @@
   }
 }
 
-/* Sample-art gallery — a lead image plus smaller follow-ups */
-.gallery {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s-3);
-}
-
-.galleryItem {
-  background: linear-gradient(135deg, var(--rose-faint) 0%, var(--cream-deep) 100%);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-  aspect-ratio: 1;
-}
-
-/* The first sample spans the full width of the gallery column. */
-.galleryItemLead {
-  grid-column: 1 / -1;
-  aspect-ratio: 4 / 3;
-}
-
-.galleryItem img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Placeholder gallery art for books without sample images yet (Story 8/9). A soft
-   tinted panel with the centered paw — intentional, not a broken image. Ported
-   from the prototype's .ph / .ph--joyful / .ph__paw and the catalog card. The
-   loss (default) tint leans rose+sage; the living variant leans gold+rose. */
-.galleryPlaceholder {
-  position: relative;
-  background:
-    radial-gradient(ellipse at 32% 38%, var(--rose-soft) 0%, transparent 58%),
-    radial-gradient(ellipse at 70% 64%, var(--sage-soft) 0%, transparent 58%),
-    var(--cream-deep);
-}
-
-.galleryJoyful .galleryPlaceholder {
-  background:
-    radial-gradient(ellipse at 32% 38%, var(--gold-soft) 0%, transparent 58%),
-    radial-gradient(ellipse at 72% 66%, var(--rose-soft) 0%, transparent 58%),
-    var(--cream-deep);
-}
-
-.galleryPaw {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 36%;
-  height: 36%;
-  opacity: 0.45;
-  color: var(--ink-soft);
-}
+/* The sample-art gallery + lightbox now live in the co-located client island
+   components/site/BookGallery (book-detail PR-2). */
 
 /* Info column */
 .info {
