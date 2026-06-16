@@ -171,6 +171,7 @@ describe("story-1-book sample preview", () => {
       ["story-6-tribute", "/samples/story-6-tribute/preview.pdf"],
       ["story-7-welcome", "/samples/story-7-welcome/preview.pdf"],
       ["story-8-adventure", "/samples/story-8-adventure/preview.pdf"],
+      ["story-9-newbaby", "/samples/story-9-newbaby/preview.pdf"],
     ]);
     for (const product of getProducts()) {
       const expected = WITH_PREVIEW.get(product.productId);
@@ -650,8 +651,8 @@ describe("story-8-adventure catalog entry", () => {
 // no-named-competitor status). Beyond the generic list/no-drift guards above, assert
 // the entry exists with the right storyType, its illustrationCount is the registry's
 // 7 (DERIVED, not a literal), the placeholder price is 2700, marketing copy is
-// non-empty (sampleImages is still [] pending the samples follow-up — the card
-// degrades to a placeholder), and its id/storyType are unique.
+// non-empty, its full 7-image rabbit sample set + previewPdf are wired (Story
+// Samples PR-09), and its id/storyType are unique.
 
 describe("story-9-newbaby catalog entry", () => {
   it("is present in the catalog with storyType 'story-9'", () => {
@@ -681,12 +682,24 @@ describe("story-9-newbaby catalog entry", () => {
     expect(product.description.trim().length).toBeGreaterThan(0);
   });
 
-  it("has no sample images yet (storefront card degrades to placeholder until the samples follow-up)", () => {
-    // Story 9's web-optimized samples haven't been generated yet — public/samples/
-    // story-9-newbaby/ is empty. sampleImages is intentionally [] so the /books card
-    // renders the placeholder art block instead of a broken <img>. The samples
-    // follow-up flips this back to non-empty.
-    expect(getProduct("story-9-newbaby")!.sampleImages).toEqual([]);
+  it("wires the full 7-image rabbit sample set (Story Samples PR-09), named by slot id", () => {
+    const product = getProduct("story-9-newbaby")!;
+    expect(product.sampleImages).toEqual([
+      "/samples/story-9-newbaby/baby-cover.jpg",
+      "/samples/story-9-newbaby/baby-page-2.jpg",
+      "/samples/story-9-newbaby/baby-page-3.jpg",
+      "/samples/story-9-newbaby/baby-page-4.jpg",
+      "/samples/story-9-newbaby/baby-page-5.jpg",
+      "/samples/story-9-newbaby/baby-page-6.jpg",
+      "/samples/story-9-newbaby/baby-page-7.jpg",
+    ]);
+    expect(product.sampleImages).toHaveLength(7);
+  });
+
+  it("exposes the downloadable preview PDF", () => {
+    expect(getProduct("story-9-newbaby")!.previewPdf).toBe(
+      "/samples/story-9-newbaby/preview.pdf",
+    );
   });
 
   it("leaves lsVariantId unset (resolved server-side at checkout)", () => {
