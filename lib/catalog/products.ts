@@ -386,9 +386,19 @@ function buildCatalog(): Product[] {
         "hours. Read it to your pet before the baby comes, or keep it as the " +
         "first chapter of your growing family's story.",
       priceUsd: PLACEHOLDER_STORY_9_PRICE_USD,
-      // No web-optimized samples on disk yet — see the Story 8 note above; the card
-      // degrades to the placeholder art block until the samples follow-up ships.
-      sampleImages: [],
+      // The full 7-illustration rabbit sample set (Story Samples PR-09), named by
+      // slot id (cover + baby-page-2..7), generated at the locked mixed
+      // PRODUCTION_QUALITY tier; the downloadable preview.pdf renders the book.
+      sampleImages: [
+        "/samples/story-9-newbaby/baby-cover.jpg",
+        "/samples/story-9-newbaby/baby-page-2.jpg",
+        "/samples/story-9-newbaby/baby-page-3.jpg",
+        "/samples/story-9-newbaby/baby-page-4.jpg",
+        "/samples/story-9-newbaby/baby-page-5.jpg",
+        "/samples/story-9-newbaby/baby-page-6.jpg",
+        "/samples/story-9-newbaby/baby-page-7.jpg",
+      ],
+      previewPdf: "/samples/story-9-newbaby/preview.pdf",
       audience: "living",
       // The only displayTitle override: "And the New Baby" reads incomplete on a
       // standalone card, so the card/landing show the full phrase.

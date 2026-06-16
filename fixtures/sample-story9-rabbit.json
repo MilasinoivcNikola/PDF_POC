@@ -1,0 +1,31 @@
+{
+  "id": "sample-story9-rabbit",
+  "createdAt": "2026-06-16T00:00:00.000Z",
+  "status": "ready",
+  "storyType": "story-9",
+  "pet": {
+    "name": "Clementine",
+    "species": "rabbit",
+    "breedColor": "a sandy-orange rabbit with a cream chest and muzzle, tall upright ears, and a rounded, fluffy body",
+    "pronoun": "she",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/sample-photos/rabbit.jpg"
+  },
+  "owner": {
+    "names": "Bennett",
+    "relationship": "couple"
+  },
+  "memories": {
+    "favoriteActivity": "doing happy little binky hops across the living-room rug after breakfast",
+    "sleepingSpot": "the soft hay corner beneath the window",
+    "quirks": "the way you thump one back foot to let everyone know it is dinnertime",
+    "nicknames": "Clem, the little loaf"
+  },
+  "toggles": {
+    "babyStatus": "arrived",
+    "otherPetsInHome": "no"
+  },
+  "babyName": "Theo",
+  "babyArrival": "this past spring",
+  "images": []
+}

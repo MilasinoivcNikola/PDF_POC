@@ -54,19 +54,25 @@ const LOVE_ART_PAGE_IDS: readonly string[] = ["tribute-page-5", "tribute-page-6"
 // The `closing` layout pages that reuse the COVER illustration (circled) as their
 // closing art when they have no own generated `src`. Story 1's closing page
 // (`page-12`) IS a generated illustration slot, so it always takes the first branch
-// and never needs this fallback. Story 7 ("Welcome Home"), by contrast, ends on
-// `welcome-closing` — a page that is NOT one of its illustration slots (its scene
-// list ends at `welcome-belong`), so with no src the generic PlaceholderPet face
-// leaked through for every Story-7 book. The masterstory's closing brief asks the
-// image to "rhyme with the cover," so on this page only we reuse the cover art in a
-// circular vignette ($0 — no new generation).
+// and never needs this fallback. Story 7 ("Welcome Home") and Story 9 ("[PET_NAME]
+// and the New Baby"), by contrast, each end on a `closing` page that is NOT one of
+// their illustration slots — Story 7's `welcome-closing` (its scene list ends at
+// `welcome-belong`) and Story 9's `baby-page-8` (its slots end at `baby-page-7`) —
+// so with no src the generic PlaceholderPet face leaked through for every such book.
+// Both masterstories' closing briefs ask the image to "rhyme with"/"echo the cover"
+// (Story 9's asks it to "echo the cover but feel fuller and more settled"), so on
+// these pages only we reuse the cover art in a circular vignette ($0 — no new
+// generation).
 //
-// Gated by an explicit page-id allow-list containing ONLY the Story-7 closing id —
+// Gated by an explicit page-id allow-list containing ONLY those two closing ids —
 // the same pattern as DEDICATION_ART_PAGE_IDS / LOVE_ART_PAGE_IDS above. Story 1's
 // `page-12` (own src) and any other product's closing page (e.g. Story 8's
-// `adventure-closing`, Story 9's closing) are NOT in the set, so they keep their
-// exact current behavior and their PDFs stay byte-identical.
-const CLOSING_COVER_FALLBACK_PAGE_IDS: readonly string[] = ["welcome-closing"];
+// `adventure-closing`) are NOT in the set, so they keep their exact current
+// behavior and their PDFs stay byte-identical.
+const CLOSING_COVER_FALLBACK_PAGE_IDS: readonly string[] = [
+  "welcome-closing",
+  "baby-page-8",
+];
 
 // ---------------------------------------------------------------------------
 // Small shared bits
@@ -317,13 +323,14 @@ function ClosingPage({
   // Art slot precedence:
   //   1. own generated `src` — the page's own closing illustration (Story 1's
   //      `page-12`); rendered exactly as before, so Story 1 stays byte-identical.
-  //   2. else, on an allow-listed closing page (Story 7's `welcome-closing`) with
-  //      a cover image available — reuse the cover art in a circular vignette
-  //      (the `closing__art--circle` modifier), so the closing "rhymes with the
-  //      cover" instead of leaking the placeholder face. Costs $0.
+  //   2. else, on an allow-listed closing page (Story 7's `welcome-closing` or
+  //      Story 9's `baby-page-8`) with a cover image available — reuse the cover
+  //      art in a circular vignette (the `closing__art--circle` modifier), so the
+  //      closing "rhymes with"/"echoes the cover" instead of leaking the
+  //      placeholder face. Costs $0.
   //   3. else — the placeholder art (unchanged fallback for any other product's
-  //      closing page without art, and for Story 7 when no cover src is supplied,
-  //      e.g. the text-only `render:test` path).
+  //      closing page without art, and for Story 7 / Story 9 when no cover src is
+  //      supplied, e.g. the text-only `render:test` path).
   const useCoverFallback =
     !src && CLOSING_COVER_FALLBACK_PAGE_IDS.includes(page.id) && Boolean(coverSrc);
   return (
