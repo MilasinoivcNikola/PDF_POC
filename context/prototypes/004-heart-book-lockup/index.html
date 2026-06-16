@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dearbound — Heart-Book Lockup (004)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..500,0..100;1,9..144,300..500,0..100&family=Lora:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================================
+   Dearbound — 004 heart-book-lockup
+   PM has chosen Direction 03 ("Open Heart-Book") from iteration 003. This locks
+   it: the final glyph, the two-worlds tint (header-neutral / gold-living /
+   rose-loss), a favicon-optimized variant of the SAME mark held at 48/32/16px,
+   and 4 wordmark treatments in the live nav context for the PM to pick from.
+
+   Self-contained: tokens lifted verbatim from app/globals.css :root so this opens
+   by double-click with no build. Fonts via Google Fonts CDN (the live app
+   self-hosts via next/font — a build concern, not a design one). Every mark is
+   real inline SVG + real Fraunces type. PROPOSAL ONLY — no app/ / React change.
+   ============================================================================ */
+:root{
+  --cream:#F6F1E6; --cream-deep:#EFE7D5; --paper:#FBF7EE; --paper-shadow:rgba(60,45,30,.06);
+  --ink:#221C16; --ink-soft:#5A4F44; --ink-muted:#8A7F71; --ink-faint:#B6A998;
+  --rose:#B8857A; --rose-soft:#DCBCB1; --rose-faint:#F1DDD5;
+  --sage:#7E8D6B; --sage-soft:#B5C0A5;
+  --gold:#A88147; --gold-soft:#D8B780;
+  --border:#E0D5C2; --border-soft:#ECE3D2; --border-hairline:#D9CDB7;
+  --font-display:'Fraunces','Georgia',serif;
+  --font-body:'Lora','Georgia',serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  --s-1:.25rem; --s-2:.5rem; --s-3:.75rem; --s-4:1rem; --s-5:1.25rem; --s-6:1.5rem;
+  --s-8:2rem; --s-10:2.5rem; --s-12:3rem; --s-16:4rem; --s-20:5rem; --s-24:6rem;
+  --t-xs:.75rem; --t-sm:.875rem; --t-base:1rem; --t-lg:1.125rem; --t-xl:1.375rem;
+  --t-2xl:1.875rem; --t-3xl:2.5rem; --t-4xl:3.5rem;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);line-height:1.7;color:var(--ink);
+  background-color:var(--cream);
+  background-image:
+    radial-gradient(circle at 15% 20%,rgba(184,133,122,.06) 0%,transparent 50%),
+    radial-gradient(circle at 85% 80%,rgba(126,141,107,.05) 0%,transparent 50%);
+  min-height:100vh;
+}
+a{color:var(--ink);text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:var(--s-16) clamp(var(--s-6),6vw,var(--s-16))}
+
+/* ---- page heading ---- */
+.label{font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.18em;color:var(--ink-muted)}
+.label--gold{color:var(--gold)} .label--rose{color:var(--rose)}
+.display-lg{font-family:var(--font-display);font-weight:300;font-variation-settings:"opsz" 144,"SOFT" 30;font-size:clamp(2.5rem,6vw,var(--t-4xl));line-height:1.02;letter-spacing:-.03em}
+.lede{font-size:var(--t-lg);line-height:1.6;color:var(--ink-soft);max-width:44em}
+.helper{font-family:var(--font-body);font-style:italic;font-size:var(--t-sm);color:var(--ink-muted);line-height:1.55;max-width:50em}
+.pagehead{margin-bottom:var(--s-16)}
+.pagehead .label{margin-bottom:var(--s-4)}
+.pagehead .lede{margin-top:var(--s-5)}
+
+/* recommendation banner */
+.rec{
+  margin-top:var(--s-12);padding:var(--s-8) var(--s-10);
+  background:var(--paper);border:1px solid var(--border);
+  border-left:3px solid var(--gold);border-radius:2px;
+}
+.rec__tag{font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.18em;color:var(--gold);margin-bottom:var(--s-3)}
+.rec h2{font-family:var(--font-display);font-weight:300;font-variation-settings:"opsz" 144,"SOFT" 30;font-size:var(--t-2xl);letter-spacing:-.02em;margin-bottom:var(--s-3)}
+.rec p{color:var(--ink-soft);max-width:52em}
+.rec p em{color:var(--rose);font-style:italic;font-weight:500}
+
+/* ---- a section block ---- */
+.sec{margin-top:var(--s-24);padding-top:var(--s-12);border-top:1px solid var(--border-hairline)}
+.sec__head{display:flex;align-items:baseline;gap:var(--s-5);flex-wrap:wrap;margin-bottom:var(--s-3)}
+.sec__no{font-family:var(--font-mono);font-size:var(--t-sm);letter-spacing:.18em;color:var(--gold)}
+.sec__title{font-family:var(--font-display);font-weight:300;font-variation-settings:"opsz" 144,"SOFT" 30;font-size:var(--t-2xl);letter-spacing:-.02em}
+.sec__lede{color:var(--ink-soft);max-width:56em;margin-bottom:var(--s-10);line-height:1.7}
+.sec__lede strong{color:var(--ink);font-weight:500}
+
+.sub{font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-faint);margin:var(--s-10) 0 var(--s-4)}
+
+/* the hero lockup card (large, on paper) */
+.lockup{
+  background:var(--paper);border:1px solid var(--border);border-radius:3px;
+  padding:var(--s-20) var(--s-12);display:flex;align-items:center;justify-content:center;
+  margin-bottom:var(--s-6);min-height:200px;gap:var(--s-16);flex-wrap:wrap;
+}
+.glyph-solo{display:flex;flex-direction:column;align-items:center;gap:var(--s-4)}
+.glyph-solo .cap{font-family:var(--font-mono);font-size:var(--t-xs);letter-spacing:.16em;color:var(--ink-muted);text-transform:uppercase}
+
+/* the wordmark lockup itself — mirrors .wordmark from globals.css */
+.wm{display:inline-flex;align-items:baseline;gap:var(--s-2)}
+.wm__text{
+  font-family:var(--font-display);font-variation-settings:"opsz" 144,"SOFT" 50;
+  font-size:var(--t-lg);font-weight:400;letter-spacing:.01em;color:var(--ink);
+  line-height:1;white-space:nowrap;
+}
+.wm__glyph{flex:none;display:block;align-self:center}
+/* the big hero version scales the same lockup up */
+.wm--hero{gap:var(--s-5);align-items:center}
+.wm--hero .wm__text{font-size:2.6rem;letter-spacing:0}
+
+/* ---- the live header mirror (matches .site-header / .site-nav) ---- */
+.site-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:var(--s-5) var(--s-8);
+  border:1px solid var(--border);border-radius:3px;
+  background:var(--cream);
+}
+.site-header + .site-header{margin-top:var(--s-4)}
+.site-nav{display:flex;align-items:center;gap:var(--s-8)}
+.site-nav a{font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.18em;color:var(--ink-muted)}
+.site-nav a.is-current{color:var(--ink)}
+
+/* the two-worlds tint demo: three header strips stacked, labelled */
+.tintstrip{display:flex;align-items:center;gap:var(--s-5);margin-bottom:var(--s-4)}
+.tintstrip__tag{flex:none;width:128px;font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.14em}
+.tintstrip__tag small{display:block;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ink-faint);margin-top:2px}
+.tag--ink{color:var(--ink-muted)} .tag--gold{color:var(--gold)} .tag--rose{color:var(--rose)}
+.tintstrip .site-header{flex:1}
+@media(max-width:760px){.tintstrip{flex-direction:column;align-items:stretch}.tintstrip__tag{width:auto}}
+
+/* favicon row */
+.favrow{display:flex;align-items:flex-end;gap:var(--s-10);flex-wrap:wrap;padding:var(--s-6) var(--s-2) var(--s-2)}
+.fav{display:flex;flex-direction:column;align-items:center;gap:var(--s-3)}
+.fav__cap{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;color:var(--ink-muted);text-transform:uppercase}
+.fav__chip{
+  /* transparent background per PM decision — checkerboard shows it through */
+  background-color:#fff;
+  background-image:
+    linear-gradient(45deg,#eee 25%,transparent 25%),linear-gradient(-45deg,#eee 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#eee 75%),linear-gradient(-45deg,transparent 75%,#eee 75%);
+  background-size:10px 10px;background-position:0 0,0 5px,5px -5px,-5px 0;
+  border:1px solid var(--border);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+}
+.fav__chip--48{width:48px;height:48px} .fav__chip--32{width:32px;height:32px} .fav__chip--16{width:16px;height:16px}
+/* a real-context favicon: the mark in a browser-tab strip */
+.tabsim{display:flex;align-items:center;gap:var(--s-3);background:var(--cream-deep);border:1px solid var(--border);border-radius:6px 6px 0 0;padding:var(--s-2) var(--s-4);max-width:240px;margin-top:var(--s-6)}
+.tabsim svg{flex:none}
+.tabsim span{font-family:var(--font-body);font-size:var(--t-sm);color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* wordmark options grid */
+.wmopt{border-top:1px solid var(--border-hairline);padding:var(--s-8) 0 0}
+.wmopt:first-of-type{border-top:none;padding-top:0}
+.wmopt__meta{display:flex;align-items:baseline;gap:var(--s-4);flex-wrap:wrap;margin-bottom:var(--s-5)}
+.wmopt__letter{font-family:var(--font-mono);font-size:var(--t-sm);letter-spacing:.16em;color:var(--gold)}
+.wmopt__name{font-family:var(--font-display);font-weight:400;font-variation-settings:"opsz" 144,"SOFT" 30;font-size:var(--t-lg);color:var(--ink)}
+.wmopt__why{font-size:var(--t-sm);color:var(--ink-soft);max-width:52em;margin-bottom:var(--s-5);line-height:1.6}
+.wmopt__why strong{color:var(--ink);font-weight:500}
+.wmopt.is-pick .wmopt__name::after{content:" ★ recommended";font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+
+/* wordmark casing variants */
+.wm--lower .wm__text{text-transform:lowercase}
+.wm--caps .wm__text{text-transform:uppercase;letter-spacing:.22em;font-size:var(--t-base)}
+.wm--caps.wm--hero .wm__text{font-size:1.9rem;letter-spacing:.18em}
+.wm--smallcaps .wm__text{font-variant-caps:small-caps;letter-spacing:.10em;text-transform:lowercase}
+.wm--smallcaps.wm--hero .wm__text{letter-spacing:.06em}
+
+footer.note{margin-top:var(--s-24);padding-top:var(--s-8);border-top:1px solid var(--border-hairline);color:var(--ink-muted);font-style:italic;font-size:var(--t-sm)}
+code{font-family:var(--font-mono);font-size:.85em;color:var(--ink-soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===================== PAGE HEAD ===================== -->
+  <header class="pagehead">
+    <div class="label">Dearbound · Iteration 004 · Heart-book lockup</div>
+    <h1 class="display-lg">Locking the Open Heart-Book.</h1>
+    <p class="lede">Direction 03 is chosen — an open book whose two facing pages curve up into the lobes of a heart. This iteration locks the final glyph, shows the decided two-worlds tint (neutral in the global header, gold on living pages, rose on loss pages), draws a favicon-optimized variant of the <em>same</em> mark at 48 / 32 / 16px, and puts four wordmark treatments in the live nav so you can pick the type.</p>
+
+    <div class="rec">
+      <div class="rec__tag">My one recommendation in this iteration</div>
+      <h2>Lock the wordmark as letter-spaced small-caps — “<span style="font-variant-caps:small-caps;letter-spacing:.08em">Dearbound</span>.”</h2>
+      <p>The glyph and tint are decided; the only open call is the type. Small-caps keeps the <em>warmth</em> of Fraunces but reads as a considered <em>imprint / press</em> rather than a default page title — which is exactly the hand-finished keepsake positioning, and it pairs with the heart-book without competing with it. Full rationale and four side-by-side options below.</p>
+    </div>
+  </header>
+
+
+  <!-- ===================== 1. THE LOCKED GLYPH ===================== -->
+  <section class="sec">
+    <div class="sec__head">
+      <span class="sec__no">01</span>
+      <span class="sec__title">The locked glyph</span>
+    </div>
+    <p class="sec__lede">The hero mark, refined from 003. <strong>Two facing pages rise into a heart; the open covers spread at the base; a center spine ties them together.</strong> Drawn in ink so it’s the stable, neutral brand mark — the color tint is applied per surface (next section), not baked into the glyph. Shown large beside the in-context wordmark lockup.</p>
+
+    <div class="lockup">
+      <div class="glyph-solo">
+        <!-- HERO GLYPH (full detail) -->
+        <svg width="92" height="84" viewBox="0 0 46 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- the two page-lobes forming the heart, soft rose-faint wash -->
+          <path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/>
+          <!-- the spine -->
+          <path d="M23 12 L23 36" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- the open covers spreading at the base -->
+          <path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/>
+          <!-- two faint page lines, the "open book" read -->
+          <path d="M22 22 C17 20.5 11.5 20 7 21.4" stroke="var(--ink)" stroke-width=".8" opacity=".4"/>
+          <path d="M24 22 C29 20.5 34.5 20 39 21.4" stroke="var(--ink)" stroke-width=".8" opacity=".4"/>
+        </svg>
+        <span class="cap">Hero · full detail</span>
+      </div>
+
+      <div class="glyph-solo">
+        <span class="wm wm--hero wm--smallcaps">
+          <svg class="wm__glyph" width="48" height="44" viewBox="0 0 46 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M23 12 L23 36" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          </svg>
+          <span class="wm__text">Dearbound</span>
+        </span>
+        <span class="cap">Lockup · glyph + wordmark</span>
+      </div>
+    </div>
+    <p class="helper">The glyph occupies the same slot as today’s <code>.wordmark__ornament</code>, so it ports 1:1: swap the SVG, keep the <code>.wordmark</code> type spec. The faint inner page-lines only render at hero/header sizes — they’re the first thing dropped for the favicon (section 03).</p>
+  </section>
+
+
+  <!-- ===================== 2. TWO-WORLDS TINT (DECIDED) ===================== -->
+  <section class="sec">
+    <div class="sec__head">
+      <span class="sec__no">02</span>
+      <span class="sec__title">Two-worlds tint — decided</span>
+    </div>
+    <p class="sec__lede"><strong>Neutral ink in the global site header</strong> (landing, catalog, anywhere not committed to a world), <strong>gold on living / celebration pages</strong>, <strong>rose on loss / memorial pages</strong> — echoing the existing accent system. Only the glyph’s ink strokes and the spine take the tint; the soft page-wash stays <code>--rose-faint</code> so the heart always reads warm. Here are the three states in the live header, side by side.</p>
+
+    <!-- NEUTRAL (global header) -->
+    <div class="tintstrip">
+      <div class="tintstrip__tag tag--ink">Header · neutral<small>landing / catalog / global</small></div>
+      <header class="site-header">
+        <span class="wm">
+          <svg class="wm__glyph" width="22" height="20" viewBox="0 0 46 42" fill="none" aria-hidden="true">
+            <path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M23 12 L23 36" stroke="var(--ink)" stroke-width="1.8"/>
+            <path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+          <span class="wm__text">Dearbound</span>
+        </span>
+        <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+      </header>
+    </div>
+
+    <!-- GOLD (living pages) -->
+    <div class="tintstrip">
+      <div class="tintstrip__tag tag--gold">Gold · living<small>celebration / gotcha-day</small></div>
+      <header class="site-header">
+        <span class="wm">
+          <svg class="wm__glyph" width="22" height="20" viewBox="0 0 46 42" fill="none" aria-hidden="true">
+            <path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="rgba(216,183,128,.28)" stroke="var(--gold)" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M23 12 L23 36" stroke="var(--gold)" stroke-width="1.8"/>
+            <path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+          <span class="wm__text">Dearbound</span>
+        </span>
+        <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+      </header>
+    </div>
+
+    <!-- ROSE (loss pages) -->
+    <div class="tintstrip">
+      <div class="tintstrip__tag tag--rose">Rose · loss<small>memorial / letter</small></div>
+      <header class="site-header">
+        <span class="wm">
+          <svg class="wm__glyph" width="22" height="20" viewBox="0 0 46 42" fill="none" aria-hidden="true">
+            <path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--rose)" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M23 12 L23 36" stroke="var(--rose)" stroke-width="1.8"/>
+            <path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--rose)" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--rose)" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+          <span class="wm__text">Dearbound</span>
+        </span>
+        <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+      </header>
+    </div>
+
+    <p class="helper" style="margin-top:var(--s-6)">The tint reads cleanly in all three: ink is authoritative and neutral, gold warms toward celebration, rose softens toward memorial — and because the page-wash stays the same warm rose-faint, the mark never feels like a different logo, just the same mark wearing the page’s mood. Implementation note for the engineer: the glyph would take its stroke from a CSS variable (e.g. <code>--mark-ink</code>) set per route group, defaulting to <code>--ink</code>; the existing gold/rose page accents already exist as tokens.</p>
+  </section>
+
+
+  <!-- ===================== 3. FAVICON (THE SAME MARK, OPTIMIZED) ===================== -->
+  <section class="sec">
+    <div class="sec__head">
+      <span class="sec__no">03</span>
+      <span class="sec__title">Favicon — the heart-book itself, optimized</span>
+    </div>
+    <p class="sec__lede">Per your call: keep the <strong>full heart-book</strong> at favicon scale on a <strong>transparent</strong> background — not a bare heart, not a monogram. In 003 the literal hero mark went mushy at 16px (the thin covers + page-lines collapsed and it read as just a heart). So this is a <strong>favicon-tuned redraw of the same mark</strong>: the inner page-lines are dropped, the strokes thicken as the size shrinks, and the open covers are simplified to two bold wedges — so it still reads <em>book-becoming-a-heart</em>, not just <em>heart</em>. Transparent background shown over a checkerboard.</p>
+
+    <div class="sub">Favicon-optimized variant · transparent · ink</div>
+    <div class="favrow">
+      <!-- 48px: still carries the covers + spine -->
+      <div class="fav">
+        <div class="fav__chip fav__chip--48">
+          <svg width="40" height="38" viewBox="0 0 46 44" fill="none" aria-hidden="true">
+            <path d="M23 13 C23 7 17 5 13 8 C9 11 10.5 16 23 25 C35.5 16 37 11 33 8 C29 5 23 7 23 13 Z" fill="var(--rose-faint)" stroke="var(--ink)" stroke-width="2.4" stroke-linejoin="round"/>
+            <path d="M23 13 L23 35" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M23 35 C18.5 30.5 12 30 6.5 31.8 L6.5 21 C12 19.4 18.5 20 23 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linejoin="round"/>
+            <path d="M23 35 C27.5 30.5 34 30 39.5 31.8 L39.5 21 C34 19.4 27.5 20 23 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="fav__cap">48px</span>
+      </div>
+
+      <!-- 32px: covers simplified to filled wedges, heart filled, spine notch -->
+      <div class="fav">
+        <div class="fav__chip fav__chip--32">
+          <svg width="26" height="24" viewBox="0 0 46 44" fill="none" aria-hidden="true">
+            <!-- the two open covers as solid wedges -->
+            <path d="M23 35 C18 31 11.5 30.5 6 32.4 L6 20.5 C11.5 18.6 18 19.4 23 23.5 Z" fill="var(--ink)"/>
+            <path d="M23 35 C28 31 34.5 30.5 40 32.4 L40 20.5 C34.5 18.6 28 19.4 23 23.5 Z" fill="var(--ink)"/>
+            <!-- the heart from the page-tops, solid with a spine notch -->
+            <path d="M23 14 C23 8 17 6 13 9 C9 12 11 17 23 25 C35 17 37 12 33 9 C29 6 23 8 23 14 Z" fill="var(--ink)"/>
+            <!-- spine notch knocked out so book + heart still read as two parts -->
+            <path d="M23 14 L23 24" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="fav__cap">32px</span>
+      </div>
+
+      <!-- 16px: boldest reduction — solid heart on a solid book base, one notch -->
+      <div class="fav">
+        <div class="fav__chip fav__chip--16">
+          <svg width="14" height="13" viewBox="0 0 46 44" fill="none" aria-hidden="true">
+            <!-- single bold open-book base (one trapezoid + center dip) -->
+            <path d="M23 36 C17 31.5 9 31 4 33 L4 20 C9 18 17 18.5 23 23 C29 18.5 37 18 42 20 L42 33 C37 31 29 31.5 23 36 Z" fill="var(--ink)"/>
+            <!-- solid heart from page-tops -->
+            <path d="M23 14 C23 7 16 5 12 9 C8 13 11 18 23 26 C35 18 38 13 34 9 C30 5 23 7 23 14 Z" fill="var(--ink)"/>
+            <!-- one knockout notch at the spine, the only interior detail kept -->
+            <path d="M23 24 L23 31" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="fav__cap">16px</span>
+      </div>
+    </div>
+
+    <!-- in a real browser tab -->
+    <div class="tabsim">
+      <svg width="15" height="14" viewBox="0 0 46 44" fill="none" aria-hidden="true">
+        <path d="M23 36 C17 31.5 9 31 4 33 L4 20 C9 18 17 18.5 23 23 C29 18.5 37 18 42 20 L42 33 C37 31 29 31.5 23 36 Z" fill="var(--ink)"/>
+        <path d="M23 14 C23 7 16 5 12 9 C8 13 11 18 23 26 C35 18 38 13 34 9 C30 5 23 7 23 14 Z" fill="var(--ink)"/>
+        <path d="M23 24 L23 31" stroke="var(--cream-deep)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>Dearbound — custom illustrated books…</span>
+    </div>
+
+    <p class="helper" style="margin-top:var(--s-6)"><strong>Honest read of how it holds up.</strong> <strong>48px:</strong> excellent — full outline mark, covers + spine + heart all legible. <strong>32px:</strong> good — the filled-wedge / solid-heart reduction with the knocked-out spine notch keeps the two-part “book + heart” read; this is the size that does the most work (Retina tab @2×). <strong>16px:</strong> honest verdict — it reads as <em>a heart sitting on an open book</em>, which is the right idea, but at exactly 16px CSS it is close to its legibility floor: the spine notch is the single feature separating “book + heart” from “a heart on a base,” and on a very dark browser-tab chrome the transparent ink mark can disappear. <strong>Two things to confirm with the engineer at build:</strong> (a) ship a real multi-size <code>.ico</code> + an SVG favicon so 16/32/48 each use the size-tuned drawing above rather than auto-scaling one file; (b) consider a one-pixel lighter ink or a faint outline for dark-mode tab chrome. Within those caveats the same mark survives — it does <em>not</em> have to fall back to a generic heart.</p>
+  </section>
+
+
+  <!-- ===================== 4. WORDMARK TREATMENTS (THE OPEN CALL) ===================== -->
+  <section class="sec">
+    <div class="sec__head">
+      <span class="sec__no">04</span>
+      <span class="sec__title">Wordmark — four treatments to pick from</span>
+    </div>
+    <p class="sec__lede">The glyph is locked; the type beside it is the open decision. Each option is shown in the <strong>live header</strong> next to the locked neutral glyph, plus a larger lockup so you can read the letterforms. One-line rationale each; my pick is marked.</p>
+
+    <!-- A. Control: title-case Fraunces as-is -->
+    <div class="wmopt">
+      <div class="wmopt__meta"><span class="wmopt__letter">A</span><span class="wmopt__name">Title-case Fraunces (the control — what ships today)</span></div>
+      <p class="wmopt__why"><strong>“Dearbound,”</strong> exactly as the current wordmark renders it (<code>opsz</code> 144, <code>SOFT</code> 50, title case). Warmest and most book-like, zero migration. The risk: it reads as <em>a word set in a nice serif</em> rather than a designed mark — fine, but it leans on the new glyph to do all the brand-identity work.</p>
+      <header class="site-header">
+        <span class="wm">
+          <svg class="wm__glyph" width="22" height="20" viewBox="0 0 46 42" fill="none" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 12 L23 36" stroke="var(--ink)" stroke-width="1.8"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <span class="wm__text">Dearbound</span>
+        </span>
+        <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+      </header>
+    </div>
+
+    <!-- B. lowercase -->
+    <div class="wmopt">
+      <div class="wmopt__meta"><span class="wmopt__letter">B</span><span class="wmopt__name">Lowercase “dearbound”</span></div>
+      <p class="wmopt__why"><strong>“dearbound,”</strong> all lowercase. Softer, quieter, more intimate — leans into the “dear” and feels modern-craft (think indie press / stationery). The risk in a grief-adjacent product: lowercase can read slightly <em>casual / startup</em>, undercutting the dignity a memorial title wants; and the unique “D” of “Dearbound” disappears.</p>
+      <header class="site-header">
+        <span class="wm wm--lower">
+          <svg class="wm__glyph" width="22" height="20" viewBox="0 0 46 42" fill="none" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 12 L23 36" stroke="var(--ink)" stroke-width="1.8"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <span class="wm__text">Dearbound</span>
+        </span>
+        <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+      </header>
+    </div>
+
+    <!-- C. tracked-out caps -->
+    <div class="wmopt">
+      <div class="wmopt__meta"><span class="wmopt__letter">C</span><span class="wmopt__name">Letter-spaced caps “D E A R B O U N D”</span></div>
+      <p class="wmopt__why"><strong>Tracked-out full caps.</strong> Most formal and architectural — reads like a fine-press colophon or a foil-stamped spine. Carries dignity for memorial pages effortlessly. The risk: full caps at the larger letterspacing can feel slightly <em>cold / fashion-house</em> for the joyful gotcha-day titles, and it’s the widest lockup (watch the header on narrow screens).</p>
+      <header class="site-header">
+        <span class="wm wm--caps">
+          <svg class="wm__glyph" width="22" height="20" viewBox="0 0 46 42" fill="none" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 12 L23 36" stroke="var(--ink)" stroke-width="1.8"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <span class="wm__text">Dearbound</span>
+        </span>
+        <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+      </header>
+    </div>
+
+    <!-- D. small-caps (my pick) -->
+    <div class="wmopt is-pick">
+      <div class="wmopt__meta"><span class="wmopt__letter">D</span><span class="wmopt__name">Letter-spaced small-caps “Dearbound”</span></div>
+      <p class="wmopt__why"><strong>The fourth option I chose.</strong> Real Fraunces small-caps with a gentle <code>.10em</code> tracking — the cap “D” stays as a quiet initial, the rest sit as even small caps. It’s the <strong>middle ground that takes the best of B and C</strong>: the imprint/press feel and dignity of caps (D), but warmer and more even-toned, never cold, so it carries celebration <em>and</em> memorial. Most “considered mark, not default title,” and it sits beautifully under the heart-book’s symmetry. <strong>My recommendation.</strong></p>
+      <header class="site-header">
+        <span class="wm wm--smallcaps">
+          <svg class="wm__glyph" width="22" height="20" viewBox="0 0 46 42" fill="none" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 12 L23 36" stroke="var(--ink)" stroke-width="1.8"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <span class="wm__text">Dearbound</span>
+        </span>
+        <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+      </header>
+    </div>
+
+    <div class="sub">The four, large, for letterform comparison</div>
+    <div class="lockup" style="gap:var(--s-12);flex-direction:column;align-items:flex-start;padding:var(--s-12)">
+      <span class="wm wm--hero"><svg class="wm__glyph" width="42" height="38" viewBox="0 0 46 42" fill="none" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/><path d="M23 12 L23 36" stroke="var(--ink)" stroke-width="1.6"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/><path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="wm__text">Dearbound</span></span>
+      <span class="wm wm--hero wm--lower"><svg class="wm__glyph" width="42" height="38" viewBox="0 0 46 42" fill="none" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/><path d="M23 12 L23 36" stroke="var(--ink)" stroke-width="1.6"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/><path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="wm__text">Dearbound</span></span>
+      <span class="wm wm--hero wm--caps"><svg class="wm__glyph" width="42" height="38" viewBox="0 0 46 42" fill="none" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/><path d="M23 12 L23 36" stroke="var(--ink)" stroke-width="1.6"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/><path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="wm__text">Dearbound</span></span>
+      <span class="wm wm--hero wm--smallcaps" style="position:relative"><svg class="wm__glyph" width="42" height="38" viewBox="0 0 46 42" fill="none" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--gold)" stroke-width="1.6" stroke-linejoin="round"/><path d="M23 12 L23 36" stroke="var(--gold)" stroke-width="1.6"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linejoin="round"/><path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="wm__text">Dearbound</span> <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;align-self:center">★ pick — shown with gold tint</span></span>
+    </div>
+  </section>
+
+
+  <footer class="note">
+    004 · heart-book-lockup — proposal only. The glyph occupies today’s <code>.wordmark__ornament</code> slot and the wordmark uses the real <code>.wordmark</code> type spec, so the chosen pairing ports 1:1. Tint = a per-route-group CSS var on the glyph stroke (default <code>--ink</code>, <code>--gold</code> on living, <code>--rose</code> on loss). Favicon ships as a size-tuned multi-res <code>.ico</code> + SVG. Nothing here is shipping code — once you pick the wordmark this becomes a feature spec for the <code>nextjs-ui-builder</code>.
+  </footer>
+
+</div>
+</body>
+</html>

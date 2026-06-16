@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dearbound — Logo Concepts (003)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..500,0..100;1,9..144,300..500,0..100&family=Lora:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================================
+   Dearbound — 003 logo-concepts
+   Self-contained: tokens lifted verbatim from app/globals.css :root so this
+   opens by double-click with no build. Fonts via Google Fonts CDN (the live
+   app self-hosts via next/font — a build concern, not a design one).
+
+   This file is a PROPOSAL. Every mark is real inline SVG + real Fraunces type,
+   no placeholder boxes. New helper classes are local to this mockup only.
+   ============================================================================ */
+:root{
+  --cream:#F6F1E6; --cream-deep:#EFE7D5; --paper:#FBF7EE; --paper-shadow:rgba(60,45,30,.06);
+  --ink:#221C16; --ink-soft:#5A4F44; --ink-muted:#8A7F71; --ink-faint:#B6A998;
+  --rose:#B8857A; --rose-soft:#DCBCB1; --rose-faint:#F1DDD5;
+  --sage:#7E8D6B; --sage-soft:#B5C0A5;
+  --gold:#A88147; --gold-soft:#D8B780;
+  --border:#E0D5C2; --border-soft:#ECE3D2; --border-hairline:#D9CDB7;
+  --font-display:'Fraunces','Georgia',serif;
+  --font-body:'Lora','Georgia',serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  --s-1:.25rem; --s-2:.5rem; --s-3:.75rem; --s-4:1rem; --s-5:1.25rem; --s-6:1.5rem;
+  --s-8:2rem; --s-10:2.5rem; --s-12:3rem; --s-16:4rem; --s-20:5rem; --s-24:6rem;
+  --t-xs:.75rem; --t-sm:.875rem; --t-base:1rem; --t-lg:1.125rem; --t-xl:1.375rem;
+  --t-2xl:1.875rem; --t-3xl:2.5rem; --t-4xl:3.5rem;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);line-height:1.7;color:var(--ink);
+  background-color:var(--cream);
+  background-image:
+    radial-gradient(circle at 15% 20%,rgba(184,133,122,.06) 0%,transparent 50%),
+    radial-gradient(circle at 85% 80%,rgba(126,141,107,.05) 0%,transparent 50%);
+  min-height:100vh;
+}
+a{color:var(--ink);text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:var(--s-16) clamp(var(--s-6),6vw,var(--s-16))}
+
+/* ---- page heading ---- */
+.label{font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.18em;color:var(--ink-muted)}
+.label--gold{color:var(--gold)} .label--rose{color:var(--rose)} .label--sage{color:var(--sage)}
+.display-lg{font-family:var(--font-display);font-weight:300;font-variation-settings:"opsz" 144,"SOFT" 30;font-size:clamp(2.5rem,6vw,var(--t-4xl));line-height:1.02;letter-spacing:-.03em}
+.display-md{font-family:var(--font-display);font-weight:300;font-variation-settings:"opsz" 144,"SOFT" 30;font-size:var(--t-3xl);letter-spacing:-.02em;line-height:1.1}
+.lede{font-size:var(--t-lg);line-height:1.6;color:var(--ink-soft);max-width:42em}
+.helper{font-family:var(--font-body);font-style:italic;font-size:var(--t-sm);color:var(--ink-muted);line-height:1.55}
+.pagehead{margin-bottom:var(--s-20)}
+.pagehead .label{margin-bottom:var(--s-4)}
+.pagehead .lede{margin-top:var(--s-5)}
+
+/* recommendation banner */
+.rec{
+  margin-top:var(--s-12);padding:var(--s-8) var(--s-10);
+  background:var(--paper);border:1px solid var(--border);
+  border-left:3px solid var(--gold);border-radius:2px;
+}
+.rec__tag{font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.18em;color:var(--gold);margin-bottom:var(--s-3)}
+.rec h2{font-family:var(--font-display);font-weight:300;font-variation-settings:"opsz" 144,"SOFT" 30;font-size:var(--t-2xl);letter-spacing:-.02em;margin-bottom:var(--s-3)}
+.rec p{color:var(--ink-soft);max-width:50em}
+.rec p em{color:var(--rose);font-style:italic}
+
+/* ---- a direction block ---- */
+.dir{margin-top:var(--s-24);padding-top:var(--s-12);border-top:1px solid var(--border-hairline)}
+.dir__head{display:flex;align-items:baseline;gap:var(--s-5);flex-wrap:wrap;margin-bottom:var(--s-3)}
+.dir__no{font-family:var(--font-mono);font-size:var(--t-sm);letter-spacing:.18em;color:var(--gold)}
+.dir__title{font-family:var(--font-display);font-weight:300;font-variation-settings:"opsz" 144,"SOFT" 30;font-size:var(--t-2xl);letter-spacing:-.02em}
+.dir__rationale{color:var(--ink-soft);max-width:54em;margin-bottom:var(--s-10);line-height:1.7}
+.dir__rationale strong{color:var(--ink);font-weight:500}
+
+/* the hero lockup card (large, on paper) */
+.lockup{
+  background:var(--paper);border:1px solid var(--border);border-radius:3px;
+  padding:var(--s-20) var(--s-12);display:flex;align-items:center;justify-content:center;
+  margin-bottom:var(--s-8);min-height:220px;
+}
+
+/* a mocked nav bar — mirrors .site-header + .site-nav from globals.css */
+.navbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:var(--s-5) var(--s-8);
+  border:1px solid var(--border);border-radius:3px;margin-bottom:var(--s-4);
+  background:var(--cream);
+}
+.navbar--paper{background:var(--paper)}
+.site-nav{display:flex;align-items:center;gap:var(--s-8)}
+.site-nav a,.site-nav span{font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.18em;color:var(--ink-muted)}
+.site-nav .is-current{color:var(--ink)}
+
+/* the wordmark lockup itself — sits where .wordmark sits today */
+.wm{display:inline-flex;align-items:center;gap:var(--s-3)}
+.wm__text{
+  font-family:var(--font-display);font-variation-settings:"opsz" 144,"SOFT" 50;
+  font-size:var(--t-lg);font-weight:400;letter-spacing:.01em;color:var(--ink);
+  line-height:1;white-space:nowrap;
+}
+.wm__glyph{flex:none;display:block}
+/* the big hero version scales the same lockup up */
+.wm--hero .wm__text{font-size:2.6rem;letter-spacing:0}
+.wm--hero{gap:var(--s-5)}
+
+/* surface swatches: light / gold / rose contexts */
+.surfaces{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s-4);margin-bottom:var(--s-4)}
+@media(max-width:780px){.surfaces{grid-template-columns:1fr}}
+.surface{
+  border-radius:3px;padding:var(--s-10) var(--s-6);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-4);
+  min-height:150px;border:1px solid transparent;
+}
+.surface__cap{font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.16em;opacity:.7}
+.surface--light{background:var(--paper);border-color:var(--border)}
+.surface--light .surface__cap{color:var(--ink-muted)}
+.surface--gold{background:linear-gradient(160deg,var(--gold) 0%,#8f6c39 100%)}
+.surface--gold .surface__cap{color:#f4e9d4}
+.surface--rose{background:linear-gradient(160deg,var(--rose) 0%,#9c6a60 100%)}
+.surface--rose .surface__cap{color:#f6e3dc}
+/* on dark surfaces the lockup inverts to cream */
+.surface--gold .wm__text,.surface--rose .wm__text{color:var(--cream)}
+
+/* favicon row */
+.favrow{display:flex;align-items:flex-end;gap:var(--s-8);flex-wrap:wrap;padding:var(--s-6) var(--s-2) var(--s-2)}
+.fav{display:flex;flex-direction:column;align-items:center;gap:var(--s-3)}
+.fav__cap{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;color:var(--ink-muted);text-transform:uppercase}
+.fav__chip{
+  background:var(--paper);border:1px solid var(--border);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+}
+.fav__chip--ink{background:var(--ink);border-color:var(--ink)}
+.fav__chip--gold{background:linear-gradient(160deg,var(--gold),#8f6c39);border:none}
+.fav__chip--rose{background:linear-gradient(160deg,var(--rose),#9c6a60);border:none}
+.fav__chip--48{width:48px;height:48px} .fav__chip--32{width:32px;height:32px} .fav__chip--16{width:16px;height:16px}
+
+.sub{font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-faint);margin:var(--s-8) 0 var(--s-3)}
+
+footer.note{margin-top:var(--s-24);padding-top:var(--s-8);border-top:1px solid var(--border-hairline);color:var(--ink-muted);font-style:italic;font-size:var(--t-sm)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===================== PAGE HEAD ===================== -->
+  <header class="pagehead">
+    <div class="label">Dearbound · Iteration 003 · Logo concepts</div>
+    <h1 class="display-lg">A mark for Dearbound.</h1>
+    <p class="lede">Five directions for replacing the plain text wordmark in the site header. Each is shown as a hero lockup, in the live nav context, on light + gold (living) + rose (loss) surfaces, and at favicon scale. All built from the existing system: Fraunces display type, the real palette tokens, the gold = celebration / rose = memorial accent split.</p>
+
+    <div class="rec">
+      <div class="rec__tag">Recommendation</div>
+      <h2>Lead with Direction 02 — “The Bound Spine.”</h2>
+      <p>It’s the only mark that says the actual product — <em>a bound book</em> — and quietly encodes the name (“-bound”) without a single literal pet cliché. The book-spine glyph reads as warm and editorial at hero scale, survives down to a 16px favicon as a clean stacked-pages mark, and is emotionally neutral, so it carries a joyful gotcha-day title and a memorial letter equally well. Direction 04 (“Tucked Paw”) is the close runner-up if you want the pet present in the mark itself.</p>
+    </div>
+  </header>
+
+
+  <!-- ===================== DIRECTION 01 ===================== -->
+  <section class="dir">
+    <div class="dir__head">
+      <span class="dir__no">01</span>
+      <span class="dir__title">Refined Paw — the system today, elevated</span>
+    </div>
+    <p class="dir__rationale"><strong>What it says:</strong> the gentlest evolution of what ships now — the existing paw-print ornament, redrawn as a single soft, hand-inked shape rather than the current five disconnected blobs, and tucked tight against the wordmark. <strong>Why it fits:</strong> lowest-risk, instantly “Dearbound,” and the paw is the universal pet signifier — but it leans slightly cute and says “pet brand” more than “keepsake book.” Best if you want continuity over a statement.</p>
+
+    <div class="lockup">
+      <span class="wm wm--hero">
+        <svg class="wm__glyph" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- redrawn single-form paw: 4 toe-beans + a soft pad -->
+          <ellipse cx="13" cy="12" rx="3.4" ry="4.6" fill="var(--rose)"/>
+          <ellipse cx="22" cy="9.5" rx="3.6" ry="4.9" fill="var(--rose)"/>
+          <ellipse cx="31" cy="12" rx="3.4" ry="4.6" fill="var(--rose)"/>
+          <path d="M22 18 C28.6 18 33 22.4 33 28 C33 33.4 28 36 22 36 C16 36 11 33.4 11 28 C11 22.4 15.4 18 22 18 Z" fill="var(--rose)"/>
+        </svg>
+        <span class="wm__text">Dearbound</span>
+      </span>
+    </div>
+
+    <div class="navbar">
+      <span class="wm">
+        <svg class="wm__glyph" width="22" height="22" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+          <ellipse cx="13" cy="12" rx="3.4" ry="4.6" fill="var(--rose)"/><ellipse cx="22" cy="9.5" rx="3.6" ry="4.9" fill="var(--rose)"/><ellipse cx="31" cy="12" rx="3.4" ry="4.6" fill="var(--rose)"/>
+          <path d="M22 18 C28.6 18 33 22.4 33 28 C33 33.4 28 36 22 36 C16 36 11 33.4 11 28 C11 22.4 15.4 18 22 18 Z" fill="var(--rose)"/>
+        </svg>
+        <span class="wm__text">Dearbound</span>
+      </span>
+      <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+    </div>
+
+    <div class="surfaces">
+      <div class="surface surface--light"><span class="surface__cap">Light · paper</span>
+        <span class="wm"><svg class="wm__glyph" width="22" height="22" viewBox="0 0 44 44" aria-hidden="true"><ellipse cx="13" cy="12" rx="3.4" ry="4.6" fill="var(--rose)"/><ellipse cx="22" cy="9.5" rx="3.6" ry="4.9" fill="var(--rose)"/><ellipse cx="31" cy="12" rx="3.4" ry="4.6" fill="var(--rose)"/><path d="M22 18 C28.6 18 33 22.4 33 28 C33 33.4 28 36 22 36 C16 36 11 33.4 11 28 C11 22.4 15.4 18 22 18 Z" fill="var(--rose)"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+      <div class="surface surface--gold"><span class="surface__cap">Gold · living</span>
+        <span class="wm"><svg class="wm__glyph" width="22" height="22" viewBox="0 0 44 44" aria-hidden="true"><ellipse cx="13" cy="12" rx="3.4" ry="4.6" fill="#F4E9D4"/><ellipse cx="22" cy="9.5" rx="3.6" ry="4.9" fill="#F4E9D4"/><ellipse cx="31" cy="12" rx="3.4" ry="4.6" fill="#F4E9D4"/><path d="M22 18 C28.6 18 33 22.4 33 28 C33 33.4 28 36 22 36 C16 36 11 33.4 11 28 C11 22.4 15.4 18 22 18 Z" fill="#F4E9D4"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+      <div class="surface surface--rose"><span class="surface__cap">Rose · loss</span>
+        <span class="wm"><svg class="wm__glyph" width="22" height="22" viewBox="0 0 44 44" aria-hidden="true"><ellipse cx="13" cy="12" rx="3.4" ry="4.6" fill="#F6E3DC"/><ellipse cx="22" cy="9.5" rx="3.6" ry="4.9" fill="#F6E3DC"/><ellipse cx="31" cy="12" rx="3.4" ry="4.6" fill="#F6E3DC"/><path d="M22 18 C28.6 18 33 22.4 33 28 C33 33.4 28 36 22 36 C16 36 11 33.4 11 28 C11 22.4 15.4 18 22 18 Z" fill="#F6E3DC"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+    </div>
+
+    <div class="sub">Favicon scale</div>
+    <div class="favrow">
+      <div class="fav"><div class="fav__chip fav__chip--ink fav__chip--48"><svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true"><ellipse cx="13" cy="12" rx="3.4" ry="4.6" fill="#DCBCB1"/><ellipse cx="22" cy="9.5" rx="3.6" ry="4.9" fill="#DCBCB1"/><ellipse cx="31" cy="12" rx="3.4" ry="4.6" fill="#DCBCB1"/><path d="M22 18 C28.6 18 33 22.4 33 28 C33 33.4 28 36 22 36 C16 36 11 33.4 11 28 C11 22.4 15.4 18 22 18 Z" fill="#DCBCB1"/></svg></div><span class="fav__cap">48</span></div>
+      <div class="fav"><div class="fav__chip fav__chip--ink fav__chip--32"><svg width="20" height="20" viewBox="0 0 44 44" aria-hidden="true"><ellipse cx="13" cy="12" rx="3.4" ry="4.6" fill="#DCBCB1"/><ellipse cx="22" cy="9.5" rx="3.6" ry="4.9" fill="#DCBCB1"/><ellipse cx="31" cy="12" rx="3.4" ry="4.6" fill="#DCBCB1"/><path d="M22 18 C28.6 18 33 22.4 33 28 C33 33.4 28 36 22 36 C16 36 11 33.4 11 28 C11 22.4 15.4 18 22 18 Z" fill="#DCBCB1"/></svg></div><span class="fav__cap">32</span></div>
+      <div class="fav"><div class="fav__chip fav__chip--ink fav__chip--16"><svg width="11" height="11" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 18 C28.6 18 33 22.4 33 28 C33 33.4 28 36 22 36 C16 36 11 33.4 11 28 C11 22.4 15.4 18 22 18 Z" fill="#DCBCB1"/><ellipse cx="13" cy="13" rx="3.6" ry="4.8" fill="#DCBCB1"/><ellipse cx="22" cy="10.5" rx="3.8" ry="5" fill="#DCBCB1"/><ellipse cx="31" cy="13" rx="3.6" ry="4.8" fill="#DCBCB1"/></svg></div><span class="fav__cap">16</span></div>
+    </div>
+  </section>
+
+
+  <!-- ===================== DIRECTION 02 ===================== -->
+  <section class="dir">
+    <div class="dir__head">
+      <span class="dir__no">02</span>
+      <span class="dir__title">The Bound Spine — a book, and the name</span>
+    </div>
+    <p class="dir__rationale"><strong>What it says:</strong> a small stack of bound pages seen edge-on — a book spine with three sewn signatures and a thread stitch through them. It names the product (a <strong>bound</strong> book) and puns the “-bound” in Dearbound, without any literal animal. <strong>Why it fits:</strong> emotionally neutral, so it holds a celebration and a memorial title with the same dignity; reads as “keepsake / press / bindery,” which is exactly the hand-finished positioning. The stitch is the warm, made-by-hand detail. <strong>Recommended.</strong></p>
+
+    <div class="lockup">
+      <span class="wm wm--hero">
+        <svg class="wm__glyph" width="40" height="46" viewBox="0 0 40 46" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- three stacked bound signatures, edge-on, with a sewn thread -->
+          <rect x="5" y="7"  width="30" height="9"  rx="2" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+          <rect x="5" y="18" width="30" height="9"  rx="2" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+          <rect x="5" y="29" width="30" height="9"  rx="2" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+          <!-- the binding stitch -->
+          <path d="M12 4 L12 41" stroke="var(--gold)" stroke-width="1.6" stroke-dasharray="2.6 2.4" stroke-linecap="round"/>
+          <circle cx="12" cy="11.5" r="1.5" fill="var(--gold)"/>
+          <circle cx="12" cy="22.5" r="1.5" fill="var(--gold)"/>
+          <circle cx="12" cy="33.5" r="1.5" fill="var(--gold)"/>
+        </svg>
+        <span class="wm__text">Dearbound</span>
+      </span>
+    </div>
+
+    <div class="navbar navbar--paper">
+      <span class="wm">
+        <svg class="wm__glyph" width="20" height="23" viewBox="0 0 40 46" fill="none" aria-hidden="true">
+          <rect x="5" y="7" width="30" height="9" rx="2" fill="none" stroke="var(--ink)" stroke-width="1.8"/><rect x="5" y="18" width="30" height="9" rx="2" fill="none" stroke="var(--ink)" stroke-width="1.8"/><rect x="5" y="29" width="30" height="9" rx="2" fill="none" stroke="var(--ink)" stroke-width="1.8"/>
+          <path d="M12 4 L12 41" stroke="var(--gold)" stroke-width="1.8" stroke-dasharray="2.6 2.4" stroke-linecap="round"/>
+        </svg>
+        <span class="wm__text">Dearbound</span>
+      </span>
+      <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+    </div>
+
+    <div class="surfaces">
+      <div class="surface surface--light"><span class="surface__cap">Light · paper</span>
+        <span class="wm"><svg class="wm__glyph" width="20" height="23" viewBox="0 0 40 46" aria-hidden="true"><rect x="5" y="7" width="30" height="9" rx="2" fill="none" stroke="var(--ink)" stroke-width="1.8"/><rect x="5" y="18" width="30" height="9" rx="2" fill="none" stroke="var(--ink)" stroke-width="1.8"/><rect x="5" y="29" width="30" height="9" rx="2" fill="none" stroke="var(--ink)" stroke-width="1.8"/><path d="M12 4 L12 41" stroke="var(--gold)" stroke-width="1.8" stroke-dasharray="2.6 2.4" stroke-linecap="round"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+      <div class="surface surface--gold"><span class="surface__cap">Gold · living</span>
+        <span class="wm"><svg class="wm__glyph" width="20" height="23" viewBox="0 0 40 46" aria-hidden="true"><rect x="5" y="7" width="30" height="9" rx="2" fill="none" stroke="#FBF7EE" stroke-width="1.8"/><rect x="5" y="18" width="30" height="9" rx="2" fill="none" stroke="#FBF7EE" stroke-width="1.8"/><rect x="5" y="29" width="30" height="9" rx="2" fill="none" stroke="#FBF7EE" stroke-width="1.8"/><path d="M12 4 L12 41" stroke="#F4E9D4" stroke-width="1.8" stroke-dasharray="2.6 2.4" stroke-linecap="round"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+      <div class="surface surface--rose"><span class="surface__cap">Rose · loss</span>
+        <span class="wm"><svg class="wm__glyph" width="20" height="23" viewBox="0 0 40 46" aria-hidden="true"><rect x="5" y="7" width="30" height="9" rx="2" fill="none" stroke="#FBF7EE" stroke-width="1.8"/><rect x="5" y="18" width="30" height="9" rx="2" fill="none" stroke="#FBF7EE" stroke-width="1.8"/><rect x="5" y="29" width="30" height="9" rx="2" fill="none" stroke="#FBF7EE" stroke-width="1.8"/><path d="M12 4 L12 41" stroke="#F6E3DC" stroke-width="1.8" stroke-dasharray="2.6 2.4" stroke-linecap="round"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+    </div>
+
+    <div class="sub">Favicon scale</div>
+    <div class="favrow">
+      <div class="fav"><div class="fav__chip fav__chip--ink fav__chip--48"><svg width="28" height="32" viewBox="0 0 40 46" aria-hidden="true"><rect x="5" y="7" width="30" height="9" rx="2" fill="none" stroke="#F6F1E6" stroke-width="1.8"/><rect x="5" y="18" width="30" height="9" rx="2" fill="none" stroke="#F6F1E6" stroke-width="1.8"/><rect x="5" y="29" width="30" height="9" rx="2" fill="none" stroke="#F6F1E6" stroke-width="1.8"/><path d="M12 4 L12 41" stroke="#D8B780" stroke-width="1.8" stroke-dasharray="2.6 2.4" stroke-linecap="round"/></svg></div><span class="fav__cap">48</span></div>
+      <div class="fav"><div class="fav__chip fav__chip--gold fav__chip--32"><svg width="19" height="22" viewBox="0 0 40 46" aria-hidden="true"><rect x="5" y="7" width="30" height="9" rx="2" fill="none" stroke="#FBF7EE" stroke-width="2"/><rect x="5" y="18" width="30" height="9" rx="2" fill="none" stroke="#FBF7EE" stroke-width="2"/><rect x="5" y="29" width="30" height="9" rx="2" fill="none" stroke="#FBF7EE" stroke-width="2"/><path d="M12 4 L12 41" stroke="#FBF7EE" stroke-width="2" stroke-dasharray="2.6 2.4" stroke-linecap="round"/></svg></div><span class="fav__cap">32</span></div>
+      <div class="fav"><div class="fav__chip fav__chip--ink fav__chip--16"><svg width="11" height="13" viewBox="0 0 40 46" aria-hidden="true"><rect x="5" y="8" width="30" height="10" rx="2" fill="none" stroke="#F6F1E6" stroke-width="3"/><rect x="5" y="28" width="30" height="10" rx="2" fill="none" stroke="#F6F1E6" stroke-width="3"/><path d="M12 4 L12 42" stroke="#D8B780" stroke-width="3"/></svg></div><span class="fav__cap">16</span></div>
+    </div>
+    <p class="helper" style="margin-top:var(--s-3)">At 16px the stitch and outer pages collapse to a clean 2-line stacked-book glyph — still legibly “a bound book.”</p>
+  </section>
+
+
+  <!-- ===================== DIRECTION 03 ===================== -->
+  <section class="dir">
+    <div class="dir__head">
+      <span class="dir__no">03</span>
+      <span class="dir__title">The Open Heart-Book — a book that is also a heart</span>
+    </div>
+    <p class="dir__rationale"><strong>What it says:</strong> an open book whose two facing pages curve up into the lobes of a heart. Love + the book, in one form. <strong>Why it fits:</strong> the single most emotionally honest mark here — it’s about love, which is the through-line of every title, joyful or grieving. <strong>The trade-off:</strong> the heart pulls it toward sentiment; on a memorial title it’s tender, on a gotcha-day title it’s sweet, but it has the least “editorial restraint” of the five. Strong if you want warmth foregrounded over craft.</p>
+
+    <div class="lockup">
+      <span class="wm wm--hero">
+        <svg class="wm__glyph" width="46" height="42" viewBox="0 0 46 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- open book whose page-tops form a heart; center spine -->
+          <path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--rose)" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M23 12 L23 36" stroke="var(--rose)" stroke-width="1.6" stroke-linecap="round"/>
+          <!-- the open covers spreading at the base -->
+          <path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+        <span class="wm__text">Dearbound</span>
+      </span>
+    </div>
+
+    <div class="navbar">
+      <span class="wm">
+        <svg class="wm__glyph" width="23" height="21" viewBox="0 0 46 42" fill="none" aria-hidden="true">
+          <path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--rose)" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M23 12 L23 36" stroke="var(--rose)" stroke-width="1.8"/>
+          <path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+        <span class="wm__text">Dearbound</span>
+      </span>
+      <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+    </div>
+
+    <div class="surfaces">
+      <div class="surface surface--light"><span class="surface__cap">Light · paper</span>
+        <span class="wm"><svg class="wm__glyph" width="23" height="21" viewBox="0 0 46 42" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="var(--rose-faint)" stroke="var(--rose)" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 12 L23 36" stroke="var(--rose)" stroke-width="1.8"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+      <div class="surface surface--gold"><span class="surface__cap">Gold · living</span>
+        <span class="wm"><svg class="wm__glyph" width="23" height="21" viewBox="0 0 46 42" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="rgba(251,247,238,.25)" stroke="#FBF7EE" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 12 L23 36" stroke="#FBF7EE" stroke-width="1.8"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="#FBF7EE" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="#FBF7EE" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+      <div class="surface surface--rose"><span class="surface__cap">Rose · loss</span>
+        <span class="wm"><svg class="wm__glyph" width="23" height="21" viewBox="0 0 46 42" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="rgba(251,247,238,.25)" stroke="#FBF7EE" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 12 L23 36" stroke="#FBF7EE" stroke-width="1.8"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23" fill="none" stroke="#FBF7EE" stroke-width="1.8" stroke-linejoin="round"/><path d="M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="#FBF7EE" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+    </div>
+
+    <div class="sub">Favicon scale</div>
+    <div class="favrow">
+      <div class="fav"><div class="fav__chip fav__chip--rose fav__chip--48"><svg width="32" height="29" viewBox="0 0 46 42" aria-hidden="true"><path d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z" fill="rgba(251,247,238,.3)" stroke="#FBF7EE" stroke-width="2"/><path d="M23 12 L23 36" stroke="#FBF7EE" stroke-width="2"/><path d="M23 36 C18 31 11 30 5 32 L5 19 C11 17 18 18 23 23 M23 36 C28 31 35 30 41 32 L41 19 C35 17 28 18 23 23" fill="none" stroke="#FBF7EE" stroke-width="2" stroke-linejoin="round"/></svg></div><span class="fav__cap">48</span></div>
+      <div class="fav"><div class="fav__chip fav__chip--rose fav__chip--32"><svg width="22" height="20" viewBox="0 0 46 42" aria-hidden="true"><path d="M23 13 C23 7 17 5 13 8 C9 11 11 16 23 24 C35 16 37 11 33 8 C29 5 23 7 23 13 Z" fill="#FBF7EE"/></svg></div><span class="fav__cap">32</span></div>
+      <div class="fav"><div class="fav__chip fav__chip--rose fav__chip--16"><svg width="11" height="10" viewBox="0 0 46 42" aria-hidden="true"><path d="M23 13 C23 6 16 4 12 8 C8 12 11 17 23 25 C35 17 38 12 34 8 C30 4 23 6 23 13 Z" fill="#FBF7EE"/></svg></div><span class="fav__cap">16</span></div>
+    </div>
+    <p class="helper" style="margin-top:var(--s-3)">At small sizes the open covers drop away and the mark resolves to a clean heart — recognisable but loses the “book.”</p>
+  </section>
+
+
+  <!-- ===================== DIRECTION 04 ===================== -->
+  <section class="dir">
+    <div class="dir__head">
+      <span class="dir__no">04</span>
+      <span class="dir__title">Tucked Paw — a paw inside a page</span>
+    </div>
+    <p class="dir__rationale"><strong>What it says:</strong> a single dog-eared page (the corner folded, like a bookmark in a story) with a small paw pressed gently into it — the pet, kept inside the book. It marries the two ideas the first three split apart. <strong>Why it fits:</strong> says “pet” and “book / keepsake” in one quiet form, and the folded corner is a warm, human detail (we mark the pages that matter). Carries both worlds well; reads as tender without tipping cute. <strong>Runner-up to 02.</strong></p>
+
+    <div class="lockup">
+      <span class="wm wm--hero">
+        <svg class="wm__glyph" width="40" height="46" viewBox="0 0 40 46" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- a single page with a folded top-right corner -->
+          <path d="M8 6 H26 L34 14 V40 H8 Z" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M26 6 V14 H34 Z" fill="var(--cream-deep)" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          <!-- the tucked paw, gold -->
+          <ellipse cx="16" cy="24" rx="1.7" ry="2.3" fill="var(--gold)"/>
+          <ellipse cx="21" cy="22.5" rx="1.8" ry="2.4" fill="var(--gold)"/>
+          <ellipse cx="26" cy="24" rx="1.7" ry="2.3" fill="var(--gold)"/>
+          <path d="M21 27 C24.4 27 27 29.3 27 32 C27 34.7 24.4 36 21 36 C17.6 36 15 34.7 15 32 C15 29.3 17.6 27 21 27 Z" fill="var(--gold)"/>
+        </svg>
+        <span class="wm__text">Dearbound</span>
+      </span>
+    </div>
+
+    <div class="navbar navbar--paper">
+      <span class="wm">
+        <svg class="wm__glyph" width="20" height="23" viewBox="0 0 40 46" fill="none" aria-hidden="true">
+          <path d="M8 6 H26 L34 14 V40 H8 Z" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M26 6 V14 H34" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+          <ellipse cx="16" cy="24" rx="1.7" ry="2.3" fill="var(--gold)"/><ellipse cx="21" cy="22.5" rx="1.8" ry="2.4" fill="var(--gold)"/><ellipse cx="26" cy="24" rx="1.7" ry="2.3" fill="var(--gold)"/>
+          <path d="M21 27 C24.4 27 27 29.3 27 32 C27 34.7 24.4 36 21 36 C17.6 36 15 34.7 15 32 C15 29.3 17.6 27 21 27 Z" fill="var(--gold)"/>
+        </svg>
+        <span class="wm__text">Dearbound</span>
+      </span>
+      <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+    </div>
+
+    <div class="surfaces">
+      <div class="surface surface--light"><span class="surface__cap">Light · paper</span>
+        <span class="wm"><svg class="wm__glyph" width="20" height="23" viewBox="0 0 40 46" aria-hidden="true"><path d="M8 6 H26 L34 14 V40 H8 Z" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><path d="M26 6 V14 H34" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/><ellipse cx="16" cy="24" rx="1.7" ry="2.3" fill="var(--gold)"/><ellipse cx="21" cy="22.5" rx="1.8" ry="2.4" fill="var(--gold)"/><ellipse cx="26" cy="24" rx="1.7" ry="2.3" fill="var(--gold)"/><path d="M21 27 C24.4 27 27 29.3 27 32 C27 34.7 24.4 36 21 36 C17.6 36 15 34.7 15 32 C15 29.3 17.6 27 21 27 Z" fill="var(--gold)"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+      <div class="surface surface--gold"><span class="surface__cap">Gold · living</span>
+        <span class="wm"><svg class="wm__glyph" width="20" height="23" viewBox="0 0 40 46" aria-hidden="true"><path d="M8 6 H26 L34 14 V40 H8 Z" fill="none" stroke="#FBF7EE" stroke-width="1.8" stroke-linejoin="round"/><path d="M26 6 V14 H34" fill="none" stroke="#FBF7EE" stroke-width="1.8" stroke-linejoin="round"/><ellipse cx="16" cy="24" rx="1.7" ry="2.3" fill="#F4E9D4"/><ellipse cx="21" cy="22.5" rx="1.8" ry="2.4" fill="#F4E9D4"/><ellipse cx="26" cy="24" rx="1.7" ry="2.3" fill="#F4E9D4"/><path d="M21 27 C24.4 27 27 29.3 27 32 C27 34.7 24.4 36 21 36 C17.6 36 15 34.7 15 32 C15 29.3 17.6 27 21 27 Z" fill="#F4E9D4"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+      <div class="surface surface--rose"><span class="surface__cap">Rose · loss</span>
+        <span class="wm"><svg class="wm__glyph" width="20" height="23" viewBox="0 0 40 46" aria-hidden="true"><path d="M8 6 H26 L34 14 V40 H8 Z" fill="none" stroke="#FBF7EE" stroke-width="1.8" stroke-linejoin="round"/><path d="M26 6 V14 H34" fill="none" stroke="#FBF7EE" stroke-width="1.8" stroke-linejoin="round"/><ellipse cx="16" cy="24" rx="1.7" ry="2.3" fill="#F6E3DC"/><ellipse cx="21" cy="22.5" rx="1.8" ry="2.4" fill="#F6E3DC"/><ellipse cx="26" cy="24" rx="1.7" ry="2.3" fill="#F6E3DC"/><path d="M21 27 C24.4 27 27 29.3 27 32 C27 34.7 24.4 36 21 36 C17.6 36 15 34.7 15 32 C15 29.3 17.6 27 21 27 Z" fill="#F6E3DC"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+    </div>
+
+    <div class="sub">Favicon scale</div>
+    <div class="favrow">
+      <div class="fav"><div class="fav__chip fav__chip--ink fav__chip--48"><svg width="26" height="30" viewBox="0 0 40 46" aria-hidden="true"><path d="M8 6 H26 L34 14 V40 H8 Z" fill="none" stroke="#F6F1E6" stroke-width="2"/><path d="M26 6 V14 H34" fill="none" stroke="#F6F1E6" stroke-width="2"/><ellipse cx="16" cy="24" rx="1.7" ry="2.3" fill="#D8B780"/><ellipse cx="21" cy="22.5" rx="1.8" ry="2.4" fill="#D8B780"/><ellipse cx="26" cy="24" rx="1.7" ry="2.3" fill="#D8B780"/><path d="M21 27 C24.4 27 27 29.3 27 32 C27 34.7 24.4 36 21 36 C17.6 36 15 34.7 15 32 C15 29.3 17.6 27 21 27 Z" fill="#D8B780"/></svg></div><span class="fav__cap">48</span></div>
+      <div class="fav"><div class="fav__chip fav__chip--ink fav__chip--32"><svg width="17" height="20" viewBox="0 0 40 46" aria-hidden="true"><path d="M8 6 H26 L34 14 V40 H8 Z" fill="none" stroke="#F6F1E6" stroke-width="2.4"/><path d="M26 6 V14 H34" fill="none" stroke="#F6F1E6" stroke-width="2.4"/><path d="M21 26 C25 26 28 29 28 32.5 C28 35.5 25 37 21 37 C17 37 14 35.5 14 32.5 C14 29 17 26 21 26 Z" fill="#D8B780"/></svg></div><span class="fav__cap">32</span></div>
+      <div class="fav"><div class="fav__chip fav__chip--ink fav__chip--16"><svg width="10" height="12" viewBox="0 0 40 46" aria-hidden="true"><path d="M8 6 H26 L34 14 V40 H8 Z" fill="none" stroke="#F6F1E6" stroke-width="3.4"/><path d="M26 6 V14 H34" fill="none" stroke="#F6F1E6" stroke-width="3.4"/></svg></div><span class="fav__cap">16</span></div>
+    </div>
+    <p class="helper" style="margin-top:var(--s-3)">The paw is the first detail to drop at small sizes; the dog-eared page survives to 16px as the recognisable glyph.</p>
+  </section>
+
+
+  <!-- ===================== DIRECTION 05 ===================== -->
+  <section class="dir">
+    <div class="dir__head">
+      <span class="dir__no">05</span>
+      <span class="dir__title">The Monogram — a typographic “D” seal</span>
+    </div>
+    <p class="dir__rationale"><strong>What it says:</strong> no picture at all — a Fraunces “D” drawn as a bound book (the straight stem is the spine, the bowl is the cover), set in a hand-pressed circular seal like a colophon or a wax stamp on the last page of a keepsake. <strong>Why it fits:</strong> the most grown-up, press-like and timeless option; fully neutral across both worlds; scales to a favicon better than any pictorial mark because it’s essentially one letter. <strong>The trade-off:</strong> the least warm and the least “pet” — it asks the wordmark and the books to carry all the personality.</p>
+
+    <div class="lockup">
+      <span class="wm wm--hero">
+        <svg class="wm__glyph" width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="24" cy="24" r="22" fill="none" stroke="var(--gold)" stroke-width="1.2"/>
+          <circle cx="24" cy="24" r="18.5" fill="none" stroke="var(--gold-soft)" stroke-width=".8"/>
+          <!-- D as a spined book -->
+          <path d="M18 14 V34 H25 C31.6 34 35 29.8 35 24 C35 18.2 31.6 14 25 14 Z" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M18 24 H30" stroke="var(--ink)" stroke-width="1" opacity=".5"/>
+          <path d="M18 19 H29" stroke="var(--ink)" stroke-width="1" opacity=".5"/>
+          <path d="M18 29 H29" stroke="var(--ink)" stroke-width="1" opacity=".5"/>
+        </svg>
+        <span class="wm__text">Dearbound</span>
+      </span>
+    </div>
+
+    <div class="navbar">
+      <span class="wm">
+        <svg class="wm__glyph" width="24" height="24" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="22" fill="none" stroke="var(--gold)" stroke-width="1.4"/>
+          <path d="M18 14 V34 H25 C31.6 34 35 29.8 35 24 C35 18.2 31.6 14 25 14 Z" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M18 24 H30" stroke="var(--ink)" stroke-width="1.1" opacity=".5"/><path d="M18 19 H29" stroke="var(--ink)" stroke-width="1.1" opacity=".5"/><path d="M18 29 H29" stroke="var(--ink)" stroke-width="1.1" opacity=".5"/>
+        </svg>
+        <span class="wm__text">Dearbound</span>
+      </span>
+      <nav class="site-nav"><a class="is-current">The books</a><a>How it’s made</a></nav>
+    </div>
+
+    <div class="surfaces">
+      <div class="surface surface--light"><span class="surface__cap">Light · paper</span>
+        <span class="wm"><svg class="wm__glyph" width="24" height="24" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="none" stroke="var(--gold)" stroke-width="1.4"/><path d="M18 14 V34 H25 C31.6 34 35 29.8 35 24 C35 18.2 31.6 14 25 14 Z" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/><path d="M18 24 H30" stroke="var(--ink)" stroke-width="1.1" opacity=".5"/><path d="M18 19 H29" stroke="var(--ink)" stroke-width="1.1" opacity=".5"/><path d="M18 29 H29" stroke="var(--ink)" stroke-width="1.1" opacity=".5"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+      <div class="surface surface--gold"><span class="surface__cap">Gold · living</span>
+        <span class="wm"><svg class="wm__glyph" width="24" height="24" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="none" stroke="#FBF7EE" stroke-width="1.4"/><path d="M18 14 V34 H25 C31.6 34 35 29.8 35 24 C35 18.2 31.6 14 25 14 Z" fill="none" stroke="#FBF7EE" stroke-width="2" stroke-linejoin="round"/><path d="M18 24 H30" stroke="#FBF7EE" stroke-width="1.1" opacity=".55"/><path d="M18 19 H29" stroke="#FBF7EE" stroke-width="1.1" opacity=".55"/><path d="M18 29 H29" stroke="#FBF7EE" stroke-width="1.1" opacity=".55"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+      <div class="surface surface--rose"><span class="surface__cap">Rose · loss</span>
+        <span class="wm"><svg class="wm__glyph" width="24" height="24" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="none" stroke="#FBF7EE" stroke-width="1.4"/><path d="M18 14 V34 H25 C31.6 34 35 29.8 35 24 C35 18.2 31.6 14 25 14 Z" fill="none" stroke="#FBF7EE" stroke-width="2" stroke-linejoin="round"/><path d="M18 24 H30" stroke="#FBF7EE" stroke-width="1.1" opacity=".55"/><path d="M18 19 H29" stroke="#FBF7EE" stroke-width="1.1" opacity=".55"/><path d="M18 29 H29" stroke="#FBF7EE" stroke-width="1.1" opacity=".55"/></svg><span class="wm__text">Dearbound</span></span>
+      </div>
+    </div>
+
+    <div class="sub">Favicon scale</div>
+    <div class="favrow">
+      <div class="fav"><div class="fav__chip fav__chip--gold fav__chip--48"><svg width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><path d="M16 12 V36 H25 C33 36 37 30.6 37 24 C37 17.4 33 12 25 12 Z" fill="none" stroke="#FBF7EE" stroke-width="2.4" stroke-linejoin="round"/><path d="M16 24 H31" stroke="#FBF7EE" stroke-width="1.3" opacity=".6"/><path d="M16 18 H30" stroke="#FBF7EE" stroke-width="1.3" opacity=".6"/><path d="M16 30 H30" stroke="#FBF7EE" stroke-width="1.3" opacity=".6"/></svg></div><span class="fav__cap">48</span></div>
+      <div class="fav"><div class="fav__chip fav__chip--ink fav__chip--32"><svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true"><path d="M16 12 V36 H25 C33 36 37 30.6 37 24 C37 17.4 33 12 25 12 Z" fill="none" stroke="#D8B780" stroke-width="2.6" stroke-linejoin="round"/><path d="M16 24 H31" stroke="#D8B780" stroke-width="1.4" opacity=".7"/></svg></div><span class="fav__cap">32</span></div>
+      <div class="fav"><div class="fav__chip fav__chip--ink fav__chip--16"><svg width="13" height="13" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 11 V37 H25 C34 37 38 31 38 24 C38 17 34 11 25 11 Z" fill="none" stroke="#D8B780" stroke-width="3.6" stroke-linejoin="round"/></svg></div><span class="fav__cap">16</span></div>
+    </div>
+    <p class="helper" style="margin-top:var(--s-3)">Best favicon of the set: the seal collapses to a single bold “D” that stays sharp at 16px.</p>
+  </section>
+
+
+  <footer class="note">
+    003 · logo-concepts — proposal only. Tokens, fonts and the <code>.wordmark</code>/<code>.site-nav</code> chrome match <code>app/globals.css</code> and the live <code>SiteHeader</code>. Marks are real inline SVG; nothing here is shipping code. Pick a direction and it becomes a feature spec for the <code>nextjs-ui-builder</code> (and a real <code>.ico</code>/<code>.svg</code> favicon set).
+  </footer>
+
+</div>
+</body>
+</html>

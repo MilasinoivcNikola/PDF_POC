@@ -253,7 +253,8 @@ p {
   font-variation-settings: "opsz" 144, "SOFT" 50;
   font-size: var(--t-lg);
   font-weight: 400;
-  letter-spacing: 0.01em;
+  font-variant-caps: small-caps;
+  letter-spacing: 0.1em;
   display: flex;
   align-items: baseline;
   gap: var(--s-2);
@@ -263,7 +264,21 @@ p {
   width: 20px;
   height: 20px;
   display: inline-block;
-  vertical-align: -3px;
+  /* The glyph's 46×42 viewBox is taller than the wordmark's cap height, so
+     baseline-aligning its box (it's a flex item — vertical-align is inert here)
+     leaves the art riding above the caps. Nudge it down to optically center on
+     the cap height. */
+  transform: translateY(3px);
+}
+
+/* Two-worlds glyph tint (heart-book-logo): the SVG fills currentColor, so set
+   color. Header-only — passed from the book detail page's audience; the global
+   header + footer stay neutral (inherit the wordmark's ink). */
+.wordmark__ornament--living {
+  color: var(--gold);
+}
+.wordmark__ornament--loss {
+  color: var(--rose);
 }
 
 .site-footer {
