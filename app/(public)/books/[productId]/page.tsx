@@ -80,7 +80,7 @@ export default async function BookDetailPage({ params }: DetailProps) {
 
   return (
     <div className="page-wrap">
-      <SiteHeader current="books" />
+      <SiteHeader current="books" accent={living ? "living" : "loss"} />
 
       <main className={styles.detail}>
         <article className={`${styles.layout} fade-in fade-in-1`}>

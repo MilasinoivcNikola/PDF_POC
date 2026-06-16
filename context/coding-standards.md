@@ -57,7 +57,8 @@ framework beyond this list without approval. The plan in
   much as possible stays server-rendered.
 - One default-exported component per `page.tsx` / `layout.tsx`. Shared UI goes in
   `components/{wizard,preview,site}/` (e.g. `site/` holds the public chrome —
-  `SiteHeader` / `SiteFooter` — plus the `BookGallery` client island) as named exports.
+  `SiteHeader` / `SiteFooter`, the `HeartBookMark` brand glyph, plus the `BookGallery`
+  client island, among others) as named exports.
 - Route handlers live under a **deploy-surface route group** and export named HTTP
   verbs (`export async function POST()`): engine/operator routes at
   `app/(operator)/api/*/route.ts`, public routes at `app/(public)/api/*/route.ts`.
