@@ -145,10 +145,26 @@ async function run(): Promise<void> {
   const pdfPath = path.join(outDir, "preview.pdf");
   await writeFile(pdfPath, pdf);
 
+  // 3. Downscale the ORIGINAL input photo → source-photo.jpg, the storefront's
+  //    "the photo we started from" proof (surfaced via Product.sourcePhoto?).
+  //    The reference lives at session.pet.photo (a path under ./uploads).
+  const srcPhoto = session.pet.photo;
+  const srcPhotoPath = path.isAbsolute(srcPhoto)
+    ? srcPhoto
+    : path.join(process.cwd(), srcPhoto);
+  if (existsSync(srcPhotoPath)) {
+    const sourceJpg = path.join(outDir, "source-photo.jpg");
+    sipsToWebJpg(srcPhotoPath, sourceJpg);
+    const bytes = await readFile(sourceJpg);
+    log(`  source photo  →  ${path.relative(process.cwd(), sourceJpg)} (${bytes.length} bytes)`);
+  } else {
+    log(`  (skipped source photo — ${srcPhoto} not found on disk)`);
+  }
+
   log("");
   log(`Done. Committed assets under public/samples/${out}/:`);
-  log(`  ${illustrated.length} web JPGs + preview.pdf (${pdf.length} bytes).`);
-  log(`Next: wire \`sampleImages\` + \`previewPdf\` for this product in lib/catalog/products.ts.`);
+  log(`  ${illustrated.length} web JPGs + preview.pdf (${pdf.length} bytes) + source-photo.jpg.`);
+  log(`Next: wire \`sampleImages\` + \`previewPdf\` + \`sourcePhoto\` for this product in lib/catalog/products.ts.`);
 }
 
 async function main(): Promise<void> {

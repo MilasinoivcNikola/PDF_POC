@@ -250,6 +250,12 @@ Add a `Product` to `lib/catalog/products.ts`'s `buildCatalog()` via `buildProduc
   `story-1-book`, which *additionally* carries a one-time **full-res HIGH** preview (a
   deliberate hero-title run, not the slim mixed-tier default). Plain string path, so the
   module stays client-safe.
+- **`sourcePhoto`** — **optional**: the ORIGINAL input photo this title's sample book was
+  painted from, under `public/samples/<book-id>/source-photo.jpg` (the storefront's "the
+  photo we started from" proof, surfaced on the detail page by the book-detail redesign).
+  Part of the **standard** sample set — the capture harness (Step 6) emits it automatically
+  from `session.pet.photo`; wire it once the sample run has produced it. Plain string path,
+  so the module stays client-safe.
 - **`audience`** — **required**: `"living"` (celebrate a pet who is still here) or `"loss"`
   (remember one who has died). Drives the storefront's two-world split; the partition test in
   `lib/catalog/products.test.ts` fails until the new id is added to the matching set, so classify
@@ -272,6 +278,19 @@ imported a prompt builder would break the public build. (For a book with its own
 keep that list in its product module or a neutral `lib/story/<book>/scenes.ts`, not in
 `lib/ai/`.) The `pdfFilename` helper lives in `lib/pdf/filename.ts` for the same reason —
 importing `lib/pdf/render.ts` would pull `puppeteer` into the client graph.
+
+### Book questions (`lib/catalog/book-questions.ts`) — **required per title**
+
+Add a `getBookQuestions` entry for the new `productId` in the client-safe
+`lib/catalog/book-questions.ts` — the storefront's "the questions you'll answer" + worked-
+example content (book-detail redesign). Mirror the new book's **/create wizard steps**: one
+`QuestionGroup` per step, one `QuestionItem` per field, each marked `required` and (where the
+wizard reveals a field conditionally) carrying a `reveal` note. Set each item's `example` to
+the **verbatim value** from this title's sample fixture, and add the title's
+label → fixture-field-path map to `FIXTURE_PINS` in `lib/catalog/book-questions.test.ts` —
+the pinning test fails until every example matches its fixture (the anti-drift guarantee), and
+the coverage test fails until the new product has an entry. Same client-safe discipline as
+`products.ts` — plain data literals only, no engine import.
 
 ---
 
@@ -312,8 +331,9 @@ customer receives, via the shared capture harness:
    `./output/` (PNGs + manifest + `session.json` under `./generated/<id>/`).
 3. `tsx --tsconfig scripts/tsconfig.json scripts/sample-capture.ts --id <id> --out <book-id>`
    — $0: `sips`-downscales the PNGs → slim web JPGs (named by slot id) + a slim `preview.pdf`
-   rendered **from the downscaled JPGs**, all written to `public/samples/<book-id>/`.
-4. Wire the catalog's `sampleImages` + `previewPdf` (Step 4).
+   rendered **from the downscaled JPGs**, plus a downscaled `source-photo.jpg` from the run's
+   `session.pet.photo` — all written to `public/samples/<book-id>/`.
+4. Wire the catalog's `sampleImages` + `previewPdf` + `sourcePhoto` (Step 4).
 
 **Samples are optional / backfillable.** A book may register and sell with
 `sampleImages: []` — the `/books` card and detail page degrade to the placeholder art

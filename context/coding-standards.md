@@ -103,7 +103,8 @@ framework beyond this list without approval. The plan in
   checkout (the rest of `uploads/` stays ignored). Those storefront samples are
   generated at the locked mixed `PRODUCTION_QUALITY` (HIGH cover/hero + MEDIUM
   interiors + LOW reference, same as the batch worker) via `scripts/sample-run.ts`,
-  then downscaled to slim web JPGs + a slim `preview.pdf` by `scripts/sample-capture.ts`.
+  then downscaled to slim web JPGs + a slim `preview.pdf` + a slim `source-photo.jpg`
+  (the input photo each sample was painted from) by `scripts/sample-capture.ts`.
 - **Two stores, by design.** The local POC **engine** persists to JSON files
   (`./sessions/[id].json`) + images under `./generated/[session-id]/` — keep this for
   the engine's inputs/artifacts. The **commerce layer** persists **orders** to
@@ -141,8 +142,15 @@ framework beyond this list without approval. The plan in
 - **Commerce catalog** (`lib/catalog/`): `lib/catalog/products.ts` owns the `Product`
   catalog contract the storefront (PR-04) and checkout (PR-06) import — one `Product`
   per registered `storyType`, with `illustrationCount` **derived** from the registry's
-  `illustrationSlots` (never forked). It is **pure and client-safe** (opposite discipline
-  to `lib/supabase/`): it imports only the registry's pure parts, so a stray transitive
+  `illustrationSlots` (never forked). `lib/catalog/book-questions.ts` (book-detail PR-1)
+  is the second module here — a **pure-literal, zero-import** content map keyed by
+  `productId` (`getBookQuestions()`) of each title's storefront questionnaire + the
+  worked-example answers; the examples are **fixture-pinned** by `book-questions.test.ts`
+  (each `example` asserted equal to the field read from that title's `fixtures/*.json`)
+  so they can't drift from the real sample. Both catalog modules are **pure and
+  client-safe** (opposite discipline
+  to `lib/supabase/`): they import only the registry's pure parts (`book-questions.ts`
+  imports nothing at all), so a stray transitive
   engine/Puppeteer import would break the public storefront's static build. The chain
   `products.ts → registry → story-1/story-2` must reach scene identity via the neutral
   `lib/story/scenes.ts` (see *AI illustration* below), **never** through `lib/ai/*` — the
@@ -155,7 +163,11 @@ framework beyond this list without approval. The plan in
   the one-time mixed `PRODUCTION_QUALITY` sample run (`scripts/sample-run.ts` →
   `sample-capture.ts`, which renders a *slim* preview from the downscaled JPGs), never the engine
   default. Story 1 additionally carries a one-time **full-res HIGH** preview (the deliberate
-  `proto:story1-high` exception).
+  `proto:story1-high` exception). The optional `sourcePhoto?` (book-detail PR-1; a plain
+  string path `public/samples/<id>/source-photo.jpg`, same client-safe rationale) is the
+  storefront's "the photo we started from" proof — the slim input photo each sample was
+  painted from, emitted by `sample-capture.ts` for new titles and committed one-time for
+  the existing 8.
 - **Commerce delivery layer** (`lib/delivery/`, PR-09): closes the MVP loop on Approve.
   `lib/delivery/token.ts` is **pure** (`node:crypto`) — `mintDeliveryToken()` (256-bit
   base64url, the order's unguessable download token) + `isWellFormedToken()` (cheap
