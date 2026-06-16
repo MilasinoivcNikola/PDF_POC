@@ -157,7 +157,7 @@ When the day winds down, [PET_NAME] curls up [SLEEPING_SPOT], where it is warm a
 
 *Variant if [QUIRKS] is blank or thin:* fall back to "even the funny little habits that are [PET_NAME]'s alone — the way [PRONOUN_SUBJECT] greets the morning, the small weight of [PRONOUN_OBJECT] against your side."
 
-*Variant ([SPECIES] = bird):* adapt "curls up" → "settles in" for the sleeping line; keep [SLEEPING_SPOT].
+*Variant ([SPECIES] = bird):* adapt "curls up" → "settles down" for the sleeping line; keep [SLEEPING_SPOT].
 
 ---
 
@@ -176,6 +176,8 @@ Here is the good news, the happy news: a new baby is coming to join the family.
 *Variant ([BABY_STATUS] = arrived):*
 "For a while, something in the house was changing. New smells, new sounds, a small room made ready.
 And then, one day, the new baby arrived. [BABY_NAME] came home to the family — and to [PET_NAME], who had been waiting all along."
+
+*Illustration brief (arrived framing):* [PET_NAME] calm and gentle beside the new baby — the baby swaddled in a bassinet or held by a **faceless** adult; [PET_NAME] sniffing softly or keeping watch close by. The pet is curious and tender, **not worried.** Soft nursery palette. The baby **is** present now (arrived framing). (The brief rewrites in lockstep with the body — no mix of expecting and arrived framing in one book.)
 
 *Variant ([BABY_ARRIVAL] provided, expecting):* append to the last line — "...a new baby is coming to join the family, [BABY_ARRIVAL]."
 
@@ -282,8 +284,8 @@ There always was.
 ### Species (voice tweaks)
 - **dog** (default) — affectionate, eager, loyal register.
 - **cat** — supervises rather than crowds; dignified, quietly devoted (Pages 2, 6).
-- **rabbit / small mammal** — gentle, soft, "settles in" rather than "curls up."
-- **bird** — adapt "curls up" → "settles in"; keep the watchful, present warmth.
+- **rabbit / small mammal** — gentle, soft, "settles down" rather than "curls up."
+- **bird** — adapt "curls up" → "settles down"; keep the watchful, present warmth.
 - **other** — species-neutral phrasing; lean on "friend" for the descriptor.
 
 ### Baby name

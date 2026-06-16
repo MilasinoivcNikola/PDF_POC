@@ -107,8 +107,14 @@ describe("buildStory9SlotPrompts", () => {
     const arrived = buildStory9SlotPrompts(
       story9SessionWith({ toggles: { babyStatus: "arrived" } }),
     );
+    // Arrived: Page 4's brief rewrites in lockstep with its body — the baby is
+    // present now (arrived framing), never the expecting "not present yet" line.
+    expect(arrived["baby-page-4"]!.prompt).toMatch(/arrived framing/i);
+    expect(arrived["baby-page-4"]!.prompt).toMatch(/baby is present now/i);
+    expect(arrived["baby-page-4"]!.prompt).not.toMatch(/baby is not present yet/i);
     // Both framings still keep the baby abstract / faceless (the hard rule holds
     // regardless of status).
+    expect(arrived["baby-page-4"]!.prompt).toMatch(/abstract presence/i);
     expect(arrived["baby-page-6"]!.prompt).toMatch(/abstract presence/i);
   });
 

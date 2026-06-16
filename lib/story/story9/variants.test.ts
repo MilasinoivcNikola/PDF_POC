@@ -224,6 +224,24 @@ describe("babyStatus rewrites the cover, dedication, Page 4 and Page 6", () => {
     expect(page4).not.toContain("a new baby is coming to join the family");
   });
 
+  it("arrived: Page 4's illustration brief is rewritten to the arrived framing", () => {
+    const brief = pageById(arrived(), "baby-page-4").illustrationBrief;
+    // The baby is present now — the brief must say so, not the expecting framing.
+    expect(brief).toContain("calm and gentle beside the new baby");
+    expect(brief).toContain("The baby is present now (arrived framing).");
+    expect(brief).not.toContain("not present yet");
+    expect(brief).not.toContain("(expecting framing)");
+    // Approach-A rule held: pet photo-anchored, baby + any adults faceless.
+    expect(brief).toContain("faceless adult");
+  });
+
+  it("expecting (default): Page 4's illustration brief is the master expecting brief, byte-identical", () => {
+    const brief = pageById(expecting(), "baby-page-4").illustrationBrief;
+    expect(brief).toBe(
+      "Biscuit curiously, calmly investigating a gentle sign of preparation — sniffing a folded baby blanket, watching a mobile turn, sitting in the doorway of a half-ready nursery. The pet is interested and calm, NOT worried. Soft nursery-adjacent palette. The baby is not present yet (expecting framing).",
+    );
+  });
+
   it("expecting: Page 6 is anticipatory ('Soon there will be', baby abstract)", () => {
     const page6 = pageById(expecting(), "baby-page-6").body.join(" ");
     expect(page6).toContain("Soon there will be a small new person");
@@ -421,14 +439,19 @@ describe("species selects the voice on Pages 3 & 6", () => {
   });
 
 
-  it("bird/rabbit use 'settles in' rather than 'curls up' on Page 3", () => {
+  it("bird/rabbit use 'settles down' rather than 'curls up' on Page 3", () => {
     for (const species of ["bird", "rabbit"] as const) {
       const page3 = pageById(
         resolveStory9(story9SessionWith({ pet: { species } })),
         "baby-page-3",
       ).body.join(" ");
-      expect(page3).toContain("Biscuit settles in at the foot of the bed");
+      // The fixture's sleepingSpot ("at the foot of the bed") is prepositional, the
+      // same value-shape the dog default's "curls up {sleepingSpot}" expects.
+      expect(page3).toContain("Biscuit settles down at the foot of the bed");
       expect(page3).not.toContain("Biscuit curls up");
+      // The bug this fixes: "settles in {sleepingSpot}" + a prepositional value
+      // produced the double-preposition "settles in at the foot of the bed".
+      expect(page3).not.toContain("settles in at");
     }
   });
 
