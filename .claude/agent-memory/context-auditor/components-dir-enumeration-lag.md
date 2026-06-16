@@ -13,6 +13,13 @@ is an **enumeration**, so it goes stale whenever a new shared-UI area directory 
 `components/site/` (SiteHeader/SiteFooter, named server-component exports for shared public
 chrome) — a third sibling to wizard/preview. The *rule* (shared UI in `components/<area>/`
 as named exports) was followed correctly; only the literal `{wizard,preview}` list lagged.
+**Resolved by 2026-06-15:** line ~59 now reads `{wizard,preview,site}` and the gloss says
+"`site/` holds the public SiteHeader / SiteFooter chrome." NOTE the gloss is now an
+*enumeration of site/'s contents* — book-detail PR-2 (2026-06-16) adds a third file to
+`site/`, `BookGallery.tsx` (a `"use client"` leaf island), so "holds SiteHeader/SiteFooter"
+is now under-stating site/'s membership. Low-pri nice-to-have (the convention holds; a
+reader isn't misled into doing the wrong thing) — recommend widening the gloss or making it
+non-exhaustive ("e.g. SiteHeader/SiteFooter chrome, the BookGallery island"), not blocking.
 
 **How to apply:** On any branch that adds a `components/<new-area>/` dir, check whether
 line ~59's brace list still enumerates the live set. Severity = nice-to-have (a reader
