@@ -99,7 +99,7 @@ function page2Body(relationship: Relationship): string[] {
   if (relationship === "couple") {
     return [
       "Dear {petName},",
-      "There are things we never said to you. Not because we didn't feel them — we felt all of them, every day — but because you were a {species}, and we thought we had more time, and some things you only learn to say once it's too late to be heard.",
+      "There are things we never said to you. Not because we didn't feel them — we felt all of them, every day — but because you were a {speciesNoun}, and we thought we had more time, and some things you only learn to say once it's too late to be heard.",
       "So we're saying them now. To you. Wherever the saying lands.",
       "You died. We keep having to write that down to believe it. The house is the wrong kind of quiet, and our hands keep reaching for things that aren't there anymore — the leash, the door, the warm weight of you.",
       "But you were here. You were so completely here. And before anything else, we want you to know we noticed.",
@@ -108,7 +108,7 @@ function page2Body(relationship: Relationship): string[] {
   // single (default — same wording as the master text).
   return [
     "Dear {petName},",
-    "There are things I never said to you. Not because I didn't feel them — I felt all of them, every day — but because you were a {species}, and I thought we had more time, and some things you only learn to say once it's too late to be heard.",
+    "There are things I never said to you. Not because I didn't feel them — I felt all of them, every day — but because you were a {speciesNoun}, and I thought we had more time, and some things you only learn to say once it's too late to be heard.",
     "So I'm saying them now. To you. Wherever the saying lands.",
     "You died. I keep having to write that down to believe it. The house is the wrong kind of quiet, and my hands keep reaching for things that aren't there anymore — the leash, the door, the warm weight of you.",
     "But you were here. You were so completely here. And before anything else, I want you to know I noticed.",
@@ -148,7 +148,7 @@ function page3Body(
         : PAGE_3_QUIRKS_FALLBACK_COUPLE,
       `Thank you for the small ordinary things that we thought would last forever — for being at the door, for {favoriteSpots}, for ${happySound}. You made our ordinary life feel like enough. That was you. That was your whole quiet gift.`,
       lastGoodDayLine,
-      "You were a good {species}. The best one. Ours.",
+      "You were a good {speciesNoun}. The best one. Ours.",
     ];
   }
 
@@ -159,7 +159,7 @@ function page3Body(
     quirksLine,
     `Thank you for the small ordinary things that I thought would last forever — for being at the door, for {favoriteSpots}, for ${happySound}. You made an ordinary life feel like enough. That was you. That was your whole quiet gift.`,
     lastGoodDayLine,
-    "You were a good {species}. The best one. Mine.",
+    "You were a good {speciesNoun}. The best one. Mine.",
   ];
 }
 

@@ -238,13 +238,19 @@ describe('Page 6 keeps the "just a {species}" scare-quote (pet rejecting the phr
     expect(body).toContain('Don\'t let anyone tell you I was "just a dog."');
   });
 
-  it("the species fills the scare-quote for each species", () => {
+  it("the species noun fills the scare-quote for each species", () => {
+    // The raw species word reads naturally for dog/cat/rabbit/bird; the open-ended
+    // "other" has no natural single word ("a other"), so it renders the graceful
+    // "just a friend." instead (speciesNoun's other → friend), matching Story 4/9.
     for (const species of SPECIES) {
       const page6 = pageById(
         resolveStory2(story2SessionWith({ pet: { species } })),
         "letter-page-6",
       );
-      expect(page6.body.join(" ")).toContain(`"just a ${species}."`);
+      const noun = species === "other" ? "friend" : species;
+      expect(page6.body.join(" ")).toContain(`"just a ${noun}."`);
+      // The broken raw-word rendering must never survive.
+      expect(page6.body.join(" ")).not.toContain('"just a other."');
     }
   });
 });
@@ -603,5 +609,35 @@ describe("resolveStory2 does not accumulate optional lines across calls", () => 
   it("proseStrings excludes the illustration brief", () => {
     const page = pageById(resolveStory2(murphySession()), "letter-page-2");
     expect(proseStrings(page)).not.toContain(page.illustrationBrief);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// species: "other" renders the graceful "friend" noun in printed prose
+// ---------------------------------------------------------------------------
+
+describe('species "other" renders "friend" on Page 6 (never "just a other")', () => {
+  // The Page-6 prose has two {speciesNoun} sites ("just a {speciesNoun}" + "as
+  // much as a {speciesNoun} can love"). For "other" both render "friend"; for
+  // dog/cat/rabbit/bird both keep the literal word (byte-identical). Scope to the
+  // BODY prose — the Page-6 paw-print illustration brief keeps the raw "{species}"
+  // token (out of scope) and legitimately still says "other".
+  it('reads "just a friend" + "a friend can love" for "other"', () => {
+    const body = pageById(
+      resolveStory2(story2SessionWith({ pet: { species: "other" } })),
+      "letter-page-6",
+    ).body.join("\n");
+    expect(body).toContain('I was "just a friend."');
+    expect(body).toContain("as much as a friend can love");
+    expect(body).not.toContain("just a other");
+    expect(body).not.toContain("a other can love");
+  });
+
+  it("dog (non-other) keeps the literal species word — the swap is a no-op", () => {
+    const body = pageById(resolveStory2(murphySession()), "letter-page-6").body.join(
+      "\n",
+    ); // dog
+    expect(body).toContain('I was "just a dog."');
+    expect(body).toContain("as much as a dog can love");
   });
 });

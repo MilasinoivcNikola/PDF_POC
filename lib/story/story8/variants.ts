@@ -64,13 +64,13 @@ function coverSubtitle(heroCount: HeroCount): string {
 function page1Body(heroCount: HeroCount): string[] {
   if (heroCount === "pet-solo") {
     return [
-      "In a cozy little house with a big green backyard, there lived a {species} named {petName}.",
+      "In a cozy little house with a big green backyard, there lived a {speciesNoun} named {petName}.",
       "{petName} was a {breedColor}, and {pronounSubject} was the very best friend a family could ask for.",
       "Most days were perfectly ordinary. But {petName} was about to become a hero.",
     ];
   }
   return [
-    "In a cozy little house with a big green backyard, there lived a {species} named {petName}.",
+    "In a cozy little house with a big green backyard, there lived a {speciesNoun} named {petName}.",
     "{petName} was a {breedColor}, and {pronounSubject} was {childName}'s very best friend in the whole world.",
     "Most days were perfectly ordinary. But {petName} was about to become a hero.",
   ];
@@ -268,7 +268,7 @@ function page8Body(age: AgeBracket): string[] {
     return [
       "And then, with one mighty, magnificent, absolutely-never-before-attempted leap —",
       "{petName} sprang up onto the old log, balanced there like a four-pawed champion gymnast, and — ever so gently, the way only a true professional hero can — nudged the little bird back along the branch until it hopped up, safe and sound and slightly amazed.",
-      "The baby bird cheeped a triumphant cheep. Its mother sang an entire thank-you song (three verses, at least). And {petName} touched back down on the grass with the easy, modest grace of a {species} who saves the day before breakfast and twice on weekends.",
+      "The baby bird cheeped a triumphant cheep. Its mother sang an entire thank-you song (three verses, at least). And {petName} touched back down on the grass with the easy, modest grace of a {speciesNoun} who saves the day before breakfast and twice on weekends.",
     ];
   }
   // 6-8 master text.

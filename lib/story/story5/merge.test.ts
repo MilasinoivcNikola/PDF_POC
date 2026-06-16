@@ -334,6 +334,43 @@ describe("species drives the Page-3 'happy sound' clause", () => {
 });
 
 // ---------------------------------------------------------------------------
+// species: "other" renders the graceful "friend" noun in printed prose
+// ---------------------------------------------------------------------------
+
+describe('species "other" renders "friend" on Pages 2 & 3 (never "a other")', () => {
+  // Page 2 ("you were a {speciesNoun}") and Page 3 ("You were a good
+  // {speciesNoun}.") each carry a {speciesNoun} site in BOTH the single and couple
+  // variants. For "other" they render "friend"; for dog/cat/rabbit/bird they keep
+  // the literal word (byte-identical). Scope to BODY prose — the cover/page-6
+  // illustration briefs keep the raw "{species}" token (out of scope).
+  for (const relationship of RELATIONSHIPS) {
+    it(`reads "a friend" + "a good friend" for "other" (${relationship})`, () => {
+      const story = resolveStory5(
+        story5SessionWith({ owner: { relationship }, pet: { species: "other" } }),
+      );
+      const page2 = pageById(story, "note-page-2").body.join("\n");
+      const page3 = pageById(story, "note-page-3").body.join("\n");
+      expect(page2).toContain("because you were a friend");
+      expect(page3).toContain("You were a good friend.");
+      expect(page2).not.toContain("you were a other");
+      expect(page3).not.toContain("a good other");
+    });
+
+    it(`dog (non-other) keeps the literal word — the swap is a no-op (${relationship})`, () => {
+      const story = resolveStory5(
+        story5SessionWith({ owner: { relationship }, pet: { species: "dog" } }),
+      );
+      expect(pageById(story, "note-page-2").body.join("\n")).toContain(
+        "because you were a dog",
+      );
+      expect(pageById(story, "note-page-3").body.join("\n")).toContain(
+        "You were a good dog.",
+      );
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Optional fields & fallbacks (quirks, lastGoodDay, whatIKeep, dates, nicknames)
 // ---------------------------------------------------------------------------
 

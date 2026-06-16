@@ -57,6 +57,14 @@ Create the page-level text modules. For Story 1 these live flat in `lib/story/` 
     is missing or empty. **Never emit a literal `{field}` / `[FIELD]` into output.**
   - `PageLayout` / `ResolvedStory` / `ResolvedPage` types.
 
+  Any **printed-prose** `{species}` site (a body line, not an `illustrationBrief`) must use a
+  derived **`speciesNoun`** value, not the raw `species`, so the `"other"` wizard option reads
+  gracefully: add `speciesNoun: pet.species === "other" ? "friend" : clean(pet.species)` beside
+  the `species` entry in the values map and interpolate `{speciesNoun}` in the body (for
+  dog/cat/rabbit/bird it's identical to `species`; only `"other"` changes, → "friend"). Don't
+  reuse `speciesDescriptor` for this — that maps to diminutives ("kitty"/"bunny"). Image-brief
+  `{species}` stays literal (it prompts the model, isn't printed).
+
   Own a `STORY_<N>_LAYOUT: Record<<Book>PageId, PageLayout>` map here (mirror
   `STORY_2_LAYOUT` in `lib/story/story2/merge.ts`) that tags each page with its render
   layout. Handle optional fields by **omitting** the line/value when blank (never printing a

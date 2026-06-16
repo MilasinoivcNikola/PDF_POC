@@ -108,7 +108,7 @@ function page3Body(source: AdoptionSource): string[] {
   return [
     "Then came the day everything changed.",
     originSentence(source),
-    "And out of every {species} in the whole wide world, it was you. It was always going to be you.",
+    "And out of every {speciesNoun} in the whole wide world, it was you. It was always going to be you.",
   ];
 }
 
@@ -171,7 +171,7 @@ function page6Body(hasChild: boolean, hasQuirks: boolean): string[] {
     "After that, we got to know you. And you, us.",
     hasQuirks ? "We learned {quirks}." : "{quirks}",
     "We learned what made your tail go, and what made you hide, and the exact sound that meant now, please, walk, now. You learned us right back — our footsteps, our voices, the times of day that were yours.",
-    "That is how a {species} and a family become a {species} and their family: one small thing at a time.",
+    "That is how a {speciesNoun} and a family become a {speciesNoun} and their family: one small thing at a time.",
   ];
   if (hasChild) {
     // Template child beat for Page 6.
@@ -209,7 +209,7 @@ function page8Body(hasChild: boolean): string[] {
 
   return [
     "Here is the truest thing in this whole book.",
-    "You are not a guest. You are not \"the new {species}.\" You are family — all the way through, no trial period, no taking-back.",
+    "You are not a guest. You are not \"the new {speciesNoun}.\" You are family — all the way through, no trial period, no taking-back.",
     closer,
   ];
 }
