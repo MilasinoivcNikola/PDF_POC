@@ -66,6 +66,13 @@ export interface Product {
    */
   previewPdf?: string;
   /**
+   * Optional public web path to the ORIGINAL input photo this title's sample book
+   * was painted from (served from `public/samples/<productId>/source-photo.jpg`).
+   * The storefront's "the photo we started from" proof. Plain string path only, so
+   * this module stays pure and client-safe. Omitted on titles without a sample.
+   */
+  sourcePhoto?: string;
+  /**
    * How many illustrations the book generates. DERIVED from the registry's
    * `illustrationSlots` (never hardcoded) so it can't drift from the engine.
    */
@@ -155,6 +162,7 @@ function buildProduct(
     | "description"
     | "sampleImages"
     | "previewPdf"
+    | "sourcePhoto"
     | "audience"
     | "displayTitle"
   > & {
@@ -171,6 +179,7 @@ function buildProduct(
     lsVariantId: undefined,
     sampleImages: meta.sampleImages,
     previewPdf: meta.previewPdf,
+    sourcePhoto: meta.sourcePhoto,
     illustrationCount: getStory(storyType).illustrationSlots.length,
     audience: meta.audience,
     displayTitle: meta.displayTitle,
@@ -215,6 +224,7 @@ function buildCatalog(): Product[] {
       // The full HIGH-tier sample book — the only product with a published sample
       // PDF; surfaced as the "see the full book" affordance on the detail page.
       previewPdf: "/samples/story-1-book/preview.pdf",
+      sourcePhoto: "/samples/story-1-book/source-photo.jpg",
       audience: "loss",
     }),
     buildProduct("story-2-letter", "story-2", {
@@ -235,6 +245,7 @@ function buildCatalog(): Product[] {
       // The full mixed-tier sample book (the catalog's first non-dog sample, a cat);
       // surfaced as the "see the full book" affordance on the detail page.
       previewPdf: "/samples/story-2-letter/preview.pdf",
+      sourcePhoto: "/samples/story-2-letter/source-photo.jpg",
       audience: "loss",
     }),
     buildProduct("story-4-talk", "story-4", {
@@ -258,6 +269,7 @@ function buildCatalog(): Product[] {
       // The full mixed-tier sample book (the catalog's first "other"-species
       // sample, a guinea pig); surfaced as the "see the full book" affordance.
       previewPdf: "/samples/story-4-talk/preview.pdf",
+      sourcePhoto: "/samples/story-4-talk/source-photo.jpg",
       audience: "living",
     }),
     buildProduct("story-5-letter-to", "story-5", {
@@ -279,6 +291,7 @@ function buildCatalog(): Product[] {
         "/samples/story-5-letter-to/note-page-5.jpg",
       ],
       previewPdf: "/samples/story-5-letter-to/preview.pdf",
+      sourcePhoto: "/samples/story-5-letter-to/source-photo.jpg",
       audience: "loss",
     }),
     buildProduct("story-6-tribute", "story-6", {
@@ -306,6 +319,7 @@ function buildCatalog(): Product[] {
         "/samples/story-6-tribute/tribute-page-6.jpg",
       ],
       previewPdf: "/samples/story-6-tribute/preview.pdf",
+      sourcePhoto: "/samples/story-6-tribute/source-photo.jpg",
       // Living, not loss: a tribute to a pet who is STILL ALIVE — the deliberate
       // reclassification (filing "the goodbye" was a tone-miss). See PR-1 spec.
       audience: "living",
@@ -336,6 +350,7 @@ function buildCatalog(): Product[] {
         "/samples/story-7-welcome/welcome-belong.jpg",
       ],
       previewPdf: "/samples/story-7-welcome/preview.pdf",
+      sourcePhoto: "/samples/story-7-welcome/source-photo.jpg",
       audience: "living",
     }),
     buildProduct("story-8-adventure", "story-8", {
@@ -367,6 +382,7 @@ function buildCatalog(): Product[] {
         "/samples/story-8-adventure/adventure-celebration.jpg",
       ],
       previewPdf: "/samples/story-8-adventure/preview.pdf",
+      sourcePhoto: "/samples/story-8-adventure/source-photo.jpg",
       audience: "living",
     }),
     buildProduct("story-9-newbaby", "story-9", {
@@ -399,6 +415,7 @@ function buildCatalog(): Product[] {
         "/samples/story-9-newbaby/baby-page-7.jpg",
       ],
       previewPdf: "/samples/story-9-newbaby/preview.pdf",
+      sourcePhoto: "/samples/story-9-newbaby/source-photo.jpg",
       audience: "living",
       // The only displayTitle override: "And the New Baby" reads incomplete on a
       // standalone card, so the card/landing show the full phrase.
