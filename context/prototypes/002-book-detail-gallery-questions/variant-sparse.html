@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Letter to Your Pet — Dearbound</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..500,0..100;1,9..144,300..500,0..100&family=Lora:ital@0;1&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-wrap">
+
+    <header class="site-header">
+      <a href="index.html" class="wordmark">
+        <svg class="wordmark__ornament" viewBox="0 0 20 20"><path d="M6 8 Q4 5 6 4 Q8 5 7 8 Z M13 8 Q15 5 13 4 Q11 5 12 8 Z M3 12 Q1 10 3 9 Q5 10 4 12 Z M16 12 Q18 10 16 9 Q14 10 15 12 Z M10 17 Q5 17 5 12 Q5 9 10 9 Q15 9 15 12 Q15 17 10 17 Z" fill="currentColor" opacity="0.7"/></svg>
+        Dearbound
+      </a>
+      <a href="#" class="btn-link">← All books</a>
+    </header>
+
+    <main>
+      <article class="detail-layout fade-in fade-in-1">
+
+        <!-- ============ GALLERY: single-image viewer → carousel lightbox (2 images) ============ -->
+        <div class="gallery gallery--pair" data-gallery data-book="A Letter to Your Pet">
+          <script type="application/json" class="gallery-data">[
+            {"src":"../../../public/samples/story-5-letter-to/note-cover.jpg","cap":"The cover"},
+            {"src":"../../../public/samples/story-5-letter-to/note-page-5.jpg","cap":"Inside the letter"}
+          ]</script>
+
+          <div class="gallery__stage" data-stage>
+            <span class="gallery__tag" data-tag>The cover</span>
+            <button class="gallery__nav gallery__nav--prev" data-prev aria-label="Previous illustration">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <img data-stage-img src="../../../public/samples/story-5-letter-to/note-cover.jpg" alt="Illustration from “A Letter to Your Pet”" />
+            <button class="gallery__nav gallery__nav--next" data-next aria-label="Next illustration">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <span class="gallery__count" data-count>1 / 2</span>
+          </div>
+
+          <button class="gallery__viewall" data-open>
+            <svg viewBox="0 0 14 14" fill="none"><path d="M2 5V2h3M12 5V2H9M2 9v3h3M12 9v3H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            View both illustrations
+          </button>
+          <p class="helper" style="margin-top:var(--s-4)">Two painted illustrations — a cover portrait and a quiet interior wash. Step through them above, or see the full layout in the PDF below.</p>
+        </div>
+
+        <!-- ============ INFO ============ -->
+        <div class="info">
+          <span class="label label--rose">A keepsake book</span>
+          <h1 class="display-md info__title">A Letter to Your Pet</h1>
+          <p class="info__tagline">The letter you write to them — the last good day.</p>
+
+          <p class="info__desc">
+            A 6-page letter written in your voice, addressed to the pet you’ve lost —
+            the thank-you, the apology, the last good day. Painted with a cover portrait
+            from your photo and designed to be printed and framed. The companion to
+            “A Letter from Your Pet.”
+          </p>
+
+          <ul class="facts">
+            <li><span class="facts__label">Price</span><span class="facts__value">$29</span></li>
+            <li><span class="facts__label">Illustrations</span><span class="facts__value">2 painted from your photo</span></li>
+            <li><span class="facts__label">Made</span><span class="facts__value">By hand, in 24–48 hours</span></li>
+          </ul>
+
+          <div class="detail-cta">
+            <div class="detail-cta__row">
+              <a href="#" class="btn btn--primary">
+                Order this book
+                <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 6h16m0 0L12 1m5 5l-5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              </a>
+              <a href="../../../public/samples/story-5-letter-to/preview.pdf" target="_blank" class="btn btn--ghost">See the full book (PDF)</a>
+            </div>
+            <p class="detail-cta__meta">A few gentle questions and a photo. We paint it and send you a print-quality PDF.</p>
+          </div>
+
+          <!-- companion cross-link (Story 5 ↔ Story 2) -->
+          <div class="companion">
+            <span class="companion__kicker">One from them, one from you</span>
+            <p class="companion__body">
+              This is the letter you write to them. Its companion is the letter they
+              write to you — at the Rainbow Bridge, in their own voice.
+            </p>
+            <a href="#" class="companion__link">
+              See “A Letter from Your Pet”
+              <svg width="16" height="11" viewBox="0 0 18 12" fill="none"><path d="M1 6h16m0 0L12 1m5 5l-5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============ QUESTIONS + EXAMPLE ============ -->
+      <section class="prep">
+        <div class="prep__head">
+          <span class="label label--rose prep__eyebrow">Before you order</span>
+          <h2 class="display-md prep__title">The questions you’ll answer</h2>
+          <p class="prep__lede">
+            Set aside 5–10 minutes and have one good photo ready. Here’s everything
+            we’ll ask — gather your answers first, or read the example we used, the
+            answers behind the sample above.
+          </p>
+        </div>
+
+        <div class="prep__cols">
+          <div class="prep__questions">
+
+            <div class="qgroup">
+              <div class="qgroup__head"><span class="qgroup__num">01</span><h3 class="qgroup__title">Your pet</h3><span class="qgroup__rule"></span></div>
+              <ul class="qlist">
+                <li class="qitem qitem--required"><span class="qitem__dot"></span><div><span class="qitem__text">Their name<span class="qitem__tag qitem__tag--req">Required</span></span></div></li>
+                <li class="qitem qitem--required"><span class="qitem__dot"></span><div><span class="qitem__text">What kind of animal<span class="qitem__tag qitem__tag--req">Required</span></span></div></li>
+                <li class="qitem"><span class="qitem__dot"></span><div><span class="qitem__text">How they look<span class="qitem__tag qitem__tag--opt">Optional</span></span><span class="qitem__note">Helps the cover portrait, but the letter stands without it.</span></div></li>
+                <li class="qitem qitem--required"><span class="qitem__dot"></span><div><span class="qitem__text">Who signs the letter<span class="qitem__tag qitem__tag--req">Required</span></span></div></li>
+              </ul>
+            </div>
+
+            <div class="qgroup">
+              <div class="qgroup__head"><span class="qgroup__num">02</span><h3 class="qgroup__title">The letter</h3><span class="qgroup__rule"></span></div>
+              <ul class="qlist">
+                <li class="qitem qitem--required"><span class="qitem__dot"></span><div><span class="qitem__text">A daily ritual that was yours<span class="qitem__tag qitem__tag--req">Required</span></span></div></li>
+                <li class="qitem qitem--required"><span class="qitem__dot"></span><div><span class="qitem__text">The spots that were theirs<span class="qitem__tag qitem__tag--req">Required</span></span></div></li>
+                <li class="qitem"><span class="qitem__dot"></span><div><span class="qitem__text">A quirk<span class="qitem__tag qitem__tag--opt">Optional</span></span></div></li>
+                <li class="qitem"><span class="qitem__dot"></span><div><span class="qitem__text">The last good day<span class="qitem__tag qitem__tag--opt">Optional</span></span></div></li>
+                <li class="qitem"><span class="qitem__dot"></span><div><span class="qitem__text">Something you’re keeping<span class="qitem__tag qitem__tag--opt">Optional</span></span></div></li>
+                <li class="qitem"><span class="qitem__dot"></span><div><span class="qitem__text">Nicknames · when adopted · when they passed<span class="qitem__tag qitem__tag--opt">Optional</span></span></div></li>
+              </ul>
+            </div>
+
+            <div class="qgroup">
+              <div class="qgroup__head"><span class="qgroup__num">03</span><h3 class="qgroup__title">Tone</h3><span class="qgroup__rule"></span></div>
+              <ul class="qlist">
+                <li class="qitem"><span class="qitem__dot"></span><div><span class="qitem__text">How they died<span class="qitem__tag qitem__tag--opt">Optional</span></span><span class="qitem__note">Shapes the goodbye gently — leave blank to keep it soft.</span></div></li>
+                <li class="qitem"><span class="qitem__dot"></span><div><span class="qitem__text">Where they are now<span class="qitem__tag qitem__tag--opt">Optional</span></span></div></li>
+              </ul>
+            </div>
+
+            <div class="qlegend">
+              <span><i class="req"></i> Required to start</span>
+              <span><i class="opt"></i> Optional — degrades gracefully if left blank</span>
+            </div>
+          </div>
+
+          <aside class="example">
+            <p class="example__kicker">The example we used</p>
+            <h3 class="example__title">The answers behind the sample</h3>
+            <p class="example__sub">The exact answers behind the sample above.</p>
+
+            <div class="example__source">
+              <div class="example__polaroid">
+                <div class="example__polaroid-img"><img src="../../../uploads/sample-photos/dog-senior.jpg" alt="The uploaded photo of Biscuit, a small senior terrier-mix" /></div>
+                <span class="example__polaroid-label">The original</span>
+              </div>
+              <div class="example__source-text">
+                <p class="example__source-head">The photo we started from</p>
+                <p class="example__source-cap">One clear snapshot — a small senior terrier-mix. This photo is what every painting in the book is drawn from.</p>
+              </div>
+            </div>
+
+            <div class="example__pair"><p class="example__q">Their name</p><p class="example__a">Biscuit</p></div>
+            <div class="example__pair"><p class="example__q">How they look</p><p class="example__a">Small senior terrier-mix, tan-and-grey, “she.”</p></div>
+            <div class="example__pair"><p class="example__q">Signed by</p><p class="example__a">Margaret</p></div>
+            <div class="example__pair"><p class="example__q">A daily ritual</p><p class="example__a"><em>“The slow loop around the block after dinner.”</em></p></div>
+            <div class="example__pair"><p class="example__q">The spots that were hers</p><p class="example__a"><em>“The worn patch of carpet by the radiator.”</em></p></div>
+            <div class="example__pair"><p class="example__q">The last good day</p><p class="example__a"><em>“The last warm afternoon, when you found a sunbeam.”</em></p></div>
+            <div class="example__pair"><p class="example__q">Something she’s keeping</p><p class="example__a"><em>“Your frayed red collar on the hook.”</em></p></div>
+            <div class="example__pair"><p class="example__q">How she died · Where now</p><p class="example__a">With a doctor’s help · heaven</p></div>
+
+            <p class="example__foot">Even the “required” answers can be a single line. The optional ones add depth — none are needed to begin.</p>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer-rich">
+      <div class="footer-rich__brand">
+        <span class="wordmark"><svg class="wordmark__ornament" viewBox="0 0 20 20"><path d="M6 8 Q4 5 6 4 Q8 5 7 8 Z M13 8 Q15 5 13 4 Q11 5 12 8 Z M3 12 Q1 10 3 9 Q5 10 4 12 Z M16 12 Q18 10 16 9 Q14 10 15 12 Z M10 17 Q5 17 5 12 Q5 9 10 9 Q15 9 15 12 Q15 17 10 17 Z" fill="currentColor" opacity="0.7"/></svg>Dearbound</span>
+        <p class="footer-rich__tagline">Custom illustrated books starring your pet. Made slowly, made by hand.</p>
+      </div>
+      <div class="footer-rich__col">
+        <h4>The books</h4>
+        <a href="#">Celebration titles</a>
+        <a href="#">Memorial titles</a>
+        <a href="#">All eight books</a>
+      </div>
+      <div class="footer-rich__col">
+        <h4>Dearbound</h4>
+        <a href="#">How it’s made</a>
+        <a href="#">Refunds &amp; remakes</a>
+        <a href="#">Privacy</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============ CAROUSEL LIGHTBOX (shared shell, populated by JS) ============ -->
+  <div class="lightbox" data-lightbox aria-modal="true" role="dialog">
+    <div class="lightbox__bar">
+      <span class="lightbox__title" data-lb-title>Inside the book</span>
+      <span class="lightbox__hint">← → to browse · Esc to close</span>
+      <button class="lightbox__close" data-close>Close ✕</button>
+    </div>
+    <div class="lightbox__stage">
+      <button class="lightbox__nav" data-prev aria-label="Previous illustration">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <figure class="lightbox__figure">
+        <img class="lightbox__img" data-lb-img src="" alt="" />
+        <figcaption class="lightbox__caption"><span data-lb-cap></span><span class="lightbox__counter" data-lb-count></span></figcaption>
+      </figure>
+      <button class="lightbox__nav" data-next aria-label="Next illustration">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="lightbox__strip" data-lb-strip></div>
+  </div>
+
+  <!-- gallery controller (shared across all three variant mockups) -->
+  <script>
+  (function () {
+    var root = document.querySelector('[data-gallery]');
+    var lb = document.querySelector('[data-lightbox]');
+    if (!root || !lb) return;
+    var items = JSON.parse(root.querySelector('.gallery-data').textContent);
+    var total = items.length, i = 0;
+    var stageImg = root.querySelector('[data-stage-img]');
+    var tag = root.querySelector('[data-tag]');
+    var count = root.querySelector('[data-count]');
+    var prevBtns = [root.querySelector('[data-prev]'), lb.querySelector('[data-prev]')];
+    var nextBtns = [root.querySelector('[data-next]'), lb.querySelector('[data-next]')];
+    var lbImg = lb.querySelector('[data-lb-img]'), lbCap = lb.querySelector('[data-lb-cap]');
+    var lbCount = lb.querySelector('[data-lb-count]'), lbTitle = lb.querySelector('[data-lb-title]');
+    var strip = lb.querySelector('[data-lb-strip]');
+    lbTitle.textContent = 'Inside “' + (root.getAttribute('data-book') || 'the book') + '”';
+    if (root.classList.contains('gallery--joyful')) lb.classList.add('lightbox--joyful');
+    items.forEach(function (it, idx) {
+      var d = document.createElement('button');
+      d.className = 'lightbox__dot';
+      d.innerHTML = '<img src="' + it.src + '" alt="' + it.cap + '">';
+      d.addEventListener('click', function () { go(idx); });
+      strip.appendChild(d);
+    });
+    var dots = strip.querySelectorAll('.lightbox__dot');
+    function render() {
+      var it = items[i];
+      stageImg.src = it.src; tag.textContent = it.cap; count.textContent = (i + 1) + ' / ' + total;
+      lbImg.src = it.src; lbImg.alt = it.cap; lbCap.textContent = it.cap; lbCount.textContent = (i + 1) + ' / ' + total;
+      dots.forEach(function (d, idx) { d.classList.toggle('is-active', idx === i); });
+      prevBtns.concat(nextBtns).forEach(function (b) { b.hidden = total < 2; });
+    }
+    function go(n) { i = (n + total) % total; render(); }
+    function next() { go(i + 1); } function prev() { go(i - 1); }
+    prevBtns.forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); prev(); }); });
+    nextBtns.forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); next(); }); });
+    function open() { lb.classList.add('is-open'); document.body.style.overflow = 'hidden'; }
+    function close() { lb.classList.remove('is-open'); document.body.style.overflow = ''; }
+    root.querySelector('[data-stage]').addEventListener('click', open);
+    root.querySelector('[data-open]').addEventListener('click', open);
+    lb.querySelector('[data-close]').addEventListener('click', close);
+    lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
+    document.addEventListener('keydown', function (e) {
+      if (!lb.classList.contains('is-open')) return;
+      if (e.key === 'ArrowRight') next(); else if (e.key === 'ArrowLeft') prev(); else if (e.key === 'Escape') close();
+    });
+    render();
+  })();
+  </script>
+
+  <nav class="variant-switch">
+    <a href="index.html">① Image-heavy (Story 1)</a>
+    <a href="variant-living.html">② Living / gold (Story 7)</a>
+    <a href="variant-sparse.html">③ Sparse pair (Story 5)</a>
+  </nav>
+</body>
+</html>
