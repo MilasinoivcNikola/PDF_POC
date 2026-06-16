@@ -12,7 +12,7 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 // no query param as proof of payment. Only the verified LS webhook
 // (/api/webhooks/lemonsqueezy) moves the order forward. So this is a static Server
 // Component (SSG, one per catalog product) with no data fetch — exactly the gentle
-// "we've got it, we're painting it by hand, check your email" message.
+// "we've got it, we're painting it from your photo, check your email" message.
 //
 // PUBLIC SURFACE: imports only the client-safe catalog (for the title); engine-free
 // like the rest of the public route graph.
@@ -59,8 +59,8 @@ export default async function ConfirmationPage({ params }: ConfirmationProps) {
           <h1 className="display-md mt-4">We&apos;ve got it.</h1>
           <p className="lede mt-4">
             Your payment came through, and your <em>{product.title}</em> is now in
-            our hands. We paint every book by hand, so this takes a little time —
-            usually a day or two.
+            our hands. We paint every book from your photo and finish it by hand,
+            so this takes a little time — usually a day or two.
           </p>
           <p className="lede mt-4">
             When it&apos;s ready, we&apos;ll email you a link to your finished PDF.

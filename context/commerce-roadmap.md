@@ -177,3 +177,13 @@ once or twice a day, not a 24/7 poller. Pairs with the 24–48h promise.
 > operator account), the noted default, is now built. The `(operator)/admin` review desk
 > and its mutation routes are gated by a cookie-based session (`@supabase/ssr` anon-key
 > client in `lib/supabase/auth.ts`) on top of the existing `assertOperator()` deploy gate.
+
+> **Resolved (2026-06-16) — stance only:** **AI-disclosure / honesty stance** — be
+> **upfront about AI**: disclose it plainly in exactly two places (the landing FAQ "Is this
+> just AI art?" + `/policies`), and use truthful, warm craft language everywhere else —
+> "painted **from your photo**" (the AI-from-photo step) + "**finished by hand**" (the human
+> review/repaint step), never a claim that a human *paints* the art. The whole public surface
+> was reconciled around this in `context/fixes/ai-honesty-copy-reconciliation.md`. **Still
+> open:** the *exact launch wording* of the policies AI-honesty statement — `policies/page.tsx`
+> still self-labels it `PLACEHOLDER — PM sign-off before launch`. So the stance is decided;
+> the final wording folds into launch sign-off.

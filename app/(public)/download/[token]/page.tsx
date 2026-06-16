@@ -99,8 +99,8 @@ export default function DownloadPage({
                 : "Your keepsake is ready."}
             </h2>
             <p>
-              We painted it by hand. Take your time with it — you can return to this
-              link to download it again whenever you need it.
+              We painted it from your photo. Take your time with it — you can return
+              to this link to download it again whenever you need it.
             </p>
             <a
               href={state.downloadUrl}

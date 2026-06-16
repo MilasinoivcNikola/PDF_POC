@@ -121,7 +121,7 @@ export default async function BookDetailPage({ params }: DetailProps) {
                 </span>
               </li>
               <li>
-                <span className={styles.factLabel}>Made</span>
+                <span className={styles.factLabel}>Finished</span>
                 <span className={styles.factValue}>By hand, in 24–48 hours</span>
               </li>
             </ul>
