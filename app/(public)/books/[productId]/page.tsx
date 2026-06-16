@@ -6,6 +6,7 @@ import {
   getProducts,
   productDisplayTitle,
 } from "@/lib/catalog/products";
+import { getBookQuestions } from "@/lib/catalog/book-questions";
 import { formatPriceUsd } from "@/lib/catalog/price";
 import { BRAND } from "@/lib/brand";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -63,6 +64,19 @@ export default async function BookDetailPage({ params }: DetailProps) {
   // pet, rose remembers one who has died — matching the catalog card's family tint.
   const living = product.audience === "living";
   const title = productDisplayTitle(product);
+
+  // PR-3: the create-wizard questionnaire + worked example for this title. PR-1
+  // guarantees one entry per sellable product; guard for an unknown id anyway.
+  const questions = getBookQuestions(product.productId);
+  // The worked-example pairs are every question that has a pinned example answer
+  // (optional fields the sample left blank are simply omitted, per the prototype).
+  const examplePairs = questions
+    ? questions.groups.flatMap((group) =>
+        group.items
+          .filter((item) => item.example)
+          .map((item) => ({ label: item.label, example: item.example as string })),
+      )
+    : [];
 
   return (
     <div className="page-wrap">
@@ -171,6 +185,139 @@ export default async function BookDetailPage({ params }: DetailProps) {
             ) : null}
           </div>
         </article>
+
+        {questions ? (
+          <section
+            className={`${styles.prep}${living ? ` ${styles.gold}` : ""}`}
+          >
+            <div className={styles.prepHead}>
+              <span
+                className={`label ${styles.prepEyebrow} ${
+                  living ? styles.eyebrowGold : styles.eyebrowRose
+                }`}
+              >
+                Before you order
+              </span>
+              <h2 className={`display-md ${styles.prepTitle}`}>
+                The questions you&rsquo;ll answer
+              </h2>
+              <p className={styles.prepLede}>
+                Set aside 5&ndash;10 minutes and have one good photo ready.
+                Here&rsquo;s everything we&rsquo;ll ask &mdash; gather your
+                answers first, or simply read the example we used to paint the
+                sample above.
+              </p>
+            </div>
+
+            <div className={styles.prepCols}>
+              {/* The grouped question list */}
+              <div>
+                {questions.groups.map((group, groupIndex) => (
+                  <div key={group.title} className={styles.qgroup}>
+                    <div className={styles.qgroupHead}>
+                      <span className={styles.qgroupNum}>
+                        {String(groupIndex + 1).padStart(2, "0")}
+                      </span>
+                      <h3 className={styles.qgroupTitle}>{group.title}</h3>
+                      <span className={styles.qgroupRule} />
+                    </div>
+                    <ul className={styles.qlist}>
+                      {group.items.map((item) => (
+                        <li
+                          key={item.label}
+                          className={`${styles.qitem}${
+                            item.required ? ` ${styles.qitemRequired}` : ""
+                          }`}
+                        >
+                          <span className={styles.qitemDot} />
+                          <div>
+                            <span className={styles.qitemText}>
+                              {item.label}
+                              <span
+                                className={`${styles.qitemTag} ${
+                                  item.required
+                                    ? styles.qitemTagReq
+                                    : styles.qitemTagOpt
+                                }`}
+                              >
+                                {item.required ? "Required" : "Optional"}
+                              </span>
+                            </span>
+                            {item.reveal ? (
+                              <span className={styles.qitemNote}>
+                                {item.reveal}
+                              </span>
+                            ) : null}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+
+                <div className={styles.qlegend}>
+                  <span>
+                    <i className={styles.qlegendReq} /> Required to start
+                  </span>
+                  <span>
+                    <i className={styles.qlegendOpt} /> Optional &mdash;
+                    degrades gracefully if left blank
+                  </span>
+                </div>
+              </div>
+
+              {/* The worked example — the answers behind this title's sample */}
+              <aside className={styles.example}>
+                <p className={styles.exampleKicker}>The example we used</p>
+                <h3 className={styles.exampleTitle}>
+                  The answers behind the sample
+                </h3>
+                <p className={styles.exampleSub}>
+                  These are the exact answers behind the sample illustrations
+                  above &mdash; a filled-in example of what &ldquo;good&rdquo;
+                  looks like.
+                </p>
+
+                {product.sourcePhoto ? (
+                  <div className={styles.exampleSource}>
+                    <div className={styles.examplePolaroid}>
+                      <div className={styles.examplePolaroidImg}>
+                        <img
+                          src={product.sourcePhoto}
+                          alt={`The photo we started from for ${title}`}
+                        />
+                      </div>
+                      <span className={styles.examplePolaroidLabel}>
+                        The original
+                      </span>
+                    </div>
+                    <div className={styles.exampleSourceText}>
+                      <p className={styles.exampleSourceHead}>
+                        The photo we started from
+                      </p>
+                      <p className={styles.exampleSourceCap}>
+                        One clear snapshot. This photo is what every painting in
+                        the book is drawn from.
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+
+                {examplePairs.map((pair) => (
+                  <div key={pair.label} className={styles.examplePair}>
+                    <p className={styles.exampleQ}>{pair.label}</p>
+                    <p className={styles.exampleA}>{pair.example}</p>
+                  </div>
+                ))}
+
+                <p className={styles.exampleFoot}>
+                  Your answers can be just as short. We do the writing and the
+                  painting &mdash; you bring the pet and the moments.
+                </p>
+              </aside>
+            </div>
+          </section>
+        ) : null}
       </main>
 
       <SiteFooter />
