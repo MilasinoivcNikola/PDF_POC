@@ -149,16 +149,19 @@ export function masterStory2(): Story2Story {
       // PAGE 6 — Closing. Default ending (always included) sits at the tail; the
       // new-pet variant inserts an extra paragraph before it, and merge appends the
       // signature nickname line / date line only when those optionals are present.
-      // {species} appears twice ("just a {species}" + "as much as a {species} can
-      // love"). The "just a {species}" scare-quote is published copy — the pet
-      // voicing what others might dismissively say — NOT an external quotation.
+      // {speciesNoun} appears twice ("just a {speciesNoun}" + "as much as a
+      // {speciesNoun} can love"); speciesNoun renders the plain species word for
+      // dog/cat/rabbit/bird and "friend" for the open-ended "other" (so "a other"
+      // never ships). The "just a {speciesNoun}" scare-quote is published copy —
+      // the pet voicing what others might dismissively say — NOT an external
+      // quotation.
       id: "letter-page-6",
       pageNumber: null,
       body: [
         "So here is what I want for you.",
-        'Be sad. Be sad for exactly as long as you need to be. Don\'t let anyone tell you I was "just a {species}." They didn\'t know me, and they didn\'t know us.',
+        'Be sad. Be sad for exactly as long as you need to be. Don\'t let anyone tell you I was "just a {speciesNoun}." They didn\'t know me, and they didn\'t know us.',
         "But then, when you're ready — and only when you're ready — be happy again. Laugh at something stupid. Eat something good. Take a walk and notice the things I used to notice with you. The smell of grass after rain. The way the light moves in the late afternoon. The dog two houses down who barks at nothing.",
-        "I loved you. I always did. I always will, as much as a {species} can love — which, it turns out, is a lot.",
+        "I loved you. I always did. I always will, as much as a {speciesNoun} can love — which, it turns out, is a lot.",
         LETTER_SIGNOFF,
         "{petName}",
       ],

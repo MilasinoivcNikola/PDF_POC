@@ -122,7 +122,7 @@ export function masterStory7(): Story7Story {
       body: [
         "Then came the day everything changed.",
         "We went to the shelter not quite sure what we were looking for — and there you were, looking right back at us. Whoever cared for you before we met, thank you. We took it from there.",
-        "And out of every {species} in the whole wide world, it was you. It was always going to be you.",
+        "And out of every {speciesNoun} in the whole wide world, it was you. It was always going to be you.",
       ],
       illustrationBrief:
         "The choosing moment — {petName} meeting their people for the first time. At the shelter/rescue (a kennel door opening, a gentle first sniff), or arriving home (a carrier, a first look around). Warm, hopeful light. {petName} curious or a little unsure — the 'first hello' expression, not full joy yet (that builds across the book).",
@@ -168,7 +168,7 @@ export function masterStory7(): Story7Story {
         "After that, we got to know you. And you, us.",
         "We learned {quirks}.",
         "We learned what made your tail go, and what made you hide, and the exact sound that meant now, please, walk, now. You learned us right back — our footsteps, our voices, the times of day that were yours.",
-        "That is how a {species} and a family become a {species} and their family: one small thing at a time.",
+        "That is how a {speciesNoun} and a family become a {speciesNoun} and their family: one small thing at a time.",
       ],
       illustrationBrief:
         "A warm everyday scene full of personality — {petName} mid-quirk (head-tilt, the zoomie, the parade with a stolen sock), the family laughing or watching. The 'now they're a character, not a stranger' page. Bright, busy-but-cozy.",
@@ -197,7 +197,7 @@ export function masterStory7(): Story7Story {
       title: "You Belong Here",
       body: [
         "Here is the truest thing in this whole book.",
-        "You are not a guest. You are not \"the new {species}.\" You are family — all the way through, no trial period, no taking-back.",
+        "You are not a guest. You are not \"the new {speciesNoun}.\" You are family — all the way through, no trial period, no taking-back.",
         "You belong here. You belong to us, and we belong to you, and that is simply how it is now.",
       ],
       illustrationBrief:

@@ -351,6 +351,45 @@ describe("dimension: species", () => {
 });
 
 // ---------------------------------------------------------------------------
+// species: "other" renders the graceful "friend" noun in printed prose
+// ---------------------------------------------------------------------------
+
+describe('species "other" renders "friend" in printed prose (never "a other")', () => {
+  // Three pages interpolate {speciesNoun} into prose: Page 3 ("every {speciesNoun}
+  // in the whole wide world"), Page 6 ("a {speciesNoun} and a family become a
+  // {speciesNoun} and their family" — TWO sites), Page 8 ("the new {speciesNoun}").
+  // For "other" all render "friend"; dog/cat/rabbit/bird keep the literal word
+  // (byte-identical). bodyOf is BODY prose only — the cover illustration brief keeps
+  // the raw "{species}" token (out of scope) and legitimately still says "other".
+  it('reads "every friend", "a friend and a family", "the new friend" for "other"', () => {
+    const story = resolveStory7(story7SessionWith({ pet: { species: "other" } }));
+    const page3 = bodyOf(story, "welcome-choosing");
+    const page6 = bodyOf(story, "welcome-learning");
+    const page8 = bodyOf(story, "welcome-belong");
+    expect(page3).toContain("out of every friend in the whole wide world");
+    expect(page6).toContain(
+      "how a friend and a family become a friend and their family",
+    );
+    expect(page8).toContain('You are not "the new friend."');
+    // None of the broken raw-word renderings survive.
+    expect(page3).not.toContain("every other");
+    expect(page6).not.toContain("a other");
+    expect(page8).not.toContain("the new other");
+  });
+
+  it("dog (default) keeps the literal species word — the swap is a no-op", () => {
+    const story = resolveStory7(biscuitSession7()); // dog
+    expect(bodyOf(story, "welcome-choosing")).toContain(
+      "out of every dog in the whole wide world",
+    );
+    expect(bodyOf(story, "welcome-learning")).toContain(
+      "how a dog and a family become a dog and their family",
+    );
+    expect(bodyOf(story, "welcome-belong")).toContain('You are not "the new dog."');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Dimension 5 — child present (Page 6 + Page 8 beats; omit cleanly when absent)
 // ---------------------------------------------------------------------------
 

@@ -273,7 +273,7 @@ export function masterStory(): MasterStory {
       id: "page-2",
       pageNumber: 2,
       body: [
-        "Once, in a home full of love, there lived a {species} named {petName}.",
+        "Once, in a home full of love, there lived a {speciesNoun} named {petName}.",
         "{petName} was a {breedColor}.",
         "And {pronounSubject} always knew, somehow, when you needed a friend.",
       ],
@@ -391,7 +391,7 @@ export function masterStory(): MasterStory {
       pageNumber: 12,
       body: [
         "{petName} was a good {speciesDescriptor}.",
-        "{petName} was {childName}'s {species}.",
+        "{petName} was {childName}'s {speciesNoun}.",
         "And {petName} will always, always be loved.",
       ],
       illustrationBrief:

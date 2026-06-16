@@ -114,7 +114,7 @@ export function masterStory5(): Story5Story {
       pageNumber: null,
       body: [
         "Dear {petName},",
-        "There are things I never said to you. Not because I didn't feel them — I felt all of them, every day — but because you were a {species}, and I thought we had more time, and some things you only learn to say once it's too late to be heard.",
+        "There are things I never said to you. Not because I didn't feel them — I felt all of them, every day — but because you were a {speciesNoun}, and I thought we had more time, and some things you only learn to say once it's too late to be heard.",
         "So I'm saying them now. To you. Wherever the saying lands.",
         "You died. I keep having to write that down to believe it. The house is the wrong kind of quiet, and my hands keep reaching for things that aren't there anymore — the leash, the door, the warm weight of you.",
         "But you were here. You were so completely here. And before anything else, I want you to know I noticed.",
@@ -135,7 +135,7 @@ export function masterStory5(): Story5Story {
         "Thank you for {quirks}. I would give anything to see it one more time.",
         "Thank you for the small ordinary things that I thought would last forever — for being at the door, for {favoriteSpots}, for the sound you made that meant you were happy. You made an ordinary life feel like enough. That was you. That was your whole quiet gift.",
         "And thank you for {lastGoodDay}.",
-        "You were a good {species}. The best one. Mine.",
+        "You were a good {speciesNoun}. The best one. Mine.",
       ],
       illustrationBrief:
         "Optional small margin element — a single hand-drawn line of {petName} doing one specific thing from the ritual, sketch style, not full color. Best version may have no illustration at all. Let Page 5's wash be the only painted body page.",

@@ -91,7 +91,7 @@ export function masterStory8(): Story8Story {
       pageNumber: 1,
       title: "The Ordinary Day",
       body: [
-        "In a cozy little house with a big green backyard, there lived a {species} named {petName}.",
+        "In a cozy little house with a big green backyard, there lived a {speciesNoun} named {petName}.",
         "{petName} was a {breedColor}, and {pronounSubject} was {childName}'s very best friend in the whole world.",
         "Most days were perfectly ordinary. But {petName} was about to become a hero.",
       ],
@@ -227,7 +227,7 @@ export function masterStory8(): Story8Story {
       id: "adventure-closing",
       pageNumber: 11,
       body: [
-        "{petName} the {species} —",
+        "{petName} the {speciesNoun} —",
         "best friend, brave heart, and the greatest hero the backyard has ever known.",
         "The End… until the next amazing adventure.",
       ],

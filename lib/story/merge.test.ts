@@ -158,6 +158,46 @@ describe("Page 2 opening composes cleanly with the customer's breedColor", () =>
 });
 
 // ---------------------------------------------------------------------------
+// species: "other" renders the graceful "friend" noun in printed prose
+// ---------------------------------------------------------------------------
+
+describe('species "other" renders "friend" in printed prose (never "a other")', () => {
+  // The raw species word reads naturally for dog/cat/rabbit/bird, but "other"
+  // (a real wizard option) yields ungrammatical copy ("a other named …", "Emma's
+  // other"). speciesNoun maps "other" → "friend"; dog/cat/rabbit/bird keep their
+  // literal word (byte-identical). Scope assertions to the BODY prose — the cover
+  // illustration brief deliberately keeps the raw "{species}" token (out of scope),
+  // so it legitimately still contains "other".
+  it('Page 2 opening reads "a friend named …" (not "a other named …")', () => {
+    const body = pageById(
+      _resolveStory(sessionWith({ pet: { species: "other" } })),
+      "page-2",
+    ).body.join("\n");
+    expect(body).toContain("there lived a friend named Otis.");
+    expect(body).not.toContain("a other");
+  });
+
+  it('Page 12 closing reads "Emma\'s friend." (not "Emma\'s other.")', () => {
+    const body = pageById(
+      _resolveStory(sessionWith({ pet: { species: "other" } })),
+      "page-12",
+    ).body.join("\n");
+    expect(body).toContain("Otis was Emma's friend.");
+    expect(body).not.toContain("the other");
+  });
+
+  it("dog (non-other) keeps the literal species word — the swap is a no-op", () => {
+    const story = _resolveStory(otisSession()); // dog
+    expect(pageById(story, "page-2").body.join("\n")).toContain(
+      "there lived a dog named Otis.",
+    );
+    expect(pageById(story, "page-12").body.join("\n")).toContain(
+      "Otis was Emma's dog.",
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Pronoun consistency across every page
 // ---------------------------------------------------------------------------
 

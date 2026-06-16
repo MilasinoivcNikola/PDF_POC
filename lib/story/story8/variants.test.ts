@@ -253,6 +253,67 @@ describe("dimension: age bracket", () => {
 });
 
 // ---------------------------------------------------------------------------
+// species: "other" renders the graceful "friend" noun in printed prose
+// ---------------------------------------------------------------------------
+
+describe('species "other" renders "friend" in printed prose (never "a other")', () => {
+  // Three prose sites carry {speciesNoun}: Page 1 ("there lived a {speciesNoun}
+  // named …" — in BOTH the pet-solo and pet-plus variants), Page 11 ("{petName}
+  // the {speciesNoun} —"), and the 9-12 climax ("the easy, modest grace of a
+  // {speciesNoun} who saves the day"). For "other" all render "friend"; dog/cat/
+  // rabbit/bird keep the literal word (byte-identical). bodyOf is BODY prose only —
+  // the cover/Page-1 illustration briefs keep the raw "{species}" token (out of
+  // scope) and legitimately still say "other".
+  it('Page 1 + Page 11 read "friend" for "other" (pet-plus)', () => {
+    const story = resolveStory8(story8SessionWith({ pet: { species: "other" } }));
+    expect(bodyOf(story, "adventure-ordinary")).toContain(
+      "there lived a friend named Biscuit.",
+    );
+    expect(bodyOf(story, "adventure-closing")).toContain("Biscuit the friend —");
+    expect(bodyOf(story, "adventure-ordinary")).not.toContain("a other");
+    expect(bodyOf(story, "adventure-closing")).not.toContain("the other —");
+  });
+
+  it('Page 1 reads "friend" for "other" in the pet-solo variant too', () => {
+    const story = resolveStory8(
+      story8SessionWith({
+        pet: { species: "other" },
+        toggles: { heroCount: "pet-solo" },
+      }),
+    );
+    expect(bodyOf(story, "adventure-ordinary")).toContain(
+      "there lived a friend named Biscuit.",
+    );
+    expect(bodyOf(story, "adventure-ordinary")).not.toContain("a other");
+  });
+
+  it('the 9-12 climax reads "grace of a friend" for "other"', () => {
+    const story = resolveStory8(
+      story8SessionWith({
+        pet: { species: "other" },
+        toggles: {
+          adventureTheme: "backyard-mystery",
+          heroCount: "pet-plus",
+          childAgeBracket: "9-12",
+        },
+      }),
+    );
+    expect(bodyOf(story, "adventure-climax")).toContain(
+      "the easy, modest grace of a friend who saves the day",
+    );
+    expect(bodyOf(story, "adventure-climax")).not.toContain("grace of a other");
+  });
+
+  it("dog (default) keeps the literal species word — the swap is a no-op", () => {
+    const story = resolveStory8(biscuitSession8()); // dog
+    expect(bodyOf(story, "adventure-ordinary")).toContain(
+      "there lived a dog named Biscuit.",
+    );
+    expect(bodyOf(story, "adventure-closing")).toContain("Biscuit the dog —");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Dimension 5 — sidekick present (Page-5 party line, pet-plus only)
 // ---------------------------------------------------------------------------
 

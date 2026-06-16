@@ -226,7 +226,10 @@ describe("species selects the Page 3 voice line (and fills Page 6)", () => {
     expect(page3).not.toContain("binkies");
   });
 
-  it("species fills Page 6 ('just a {species}' + 'as much as a {species} can love')", () => {
+  it("species noun fills Page 6 ('just a {noun}' + 'as much as a {noun} can love')", () => {
+    // The raw species word reads naturally for dog/cat/rabbit/bird; the open-ended
+    // "other" renders the graceful "friend" instead ("a other" never ships) —
+    // speciesNoun's other → friend, matching Story 4/9.
     for (const species of [
       "dog",
       "cat",
@@ -236,8 +239,12 @@ describe("species selects the Page 3 voice line (and fills Page 6)", () => {
     ] as const) {
       const story = resolveStory2(story2SessionWith({ pet: { species } }));
       const page6 = pageById(story, "letter-page-6").body.join(" ");
-      expect(page6).toContain(`"just a ${species}."`);
-      expect(page6).toContain(`as much as a ${species} can love`);
+      const noun = species === "other" ? "friend" : species;
+      expect(page6).toContain(`"just a ${noun}."`);
+      expect(page6).toContain(`as much as a ${noun} can love`);
+      // The broken raw-word rendering must never survive.
+      expect(page6).not.toContain('"just a other."');
+      expect(page6).not.toContain("a other can love");
     }
   });
 

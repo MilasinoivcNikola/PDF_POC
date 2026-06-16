@@ -76,6 +76,7 @@ function buildValues(session: Story5Session): Record<string, string> {
   const values: Record<string, string> = {
     petName: clean(pet.name),
     species: clean(pet.species),
+    speciesNoun: pet.species === "other" ? "friend" : clean(pet.species),
     ownerNames: clean(owner.names),
     quirks: clean(memories.quirks),
     favoriteRitual: clean(memories.favoriteRitual),

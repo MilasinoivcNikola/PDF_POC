@@ -152,6 +152,7 @@ function buildValues(session: StorySession): Record<string, string> {
     pronounObject: pronounObject(pet.pronoun),
     pronounPossessive: pronounPossessive(pet.pronoun),
     speciesDescriptor: speciesDescriptor(pet.species, pet.pronoun),
+    speciesNoun: pet.species === "other" ? "friend" : clean(pet.species),
     childName: clean(child.name),
     favoriteActivity: clean(memories.favoriteActivity),
     sleepingSpot: clean(memories.sleepingSpot),
