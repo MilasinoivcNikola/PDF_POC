@@ -33,6 +33,34 @@ Pages 2-3 before baby (Page 4); no "fur baby"; no memorial language; baby/adults
 (never a face) in both the per-page briefs AND the shared `styleAndConsistencyClause` in
 lib/ai/story9-prompts.ts; `{babyName}` degrades to "the new baby" (resolveBabyName).
 
+**More masterstory-vs-engine wording drift, added by `fix/story9-page3-and-page4-brief`
+(2026-06-16):**
+
+3. **Page-3 sleeping verb is now "settles DOWN", not "settles in".** The fix changed the
+   bird/rabbit Page-3 line `"settles in {sleepingSpot}"` → `"settles down {sleepingSpot}"`
+   to kill a double-preposition ("settles in at the foot of the bed") and share the dog
+   default's prepositional `{sleepingSpot}` slot. The masterstory template still says
+   "settles **in**" in THREE places (template lines ~160 Page-3 variant note, ~285 rabbit
+   voice, ~286 bird voice). The fix honors the template's *intent* (the verb "settle" for
+   birds/small mammals; the literal "in" was the bug) but the wording now contradicts the
+   product source-of-truth → update those 3 masterstory lines to "settles down". Code wins;
+   doc is stale.
+
+4. **Page-4 illustration brief now has an arrived-framing variant the masterstory lacks.**
+   Fix B branches `baby-page-4`'s `illustrationBrief` on `babyStatus` (new
+   `PAGE_4_ARRIVED_BRIEF` const + a `setBrief` in-place setter, sibling of `setBody`/
+   `setSubtitle` — internal, no doc needed). In-spec: the masterstory consistency checklist
+   (template line ~301) already mandates the `[BABY_STATUS]` framing be applied consistently
+   across pages "no mix of coming/arrived in one book" — the brief was the one place that DID
+   mix. BUT the masterstory pattern is that `arrived` variants only rewrite **body text**;
+   no page (incl. Page 6, whose arrived body says the baby is present) documents an
+   arrived-framing *illustration brief*. So the Page-4 brief variant is a low-pri OMISSION
+   the masterstory's Page-4 `*Illustration brief:*` (template ~line 174) could record. Not
+   misleading (briefs are never printed, only steer the prompt) — nice-to-have, not blocker.
+
+Both fixes pay down debt.md rows (Page-3 double-prep row ~L41, Page-4 expecting-brief row
+~L40) — removal/update is the `complete` step's job, flag if left stale at merge.
+
 **Recurring template-vs-build drift confirmed again** (see [[masterstory-slot-id-lag]]):
 the template was written before the build and over-specifies structure the build then
 simplifies. Fix direction = update the masterstory template (it's the wording/structure

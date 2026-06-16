@@ -12,7 +12,7 @@
 //     baby ({babyName}) and shifts to present tense; the "expecting" default keeps
 //     the baby abstract ("the new baby") and anticipatory ("coming / will be").
 //   - species voice → Pages 2, 3 & 6 (cat: Page 2 "first to claim the warm spot..."
-//     + Page 6 supervises rather than crowds; bird/rabbit "settles in" rather than
+//     + Page 6 supervises rather than crowds; bird/rabbit "settles down" rather than
 //     "curls up" — Page 3's sleeping line; the "other" species reads as "friend" in
 //     Page 6's "a friend who loves" line; dog → the default wording).
 //   - otherPetsInHome → Pages 2, 4, 5, 7 (append one warm "the more, the merrier"
@@ -24,7 +24,7 @@
 // builder (so an expecting default and an arrived rewrite can never half-mix). The
 // wording below is the product requirement, copied verbatim from the master template
 // where it supplies text; where the template gives only a note (e.g. the bird/rabbit
-// "settles in" touch), the composed line is built from the default + that note.
+// "settles down" touch), the composed line is built from the default + that note.
 
 import type {
   BabyStatus,
@@ -56,15 +56,18 @@ function hasSubstantial(value: string | undefined): boolean {
 // ---------------------------------------------------------------------------
 //
 // The template gives species touches on Pages 2 & 6 (cat supervises; bird/rabbit
-// "settles in"). dog (default) keeps the master wording. "other" folds to the dog
+// "settle"). dog (default) keeps the master wording. "other" folds to the dog
 // default (species-neutral). The bird/rabbit touch is on Page 3's sleeping line
-// ("curls up" → "settles in"), per the master template's Page-3 note.
+// ("curls up" → "settles down"), per the master template's Page-3 note.
 
 /** Page-3 sleeping-line sentence, varied by species (bird/rabbit "settle in"). */
 function page3SleepingSentence(species: Species): string {
   if (species === "bird" || species === "rabbit") {
-    // Template bird/small-mammal variant: "settles in" rather than "curls up".
-    return "When the day winds down, {petName} settles in {sleepingSpot}, where it is warm and safe and exactly where {pronounSubject} belongs.";
+    // Template bird/small-mammal variant: "settle" rather than "curl up". Use the
+    // adverb particle "settles down" (not "settles in") so this line shares the dog
+    // default's structural slot — particle + the prepositional {sleepingSpot} free
+    // text — instead of producing a double-preposition ("settles in at the foot...").
+    return "When the day winds down, {petName} settles down {sleepingSpot}, where it is warm and safe and exactly where {pronounSubject} belongs.";
   }
   // dog (default) + cat/other: the master wording.
   return "When the day winds down, {petName} curls up {sleepingSpot}, where it is warm and safe and exactly where {pronounSubject} belongs.";
@@ -177,6 +180,17 @@ function page3Body(species: Species, hasQuirks: boolean): string[] {
     page3SleepingSentence(species),
   ];
 }
+
+/**
+ * Page-4 illustration brief for the `arrived` framing. The master default
+ * (master-text.ts) briefs an expecting scene ("the baby is not present yet"); when
+ * babyStatus = arrived the body is rewritten whole (page4Body), so the brief must be
+ * rewritten in lockstep — an expecting default and an arrived rewrite must never
+ * half-mix. Approach-A rule held: the pet is photo-anchored, the baby and any adults
+ * are faceless.
+ */
+const PAGE_4_ARRIVED_BRIEF =
+  "{petName} calm and gentle beside the new baby — the baby swaddled in a bassinet or held by a faceless adult; {petName} sniffing softly or keeping watch close by. The pet is curious and tender, NOT worried. Soft nursery palette. The baby is present now (arrived framing).";
 
 /**
  * Compose the full Page-4 body. babyStatus rewrites it whole (expecting = "a baby
@@ -305,6 +319,11 @@ function setSubtitle(
   story[pageIndex(story, id)].subtitle = subtitle;
 }
 
+/** Replace the illustration brief of a page in place. */
+function setBrief(story: Story9Story, id: Story9PageId, brief: string): void {
+  story[pageIndex(story, id)].illustrationBrief = brief;
+}
+
 // ---------------------------------------------------------------------------
 // Public composition + entry point
 // ---------------------------------------------------------------------------
@@ -316,7 +335,8 @@ function setSubtitle(
  * default and an arrived rewrite can never half-mix), in order: the cover subtitle
  * (arrived names the baby), the Page-1 dedication (babyStatus), You-Were-First
  * (species + other-pets), Our-Days (species sleeping line + quirks fallback),
- * Something-Changing (babyStatus + babyArrival + other-pets), Big-Sibling
+ * Something-Changing (babyStatus + babyArrival + other-pets — the arrived path also
+ * rewrites this page's illustration brief in lockstep with its body), Big-Sibling
  * (babyStatus + other-pets), The-Bond (babyStatus + species), Love-Grows
  * (other-pets), and the Closing (babyStatus). The covers/back-cover carry no variant
  * beyond the cover subtitle.
@@ -350,6 +370,11 @@ export function composeVariants9(session: Story9Session): Story9Story {
     "baby-page-4",
     page4Body(babyStatus, otherPets, hasBabyArrival),
   );
+  if (babyStatus === "arrived") {
+    // The arrived body rewrite (above) must be matched by an arrived brief — the
+    // expecting default brief (master-text.ts) frames "the baby is not present yet".
+    setBrief(story, "baby-page-4", PAGE_4_ARRIVED_BRIEF);
+  }
   setBody(story, "baby-page-5", page5Body(babyStatus, otherPets));
   setBody(story, "baby-page-6", page6BondBody(species, babyStatus));
   setBody(story, "baby-page-7", page7Body(otherPets));
