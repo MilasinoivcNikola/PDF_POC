@@ -23,7 +23,7 @@ export function SiteFooter() {
           {BRAND}
         </span>
         <p className="footer-rich__tagline">
-          {TAGLINE} Made slowly, made by hand.
+          {TAGLINE} Made slowly, finished by hand.
         </p>
       </div>
       <div className="footer-rich__col">

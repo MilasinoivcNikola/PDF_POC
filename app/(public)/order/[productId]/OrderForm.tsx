@@ -245,7 +245,7 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
               Your order is saved. The next step is payment, and we&apos;re
               finishing that part now. We&apos;ll email{" "}
               <strong>{email.trim()}</strong> with a secure checkout link, then
-              paint your book by hand and send you the finished PDF.
+              paint your book from your photo and send you the finished PDF.
             </p>
             <div className="mt-12">
               <Link href="/books" className="btn btn--primary">
@@ -281,7 +281,7 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
                         : "Tell us about the one who is gone."}
           </p>
           <p className="wizard__attribution">
-            A few gentle questions and a photo. We&apos;ll do the rest by hand.
+            A few gentle questions and a photo. We&apos;ll do the rest, with care.
           </p>
         </div>
 
@@ -703,7 +703,7 @@ function Footer() {
       <Link href="/policies" className="label">
         How it&apos;s made · Policies
       </Link>
-      <p className="label">Made slowly · Made by hand</p>
+      <p className="label">Made slowly · Finished by hand</p>
     </footer>
   );
 }

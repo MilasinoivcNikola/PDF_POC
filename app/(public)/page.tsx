@@ -47,7 +47,7 @@ export default function Home() {
             </h1>
             <p className="lede hero__lede">
               Upload one photo of your own pet, and we&rsquo;ll hand-finish an
-              illustrated keepsake book where they&rsquo;re the star — their real
+              illustrated keepsake book where they&rsquo;re the star, their real
               face, their real coat, on every page. A joyful adventure, the story
               of the day they came home, a tribute while they&rsquo;re still beside
               you, or a gentle goodbye.
@@ -107,7 +107,7 @@ export default function Home() {
           <div className="proof__head">
             <span className="label">The part everyone wonders about</span>
             <h2>
-              Yes — it really <em>is</em> them.
+              Yes - it really <em>is</em> them.
             </h2>
             <p>
               Other personalized pet books pick a breed from a list. We don&rsquo;t.
@@ -145,7 +145,7 @@ export default function Home() {
                   strokeLinecap="round"
                 />
               </svg>
-              <span>painted by hand</span>
+              <span>painted from your photo</span>
             </div>
 
             {/* The painted page — the keepsake frame, the payoff. */}
@@ -168,7 +168,7 @@ export default function Home() {
 
           <p className="proof__note">
             This is a real sample, painted from the real photo beside it. Every book
-            is reviewed by a person before it reaches you — if a page doesn&rsquo;t
+            is reviewed by a person before it reaches you, if a page doesn&rsquo;t
             look like your pet, it doesn&rsquo;t go out.
           </p>
         </section>
@@ -176,7 +176,7 @@ export default function Home() {
         {/* 3. Two worlds — celebrate (gold) / remember (rose), counts derived. */}
         <div className="section-head fade-in fade-in-4">
           <span className="label">Two kinds of book</span>
-          <h2>For the days you have — and the goodbye.</h2>
+          <h2>For the days you have and the goodbye.</h2>
         </div>
         <section className="worlds fade-in fade-in-4">
           <Link href="/books#living" className="world world--living">
@@ -185,7 +185,7 @@ export default function Home() {
               A book to <em>celebrate</em> them.
             </h2>
             <p className="world__body">
-              Joyful, living titles — a kids&apos; adventure where your pet is the
+              Joyful, living titles a kids&apos; adventure where your pet is the
               hero, the story of their gotcha day, a letter in their happy voice, a
               tribute while they&apos;re still curled up beside you, or a keepsake for
               the new big sibling. For a birthday, an adoption, or no reason at all.
@@ -212,7 +212,7 @@ export default function Home() {
               A book to <em>remember</em> them.
             </h2>
             <p className="world__body">
-              Gentle memorial titles — a story to help a child grieve, and a pair of
+              Gentle memorial titles a story to help a child grieve, and a pair of
               goodbye letters: one in your pet&apos;s voice, one in yours. Made
               slowly, with care.
             </p>
@@ -245,10 +245,10 @@ export default function Home() {
           </div>
           <div className="how__step">
             <span className="how__num">02</span>
-            <h3 className="how__title">We paint it by hand</h3>
+            <h3 className="how__title">We paint it from your photo</h3>
             <p className="how__body">
-              Every illustration is made to look like your actual pet — not a breed
-              picked from a list — and reviewed by a person.
+              Every illustration is made to look like your actual pet not a breed
+              picked from a list and reviewed by a person.
             </p>
           </div>
           <div className="how__step">
@@ -273,8 +273,8 @@ export default function Home() {
                 Will it <em>really</em> look like my pet?
               </h3>
               <p>
-                That&rsquo;s the whole point. We paint from the photo you upload —
-                same markings, same face — not a generic breed picture. A person
+                That&rsquo;s the whole point. We paint from the photo you upload
+                same markings, same face not a generic breed picture. A person
                 checks every book before it&rsquo;s sent; if a page doesn&rsquo;t look
                 like your pet, it doesn&rsquo;t go out.
               </p>
@@ -307,7 +307,7 @@ export default function Home() {
             <div className="faq__item">
               <h3>Can I print it?</h3>
               <p>
-                Yes. You receive a print-quality PDF — keep it on your phone, print it
+                Yes. You receive a print-quality PDF keep it on your phone, print it
                 at home, or take it to a print shop. The letter titles are designed to
                 be printed on cardstock and framed.
               </p>
@@ -315,7 +315,7 @@ export default function Home() {
             <div className="faq__item">
               <h3>What do you do with my photo?</h3>
               <p>
-                Your photo and the details you share are used only to make your book —
+                Your photo and the details you share are used only to make your book
                 nothing else.
               </p>
             </div>
@@ -343,8 +343,8 @@ export default function Home() {
             Start the book that looks like <em>them</em>.
           </h2>
           <p>
-            One photo is all it takes. We&rsquo;ll do the rest — slowly, by hand, and
-            made for you.
+            One photo is all it takes. We&rsquo;ll do the rest slowly, with care,
+            and made for you.
           </p>
           <Link href="/books" className="btn btn--primary">
             See the books

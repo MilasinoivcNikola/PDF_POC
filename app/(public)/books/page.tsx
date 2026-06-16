@@ -14,7 +14,7 @@ import styles from "./page.module.css";
 export const metadata: Metadata = {
   title: `The books — ${BRAND}`,
   description:
-    "Personalized illustrated books starring your own pet, made by hand from your photo — joyful adventures and gotcha-day tales, or a gentle goodbye for a child.",
+    "Personalized illustrated books starring your own pet, painted from your photo — joyful adventures and gotcha-day tales, or a gentle goodbye for a child.",
 };
 
 // Card copy — short persona/audience kicker + the count-line wording. This is
@@ -128,7 +128,7 @@ export default function BooksPage() {
 
       <main className={styles.catalog}>
         <section className={`${styles.intro} fade-in fade-in-1`}>
-          <span className="label label--gold">Made by hand</span>
+          <span className="label label--gold">Finished by hand</span>
           <h1 className={`display-lg ${styles.introTitle}`}>
             A keepsake for <em>every kind</em> of love.
           </h1>
