@@ -11,8 +11,9 @@
 //
 // The strokes fill `currentColor` so color is CSS-driven: the wordmark's ink by
 // default, or the two-worlds tint set via the `.wordmark__ornament--living/--loss`
-// modifier classes (see app/globals.css). The soft page-wash stays `--rose-faint`
-// so the heart always reads warm, never like a different logo.
+// modifier classes (see app/globals.css). The heart wash is `--rose-soft` so the
+// heart always reads warm/pink — `--rose-faint` was so pale it vanished on the
+// cream header (it read as an unfilled outline).
 
 interface HeartBookMarkProps {
   /** Sizes/colors the glyph via the existing `.wordmark__ornament` slot. */
@@ -30,7 +31,7 @@ export function HeartBookMark({ className }: HeartBookMarkProps) {
     >
       <path
         d="M23 12 C23 6 17 4 13 7 C9 10 10 15 23 24 C36 15 37 10 33 7 C29 4 23 6 23 12 Z"
-        fill="var(--rose-faint)"
+        fill="var(--rose-soft)"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinejoin="round"
