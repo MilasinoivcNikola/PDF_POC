@@ -55,22 +55,22 @@ const BOOK_QUESTIONS: BookQuestions[] = [
   // -------------------------------------------------------------------------
   // Story 1 — "Saying Goodbye" (narrative children's storybook). Wording from
   // the prototype index.html (the verbatim design source). Example pinned to
-  // fixtures/story1-high.json.
+  // fixtures/sample-story1-dog.json.
   // -------------------------------------------------------------------------
   {
     productId: "story-1-book",
-    exampleSummary: "Bo",
+    exampleSummary: "Mango",
     groups: [
       {
         title: "Your pet",
         items: [
-          { label: "Their name", required: true, example: "Bo" },
+          { label: "Their name", required: true, example: "Mango" },
           { label: "What kind of animal", required: true, example: "dog" },
           {
             label: "How they look",
             required: true,
             example:
-              "fawn-and-white boxer with a dark mask over his eyes and muzzle and a white blaze down his chest",
+              "fawn pug with a black mask over his muzzle, deep velvety wrinkles, big dark round eyes, and a tightly curled tail",
           },
           { label: "He, she, or they", required: true, example: "he" },
           { label: "Illustration style", required: true, example: "watercolor" },
@@ -79,7 +79,7 @@ const BOOK_QUESTIONS: BookQuestions[] = [
       {
         title: "The child",
         items: [
-          { label: "The child's name", required: true, example: "Liam" },
+          { label: "The child's name", required: true, example: "Maya" },
           { label: "Their age", required: true, example: "6-8" },
         ],
       },
@@ -89,18 +89,18 @@ const BOOK_QUESTIONS: BookQuestions[] = [
           {
             label: "Their favorite thing to do",
             required: true,
-            example: "racing across the backyard after a tennis ball",
+            example: "waddling beside you on slow evening walks around the park",
           },
           {
             label: "Where they loved to sleep",
             required: true,
-            example: "curled up at the foot of your bed",
+            example: "snuggled into the cushions at the foot of your bed",
           },
           {
             label: "A favorite memory",
             required: true,
             example:
-              "The afternoon Bo splashed into the creek after you, and you both came home muddy and happy, grinning the whole way.",
+              "The evening you two sat together on the low wall by the park fence, your hand resting on his back, both of you watching the world go by until the light turned golden.",
           },
           { label: "A dedication", required: false },
         ],

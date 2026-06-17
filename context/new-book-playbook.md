@@ -310,10 +310,10 @@ Add a `Product` to `lib/catalog/products.ts`'s `buildCatalog()` via `buildProduc
 - **`previewPdf`** — **optional**: a full-book sample PDF under
   `public/samples/<book-id>/preview.pdf`, surfaced as a "See the full book (PDF)" link on the
   detail page. It is part of the **standard** sample set — wire it once a title's sample run
-  has produced a `preview.pdf` (Step 6); **omit it** only until then. The one exception is
-  `story-1-book`, which *additionally* carries a one-time **full-res HIGH** preview (a
-  deliberate hero-title run, not the slim mixed-tier default). Plain string path, so the
-  module stays client-safe.
+  has produced a `preview.pdf` (Step 6); **omit it** only until then. All 8 titles —
+  Story 1 included — ship this same slim mixed-tier preview (Story 1 was refreshed onto it
+  in `story-samples-01-saying-goodbye-pug`; no title is a HIGH-preview exception anymore).
+  Plain string path, so the module stays client-safe.
 - **`sourcePhoto`** — **optional**: the ORIGINAL input photo this title's sample book was
   painted from, under `public/samples/<book-id>/source-photo.jpg` (the storefront's "the
   photo we started from" proof, surfaced on the detail page by the book-detail redesign).
@@ -408,11 +408,11 @@ renders a 404 `<img>`, which is the one thing the placeholder fallback is there 
 
 **`previewPdf` is part of the standard set.** Step 3 above already renders a slim, web-res
 `preview.pdf` (from the downscaled JPGs) for every title, so wire the catalog's `previewPdf`
-(Step 4) alongside `sampleImages`. The **one exception** is Story 1, which *also* carries a
-one-time **full-res HIGH** preview (~31 MB) from a deliberate `scripts/story1-high-run.ts` /
-`proto:story1-high` run — a sample-only flourish that never changes the engine default (real
-customer orders run the mixed tier). New titles don't need the HIGH variant; the slim
-PRODUCTION_QUALITY preview from Step 3 is the norm.
+(Step 4) alongside `sampleImages`. This is the norm for **all 8 titles with no exception** —
+Story 1's earlier one-time full-res HIGH preview was retired in
+`story-samples-01-saying-goodbye-pug` (the superseded `scripts/story1-high-run.ts` +
+`fixtures/story1-high.json` are kept only as historical record; there is no `proto:story1-high`
+npm script). New titles just wire the slim `PRODUCTION_QUALITY` preview from Step 3.
 
 ---
 

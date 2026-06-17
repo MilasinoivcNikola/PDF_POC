@@ -1,0 +1,28 @@
+{
+  "id": "sample-story1-dog",
+  "createdAt": "2026-06-17T00:00:00.000Z",
+  "status": "ready",
+  "pet": {
+    "name": "Mango",
+    "species": "dog",
+    "breedColor": "fawn pug with a black mask over his muzzle, deep velvety wrinkles, big dark round eyes, and a tightly curled tail",
+    "pronoun": "he",
+    "illustrationStyle": "watercolor",
+    "photo": "uploads/sample-photos/story-1.jpg"
+  },
+  "child": {
+    "name": "Maya",
+    "ageBracket": "6-8"
+  },
+  "memories": {
+    "favoriteActivity": "waddling beside you on slow evening walks around the park",
+    "sleepingSpot": "snuggled into the cushions at the foot of your bed",
+    "favoriteMemory": "The evening you two sat together on the low wall by the park fence, your hand resting on his back, both of you watching the world go by until the light turned golden."
+  },
+  "toggles": {
+    "deathType": "natural",
+    "beliefFrame": "rainbow-bridge",
+    "otherPetsInHome": "no"
+  },
+  "images": []
+}

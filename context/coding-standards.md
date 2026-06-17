@@ -163,8 +163,10 @@ framework beyond this list without approval. The plan in
   rationale) is the storefront's downloadable full-book preview — generated for **any** title by
   the one-time mixed `PRODUCTION_QUALITY` sample run (`scripts/sample-run.ts` →
   `sample-capture.ts`, which renders a *slim* preview from the downscaled JPGs), never the engine
-  default. Story 1 additionally carries a one-time **full-res HIGH** preview (the deliberate
-  `proto:story1-high` exception). The optional `sourcePhoto?` (book-detail PR-1; a plain
+  default. **All 8 titles — Story 1 included — now ship this standard slim mixed-tier sample**
+  (Story 1 was refreshed onto it in `story-samples-01-saying-goodbye-pug`, retiring its earlier
+  one-time full-res HIGH run; the superseded `scripts/story1-high-run.ts` + `fixtures/story1-high.json`
+  are kept only as historical record). The optional `sourcePhoto?` (book-detail PR-1; a plain
   string path `public/samples/<id>/source-photo.jpg`, same client-safe rationale) is the
   storefront's "the photo we started from" proof — the slim input photo each sample was
   painted from, emitted by `sample-capture.ts` for new titles and committed one-time for

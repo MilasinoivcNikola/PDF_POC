@@ -32,6 +32,18 @@ engine default; the mixed `PRODUCTION_QUALITY` is the sample tier.
 passages are reframed standard-not-Story-1-only — so this lag is resolved unless a future
 edit regresses it.
 
+**PR-01 (`story-samples-01-saying-goodbye-pug`, 2026-06-17) RETIRED the Story-1 HIGH preview
+entirely** (Story 1 graduated onto the standard slim mixed-tier sample; `proto:story1-high`
+removed from package.json; `scripts/story1-high-run.ts` + `fixtures/story1-high.json` kept only
+as dead historical record). This flips the "Story 1 *additionally* carries a full-res HIGH
+preview" wording from CORRECT → FALSE in every doc that still says it. coding-standards.md L166-169
+was updated in-branch (good). **new-book-playbook.md still claims it in THREE spots — L313-316
+(Step-4 field list), L409-415 (the "previewPdf is part of the standard set" note, incl. a live
+`proto:story1-high` script citation).** On any future grep, also hunt "full-res HIGH" /
+"`proto:story1-high`" / "~31 MB", not just "only story-1-book". Also: `lib/catalog/book-questions.ts`
+L58 carries a stale in-code comment ("Example pinned to fixtures/story1-high.json") — the branch
+repointed the pin to `fixtures/sample-story1-dog.json` but left the comment, drift it introduced.
+
 **The recurring REAL finding on each sample PR is in `context/debt.md`, not the playbook:**
 each title has a "Story-N storefront samples missing" (severity **medium**) debt row that the
 sample PR resolves — it must be struck/removed in-branch or it actively misleads ("card shows a
