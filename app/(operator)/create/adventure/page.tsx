@@ -143,7 +143,9 @@ export default function AdventurePage() {
         <p className="field__hint">
           The child who shares the adventure with {petLabel}. Needed if they
           adventure together — you&apos;ll choose that on the next step (or make{" "}
-          {petLabel} the lone hero, where it&apos;s optional). <em>Emma.</em>
+          {petLabel} the lone hero, where it&apos;s optional). <em>Emma.</em>{" "}
+          Your photo captures your pet. The child is illustrated as a playful,
+          stylized character — not a likeness of a specific child.
         </p>
         <input
           type="text"

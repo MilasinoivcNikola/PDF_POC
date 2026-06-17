@@ -28,6 +28,8 @@ export interface QuestionItem {
   required: boolean;
   /** Optional note for a conditional reveal, e.g. "only on the anniversary path". */
   reveal?: string;
+  /** Optional clarifying note shown inline with the question (not a reveal). */
+  note?: string;
   /** The example answer used for this title's sample PDF (fixture-pinned). */
   example?: string;
 }
@@ -79,7 +81,12 @@ const BOOK_QUESTIONS: BookQuestions[] = [
       {
         title: "The child",
         items: [
-          { label: "The child's name", required: true, example: "Maya" },
+          {
+            label: "The child's name",
+            required: true,
+            note: "Drawn as a stylized character, not a likeness of a specific child.",
+            example: "Maya",
+          },
           { label: "Their age", required: true, example: "6-8" },
         ],
       },
@@ -590,6 +597,7 @@ const BOOK_QUESTIONS: BookQuestions[] = [
             required: false,
             reveal:
               "Required when the child adventures alongside; optional when they hear the legend as the reader.",
+            note: "Drawn as a stylized character, not a likeness of a specific child.",
             example: "Nora",
           },
           {

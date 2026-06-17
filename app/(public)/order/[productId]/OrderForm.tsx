@@ -115,6 +115,7 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
     }
   }, [hydrated, draft, storyType, replaceDraft]);
 
+  const isStory1 = storyType === "story-1";
   const isStory2 = storyType === "story-2";
   const isStory4 = storyType === "story-4";
   const isStory5 = storyType === "story-5";
@@ -122,6 +123,11 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
   const isStory7 = storyType === "story-7";
   const isStory8 = storyType === "story-8";
   const isStory9 = storyType === "story-9";
+  // The two titles that feature a child character alongside the pet (Story 1 and
+  // Story 8). The uploaded photo only anchors the pet; the child is always an
+  // invented, stylized character — so these get the child-rendering clarification
+  // at the photo step and the child field.
+  const featuresChild = isStory1 || isStory8;
   // The three letters (Story 2 / Story 4 / Story 5) drop pronoun/illustration-style
   // and are photo-led keepsakes. Story 6 (the living tribute), Story 7 (the
   // homecoming book), Story 8 (the kids' adventure) and Story 9 (the new-baby
@@ -313,6 +319,13 @@ export function OrderForm({ productId, storyType, title }: OrderFormProps) {
                   <p className="field__hint">
                     We&apos;ll paint your pet from this photo. A clear photo of
                     the face works best, but any beloved photo will do.
+                    {featuresChild ? (
+                      <>
+                        {" "}
+                        You only need your pet in the photo — the child in the
+                        book is drawn as a stylized character, not from a photo.
+                      </>
+                    ) : null}
                   </p>
                   <ImageUploader onUpload={(file) => setPhotoFile(file)} />
                   {showGate && !photoFile ? (
@@ -749,7 +762,9 @@ function Story1Fields({
           Who is this story for?
         </label>
         <p className="field__hint">
-          The book is written to your child, by name, on nearly every page.
+          The book is written to your child, by name, on nearly every page.{" "}
+          Your photo brings your pet to life on every page. The child is drawn
+          as a soft, stylized character — not a portrait of a specific child.
         </p>
         <input
           type="text"
@@ -2762,7 +2777,9 @@ function Story8Fields({
               Optional — the child is the reader hearing the legend. Add a name if
               you&apos;d still like it to appear. <em>Emma.</em>
             </>
-          )}
+          )}{" "}
+          Your photo captures your pet. The child is illustrated as a playful,
+          stylized character — not a likeness of a specific child.
         </p>
         <input
           type="text"
