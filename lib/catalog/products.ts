@@ -355,7 +355,7 @@ function buildCatalog(): Product[] {
     }),
     buildProduct("story-8-adventure", "story-8", {
       title: "The Amazing Adventures of Your Pet",
-      tagline: "A joyful adventure starring your actual pet — and your kid.",
+      tagline: "A joyful adventure starring your actual pet — with a child hero alongside.",
       description:
         "A joyful, personalized picture book where your actual pet — illustrated " +
         "from a photo you upload — stars as the hero of a fun 'save the day' quest " +

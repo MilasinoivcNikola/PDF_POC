@@ -55,7 +55,9 @@ export default function ChildPage() {
           What is the child&apos;s name?
         </label>
         <p className="field__hint">
-          The book is written to them, by name, on nearly every page.
+          The book is written to them, by name, on nearly every page. Your
+          photo brings your pet to life on every page. The child is drawn as a
+          soft, stylized character — not a portrait of a specific child.
         </p>
         <input
           type="text"

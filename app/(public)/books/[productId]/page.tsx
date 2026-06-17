@@ -248,6 +248,11 @@ export default async function BookDetailPage({ params }: DetailProps) {
                                 {item.reveal}
                               </span>
                             ) : null}
+                            {item.note ? (
+                              <span className={styles.qitemNote}>
+                                {item.note}
+                              </span>
+                            ) : null}
                           </div>
                         </li>
                       ))}

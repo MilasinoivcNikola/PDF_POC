@@ -269,6 +269,24 @@ describe("book-questions coverage", () => {
       .filter((id) => !FIXTURE_PINS[id]);
     expect(unpinned, "questionnaires without fixture pins").toEqual([]);
   });
+
+  // The two child-featuring titles carry the child-rendering clarification note on
+  // their child question item (the child is drawn as a stylized character, not a
+  // likeness — see context/fixes/child-rendering-expectation-copy.md). No other
+  // title sets a note, so a non-child title shows no child note in the prep section.
+  it("only the child-featuring titles carry a child-rendering note", () => {
+    const noteByProduct = new Map<string, number>();
+    for (const q of getAllBookQuestions()) {
+      const count = q.groups
+        .flatMap((g) => g.items)
+        .filter((i) => typeof i.note === "string").length;
+      if (count > 0) noteByProduct.set(q.productId, count);
+    }
+    expect([...noteByProduct.keys()].sort()).toEqual([
+      "story-1-book",
+      "story-8-adventure",
+    ]);
+  });
 });
 
 // ---------------------------------------------------------------------------
