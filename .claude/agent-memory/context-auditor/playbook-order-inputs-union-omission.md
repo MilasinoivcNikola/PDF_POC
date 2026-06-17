@@ -21,6 +21,17 @@ don't block a PR on it. When a new-sellable-book branch lands and the playbook s
 hasn't recorded it, recommend *update the doc* (add one line to the reuse guarantee or a
 wiring step). See [[new-book-playbook]], [[deploy-surface-secrets-lag]].
 
+**RESOLVED 2026-06-17 (`fix/docs-and-cli-consistency`).** The playbook now carries
+"Step 2a — widen the input-type unions (sellable plumbing)": documents `Order.inputs`
+(`lib/order/types.ts`, + its doc-comment union just above — both real) and `AnySession`
+(`lib/session/disk.ts`) as the two order/disk unions registration doesn't force you to
+touch, and correctly notes `OrderRow.inputs` (`lib/order/store.ts`) is `Order["inputs"]`
+(derived → widens automatically, no edit). Code-verified all three. **No contradiction
+with the reuse guarantee** (~L450): "zero changes to Supabase/worker/admin/delivery" is
+runtime/infra; Step 2a is a compile-time type-only widen so the product-agnostic code
+compiles with the new shape — different axes, they coexist. The debt.md "Playbook doc
+gap — inputs unions" row was removed (paid). Don't re-flag.
+
 Settled-as-covered on PR-26 (so DON'T re-flag as drift): `LEMONSQUEEZY_VARIANT_<PRODUCT_ID>`
 + a `story-N-*` catalog entry are covered by the *generic* conventions in
 `coding-standards.md` (env line ~200, catalog map ~131) and `new-book-playbook.md` Steps 4–6;

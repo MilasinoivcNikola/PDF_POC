@@ -30,7 +30,19 @@ section, this is resolved — drop the finding. See [[new-book-playbook-pr10]],
 [[playbook-undocumented-conventions]] (same pattern: playbook lags conventions code
 already follows).
 
-Related env-file precedent (separate, lower): `proto:story8` is the FIRST CLI script in
-package.json to use `--env-file-if-exists=.env.local` (a built-in Node 22 / tsx flag, NOT
-a new dependency — no standards violation). `render:test` + `process:orders` lack it and
-rely on ambient env. Latent inconsistency worth a debt.md one-liner, not a doc fix.
+**RESOLVED 2026-06-17 (`fix/docs-and-cli-consistency`).** The playbook now carries a
+"The illustration-prototype exception" subsection (between the intro and Step 1) that
+genuinely *names the exception*, uses the cited "lightweight authoring branch" language
+verbatim, describes the deletable PR-0 go/no-go gate + "real prompt module carries
+forward, runner is throwaway" rule, and worked-examples feature 30. All three masterstory
+refs (`story-8-master-template.md:25,54,61`) + the spec (`30-...:5`) now resolve. The
+implementer matched the playbook heading/language to the dated citations rather than
+editing them (respecting "keep dated specs/masterstories as historical record"). Don't
+re-flag.
+
+Related env-file precedent — also RESOLVED same branch: `render:test` + `process:orders`
+now carry `--env-file-if-exists=.env.local` (matching `proto:story8`). Still a built-in
+Node 22 / tsx flag, NOT a dep — confirmed `.env.local.example` unchanged (no new var,
+just a new load mechanism), so no coding-standards/secrets sync was owed. The debt.md
+"Engine-CLI env-loading divergence" row was removed (paid, not marked resolved — matches
+the ledger's "remove when paid" convention).
