@@ -10,7 +10,6 @@
     "process:orders": "tsx --env-file-if-exists=.env.local --tsconfig scripts/tsconfig.json scripts/process-orders.ts",
     "proto:story8": "tsx --env-file-if-exists=.env.local --tsconfig scripts/tsconfig.json scripts/story8-prototype.ts",
     "proto:story8-climax": "tsx --env-file-if-exists=.env.local --tsconfig scripts/tsconfig.json scripts/story8-climax-compare.ts",
-    "proto:story1-high": "tsx --env-file-if-exists=.env.local --tsconfig scripts/tsconfig.json scripts/story1-high-run.ts",
     "proto:sample": "tsx --env-file-if-exists=.env.local --tsconfig scripts/tsconfig.json scripts/sample-run.ts",
     "proto:favicon": "tsx --tsconfig scripts/tsconfig.json scripts/favicon-ico.ts",
     "lint": "eslint .",

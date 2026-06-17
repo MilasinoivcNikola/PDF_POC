@@ -32,7 +32,7 @@ interface FixturePin {
 
 const FIXTURE_PINS: Record<string, FixturePin> = {
   "story-1-book": {
-    fixture: "fixtures/story1-high.json",
+    fixture: "fixtures/sample-story1-dog.json",
     pins: {
       "Their name": "pet.name",
       "What kind of animal": "pet.species",
