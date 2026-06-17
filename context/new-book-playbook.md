@@ -27,6 +27,38 @@ Throughout, `<book>` is the new product's slug (the `lib/story/<book>/` folder n
 `<book-type>` is its `StoryType` value (e.g. `"story-3"`), and `<book-id>` is its catalog
 `productId` (e.g. `"story-3-booklet"`).
 
+### The illustration-prototype exception (when the pet-consistency approach is unproven)
+
+The "recurring content work, not infra" framing above assumes the book's illustration
+approach is one the engine has already proven. **One exception breaks that assumption:**
+when a title needs a pet-consistency strategy the pipeline has **never validated** — the
+first use of a new Approach, or a markedly harder consistency case (many dynamic action
+poses, a species that anchors worse) — **do not greenlight it as a lightweight authoring
+branch.** The differentiator ("this is *your* actual pet") and the technical risk are the
+same sentence, and the risk lives in the illustration engine, not the page templates.
+
+In that case, run a **deletable go/no-go prototype gate as a PR-0, before any authoring
+PR**:
+
+- Build *only* enough to answer one question — **does the pet stay on-model across the
+  book's hardest scenes under the chosen approach?** No text engine, no registry entry, no
+  wizard, no storefront, not sellable. A throwaway runner script (the
+  `scripts/story8-prototype.ts` pattern + a `proto:*` `package.json` entry) plus a contact
+  sheet to eyeball is enough.
+- The script is **throwaway, but its real prompt module is not.** Author the per-scene
+  prompt builder for real (e.g. `lib/ai/<book>-prompts.ts`) so that **on GO** it carries
+  forward verbatim into PR-A; only the runner + contact-sheet harness get deleted.
+- **Gate the rest of the build on the verdict:** PR-A (text + registry + imagery) and PR-B
+  (wizard + storefront) must not start until the prototype returns **GO**.
+
+**Worked example — feature 30 (Story 8, PR-0):** the catalog's first **Approach-B** book
+(sequential accumulating-reference) and its hardest consistency case (10 dynamic action
+poses). PR-0 proved the test pet held on-model → **GO**; its `lib/ai/story8-prompts.ts`
+carried into PR-A unchanged while the B-loop runner + contact sheet were deleted. See
+[features/30-story8-prototype-gate.md](./features/30-story8-prototype-gate.md). Most
+titles **skip this entirely** — they reuse a proven approach (A or figure-free) and go
+straight to Step 1.
+
 ---
 
 ## Step 1 — Author the text
@@ -170,6 +202,30 @@ You will also wire the wizard's draft→session bridge and per-`storyType` valid
 picker (`app/(public)/page.tsx` + `components/wizard/StoryStartButton.tsx`) and any new
 `app/(operator)/create/<step>/page.tsx` steps — exactly as feature 18 did for Story 2. If
 the new book reuses Story-1 or Story-2's input set, most of this is a small delta.
+
+### Step 2a — widen the input-type unions (sellable plumbing)
+
+Adding the new `Story<N>Session` shape (Step 2) means the engine, the disk layer, and the
+order record can all carry it. Most of those unions are touched by the registration wiring
+above, but **two order/session-layer unions are easy to miss** — they're followed in code
+yet sit outside the registry seam, so an author can leave a new title that resolves and
+renders locally but can't be stored as an order:
+
+- **`Order.inputs`** — the captured-wizard-inputs union in `lib/order/types.ts` (the
+  `inputs:` field on the `Order` interface). Add `| Story<N>Session` to it, and to the
+  doc-comment union just above it. **This is the one that bites:** miss it and the order
+  type can't hold the new book's inputs, so intake/checkout won't compile for the title.
+- **`AnySession`** — the product-agnostic disk-layer union in `lib/session/disk.ts`
+  (`writeSession` / `readSession` round-trip it as id-keyed JSON; the batch worker writes
+  `./sessions/[orderId].json` through it). Add `| Story<N>Session` here too.
+- **`OrderRow.inputs`** — in `lib/order/store.ts`, this is typed `Order["inputs"]`
+  (**derived**, not a separate literal), so it widens automatically once `Order.inputs`
+  does. No edit needed — listed only so you don't hunt for a union that isn't there.
+
+(The registry/draft/route unions — `lib/story/registry.ts`'s session union,
+`draftToSession`'s return union in `lib/session/draft.ts`, and the validation dispatch in
+`app/(operator)/api/session/route.ts` — are part of the Step 2 registration/wizard wiring
+above. These two are the *order/disk* unions that registration doesn't force you to touch.)
 
 ---
 
